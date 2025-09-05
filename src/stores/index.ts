@@ -2,7 +2,10 @@ import { defineStore } from 'pinia'
 import axios from 'axios'
 import type { Issue, Notification, Document, Minute, Setting, TeamMember } from '../types'
 
-const API_BASE_URL = 'http://localhost:4000/api'
+const API_BASE_URL = 'http://localhost:4000/api'  // Match backend port
+
+// Export auth store
+export { useAuthStore } from './auth'
 
 // Clients Store
 export const useClientsStore = defineStore('clients', {
