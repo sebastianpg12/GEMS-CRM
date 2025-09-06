@@ -99,9 +99,49 @@ export interface TeamMember {
   _id?: string
   name: string
   email: string
-  role: string
-  department: string
+  role: 'admin' | 'manager' | 'employee' | 'viewer'
+  department?: string
+  position?: string
+  phone?: string
   isActive: boolean
+  lastLogin?: string
+  permissions?: {
+    dashboard: boolean
+    clients: {
+      view: boolean
+      create: boolean
+      edit: boolean
+      delete: boolean
+    }
+    activities: {
+      view: boolean
+      create: boolean
+      edit: boolean
+      delete: boolean
+    }
+    reports: {
+      view: boolean
+      export: boolean
+    }
+    accounting: {
+      view: boolean
+      create: boolean
+      edit: boolean
+      delete: boolean
+    }
+    cases: {
+      view: boolean
+      create: boolean
+      edit: boolean
+      delete: boolean
+    }
+    team: {
+      view: boolean
+      create: boolean
+      edit: boolean
+      delete: boolean
+    }
+  }
   createdAt?: string
   updatedAt?: string
 }

@@ -26,7 +26,7 @@
     <!-- Stats Cards - Role-based visibility -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
       <!-- Clientes Card - Everyone can see -->
-      <PermissionGuard :permissions="['view-clients']">
+      <PermissionGuard :permissions="['view-clients']" :fallback="false">
         <div class="bg-gradient-to-br from-blue-500/20 to-blue-600/10 rounded-2xl p-6 border border-blue-500/20">
           <div class="flex items-center justify-between">
             <div>
@@ -41,7 +41,7 @@
       </PermissionGuard>
       
       <!-- Actividades Card - Everyone can see -->
-      <PermissionGuard :permissions="['view-activities']">
+      <PermissionGuard :permissions="['view-activities']" :fallback="false">
         <div class="bg-gradient-to-br from-green-500/20 to-green-600/10 rounded-2xl p-6 border border-green-500/20">
           <div class="flex items-center justify-between">
             <div>
@@ -56,7 +56,7 @@
       </PermissionGuard>
       
       <!-- Ingresos Card - Only Admin/Manager -->
-      <PermissionGuard :permissions="['view-accounting']">
+      <PermissionGuard :permissions="['view-accounting']" :fallback="false">
         <div class="bg-gradient-to-br from-purple-500/20 to-purple-600/10 rounded-2xl p-6 border border-purple-500/20">
           <div class="flex items-center justify-between">
             <div>
@@ -71,7 +71,7 @@
       </PermissionGuard>
       
       <!-- Issues Card - Admin/Manager/Employee -->
-      <PermissionGuard :permissions="['view-cases']">
+      <PermissionGuard :permissions="['view-cases']" :fallback="false">
         <div class="bg-gradient-to-br from-red-500/20 to-red-600/10 rounded-2xl p-6 border border-red-500/20">
           <div class="flex items-center justify-between">
             <div>
@@ -86,7 +86,7 @@
       </PermissionGuard>
 
       <!-- Team Members Card - Only Admin/Manager -->
-      <PermissionGuard :permissions="['view-team']">
+      <PermissionGuard :permissions="['view-team']" :fallback="false">
         <div class="bg-gradient-to-br from-indigo-500/20 to-indigo-600/10 rounded-2xl p-6 border border-indigo-500/20">
           <div class="flex items-center justify-between">
             <div>
@@ -193,74 +193,18 @@
     </div>
     
     <!-- Quick Actions - Role-based -->
-    <div class="bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-purple-500/20">
+    <div v-if="availableQuickActions.length > 0" class="bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-purple-500/20">
       <h3 class="text-xl font-bold text-white mb-6">Acciones Rápidas</h3>
-      <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-        
-        <!-- New Client - Only if can create clients -->
-        <PermissionGuard :permissions="['create-clients']" :fallback="false">
-          <router-link
-            to="/clients"
-            class="flex flex-col items-center p-4 bg-gradient-to-br from-blue-600/20 to-blue-700/20 
-                   rounded-xl border border-blue-500/30 hover:from-blue-500/30 hover:to-blue-600/30 
-                   transition-all duration-300 text-center group transform hover:scale-105"
-          >
-            <UserPlusIcon class="w-8 h-8 text-blue-400 group-hover:text-blue-300 mb-2" />
-            <span class="text-white text-sm font-medium">Nuevo Cliente</span>
-          </router-link>
-        </PermissionGuard>
-        
-        <!-- New Activity - Only if can create activities -->
-        <PermissionGuard :permissions="['create-activities']" :fallback="false">
-          <router-link
-            to="/activities"
-            class="flex flex-col items-center p-4 bg-gradient-to-br from-green-600/20 to-green-700/20 
-                   rounded-xl border border-green-500/30 hover:from-green-500/30 hover:to-green-600/30 
-                   transition-all duration-300 text-center group transform hover:scale-105"
-          >
-            <PlusCircleIcon class="w-8 h-8 text-green-400 group-hover:text-green-300 mb-2" />
-            <span class="text-white text-sm font-medium">Nueva Actividad</span>
-          </router-link>
-        </PermissionGuard>
-        
-        <!-- Register Payment - Only for Admin/Manager -->
-        <PermissionGuard :permissions="['view-accounting']" :fallback="false">
-          <router-link
-            to="/accounting"
-            class="flex flex-col items-center p-4 bg-gradient-to-br from-purple-600/20 to-purple-700/20 
-                   rounded-xl border border-purple-500/30 hover:from-purple-500/30 hover:to-purple-600/30 
-                   transition-all duration-300 text-center group transform hover:scale-105"
-          >
-            <BanknotesIcon class="w-8 h-8 text-purple-400 group-hover:text-purple-300 mb-2" />
-            <span class="text-white text-sm font-medium">Registrar Pago</span>
-          </router-link>
-        </PermissionGuard>
-        
-        <!-- New Case - Admin/Manager/Employee -->
-        <PermissionGuard :permissions="['view-cases']" :fallback="false">
-          <router-link
-            to="/cases"
-            class="flex flex-col items-center p-4 bg-gradient-to-br from-orange-600/20 to-orange-700/20 
-                   rounded-xl border border-orange-500/30 hover:from-orange-500/30 hover:to-orange-600/30 
-                   transition-all duration-300 text-center group transform hover:scale-105"
-          >
-            <ExclamationCircleIcon class="w-8 h-8 text-orange-400 group-hover:text-orange-300 mb-2" />
-            <span class="text-white text-sm font-medium">Nuevo Caso</span>
-          </router-link>
-        </PermissionGuard>
-
-        <!-- Manage Team - Only Admin/Manager -->
-        <PermissionGuard :permissions="['manage-team']" :fallback="false">
-          <router-link
-            to="/team"
-            class="flex flex-col items-center p-4 bg-gradient-to-br from-indigo-600/20 to-indigo-700/20 
-                   rounded-xl border border-indigo-500/30 hover:from-indigo-500/30 hover:to-indigo-600/30 
-                   transition-all duration-300 text-center group transform hover:scale-105"
-          >
-            <UsersIcon class="w-8 h-8 text-indigo-400 group-hover:text-indigo-300 mb-2" />
-            <span class="text-white text-sm font-medium">Gestionar Equipo</span>
-          </router-link>
-        </PermissionGuard>
+      <div class="flex flex-wrap gap-4 justify-center md:justify-start">
+        <router-link
+          v-for="action in availableQuickActions"
+          :key="action.name"
+          :to="action.to"
+          :class="`flex flex-col items-center p-4 bg-gradient-to-br ${action.colors} rounded-xl transition-all duration-300 text-center group transform hover:scale-105 min-w-[140px]`"
+        >
+          <component :is="action.icon" :class="`w-8 h-8 ${action.iconColor} mb-2`" />
+          <span class="text-white text-sm font-medium">{{ action.name }}</span>
+        </router-link>
       </div>
     </div>
 
@@ -354,6 +298,63 @@ const pendingPayments = computed(() =>
 
 const showDepartmentSections = computed(() => {
   return authStore.canViewMarketingSection || authStore.canViewSalesSection
+})
+
+// Computed property for available quick actions
+const availableQuickActions = computed(() => {
+  const actions = []
+  
+  if (authStore.canCreateClients) {
+    actions.push({
+      name: 'Nuevo Cliente',
+      to: '/clients',
+      icon: UserPlusIcon,
+      colors: 'from-blue-600/20 to-blue-700/20 border-blue-500/30 hover:from-blue-500/30 hover:to-blue-600/30',
+      iconColor: 'text-blue-400 group-hover:text-blue-300'
+    })
+  }
+  
+  if (authStore.canCreateActivities) {
+    actions.push({
+      name: 'Nueva Actividad',
+      to: '/activities',
+      icon: PlusCircleIcon,
+      colors: 'from-green-600/20 to-green-700/20 border-green-500/30 hover:from-green-500/30 hover:to-green-600/30',
+      iconColor: 'text-green-400 group-hover:text-green-300'
+    })
+  }
+  
+  if (authStore.canViewAccounting) {
+    actions.push({
+      name: 'Registrar Pago',
+      to: '/accounting',
+      icon: BanknotesIcon,
+      colors: 'from-purple-600/20 to-purple-700/20 border-purple-500/30 hover:from-purple-500/30 hover:to-purple-600/30',
+      iconColor: 'text-purple-400 group-hover:text-purple-300'
+    })
+  }
+  
+  if (authStore.canCreateCases) {
+    actions.push({
+      name: 'Nuevo Caso',
+      to: '/cases',
+      icon: ExclamationCircleIcon,
+      colors: 'from-orange-600/20 to-orange-700/20 border-orange-500/30 hover:from-orange-500/30 hover:to-orange-600/30',
+      iconColor: 'text-orange-400 group-hover:text-orange-300'
+    })
+  }
+  
+  if (authStore.canCreateTeam) {
+    actions.push({
+      name: 'Gestionar Equipo',
+      to: '/team',
+      icon: UsersIcon,
+      colors: 'from-indigo-600/20 to-indigo-700/20 border-indigo-500/30 hover:from-indigo-500/30 hover:to-indigo-600/30',
+      iconColor: 'text-indigo-400 group-hover:text-indigo-300'
+    })
+  }
+  
+  return actions
 })
 
 const getRoleDisplayName = (role?: string) => {

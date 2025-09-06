@@ -7,9 +7,9 @@ import Login from './pages/Login.vue'
 import Clients from './pages/Clients.vue'
 import Activities from './pages/Activities.vue'
 import ReportsView from './pages/ReportsView.vue'
+import Team from './pages/Team.vue'
 import AccountingView from './components/AccountingView.vue'
 import CasesView from './components/CasesView.vue'
-import TeamView from './components/TeamView.vue'
 
 const routes = [
   {
@@ -28,13 +28,19 @@ const routes = [
     path: '/clients',
     name: 'Clients',
     component: Clients,
-    meta: { requiresAuth: true }
+    meta: { 
+      requiresAuth: true,
+      requiredPermissions: ['view-clients']
+    }
   },
   {
     path: '/activities',
     name: 'Activities',
     component: Activities,
-    meta: { requiresAuth: true }
+    meta: { 
+      requiresAuth: true,
+      requiredPermissions: ['view-activities']
+    }
   },
   {
     path: '/reports',
@@ -60,16 +66,16 @@ const routes = [
     component: CasesView,
     meta: { 
       requiresAuth: true,
-      requiredRoles: ['admin', 'manager', 'employee']
+      requiredPermissions: ['view-cases']
     }
   },
   {
     path: '/team',
     name: 'Team',
-    component: TeamView,
+    component: Team,
     meta: { 
       requiresAuth: true,
-      requiredRoles: ['admin', 'manager']
+      requiredPermissions: ['view-team']
     }
   },
   {
@@ -84,7 +90,7 @@ const router = createRouter({
 })
 
 // Global navigation guard
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to, _from, next) => {
   const authStore = useAuthStore()
   
   // Always allow access to login page
@@ -109,12 +115,41 @@ router.beforeEach(async (to, from, next) => {
     }
   }
   
-  // Check role-based permissions
+  // Check role-based permissions (legacy support)
   if (to.meta.requiredRoles && authStore.user) {
     const userRole = authStore.user.role
     const requiredRoles = to.meta.requiredRoles as string[]
     
     if (!requiredRoles.includes(userRole)) {
+      // Redirect to dashboard if user doesn't have permission
+      next('/')
+      return
+    }
+  }
+  
+  // Check permission-based access (new system)
+  if (to.meta.requiredPermissions && authStore.user) {
+    const requiredPermissions = to.meta.requiredPermissions as string[]
+    const hasPermission = requiredPermissions.some(permission => {
+      switch (permission) {
+        case 'view-clients':
+          return authStore.canViewClients
+        case 'view-activities':
+          return authStore.canViewActivities
+        case 'view-team':
+          return authStore.canViewTeam
+        case 'view-accounting':
+          return authStore.canViewAccounting
+        case 'view-reports':
+          return authStore.canViewReports
+        case 'view-cases':
+          return authStore.canViewCases
+        default:
+          return false
+      }
+    })
+    
+    if (!hasPermission) {
       // Redirect to dashboard if user doesn't have permission
       next('/')
       return

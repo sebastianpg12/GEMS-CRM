@@ -9,13 +9,15 @@
         <p class="text-gray-400 mt-2">{{ clients.length }} clientes registrados</p>
       </div>
       
-      <button 
-        @click="showModal = true; editingClient = null; resetForm()" 
-        class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 flex items-center gap-2 font-medium transform hover:scale-105 shadow-lg shadow-purple-500/25"
-      >
-        <PlusIcon class="w-5 h-5" />
-        Nuevo Cliente
-      </button>
+      <PermissionGuard :permissions="['create-clients']" :fallback="false">
+        <button 
+          @click="showModal = true; editingClient = null; resetForm()" 
+          class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 flex items-center gap-2 font-medium transform hover:scale-105 shadow-lg shadow-purple-500/25"
+        >
+          <PlusIcon class="w-5 h-5" />
+          Nuevo Cliente
+        </button>
+      </PermissionGuard>
     </div>
     
     <!-- Search and Filters -->
@@ -114,20 +116,24 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right">
                   <div class="flex items-center justify-end gap-2">
-                    <button
-                      @click="editClient(client)"
-                      class="p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 rounded-lg transition-colors"
-                      title="Editar cliente"
-                    >
-                      <PencilIcon class="w-4 h-4" />
-                    </button>
-                    <button
-                      @click="confirmDelete(client)"
-                      class="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded-lg transition-colors"
-                      title="Eliminar cliente"
-                    >
-                      <TrashIcon class="w-4 h-4" />
-                    </button>
+                    <PermissionGuard :permissions="['edit-clients']" :fallback="false">
+                      <button
+                        @click="editClient(client)"
+                        class="p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 rounded-lg transition-colors"
+                        title="Editar cliente"
+                      >
+                        <PencilIcon class="w-4 h-4" />
+                      </button>
+                    </PermissionGuard>
+                    <PermissionGuard :permissions="['delete-clients']" :fallback="false">
+                      <button
+                        @click="confirmDelete(client)"
+                        class="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded-lg transition-colors"
+                        title="Eliminar cliente"
+                      >
+                        <TrashIcon class="w-4 h-4" />
+                      </button>
+                    </PermissionGuard>
                   </div>
                 </td>
               </tr>
@@ -153,18 +159,22 @@
                 </div>
               </div>
               <div class="flex gap-2">
-                <button
-                  @click="editClient(client)"
-                  class="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
-                >
-                  <PencilIcon class="w-4 h-4" />
-                </button>
-                <button
-                  @click="confirmDelete(client)"
-                  class="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
-                >
-                  <TrashIcon class="w-4 h-4" />
-                </button>
+                <PermissionGuard :permissions="['edit-clients']" :fallback="false">
+                  <button
+                    @click="editClient(client)"
+                    class="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
+                  >
+                    <PencilIcon class="w-4 h-4" />
+                  </button>
+                </PermissionGuard>
+                <PermissionGuard :permissions="['delete-clients']" :fallback="false">
+                  <button
+                    @click="confirmDelete(client)"
+                    class="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
+                  >
+                    <TrashIcon class="w-4 h-4" />
+                  </button>
+                </PermissionGuard>
               </div>
             </div>
             <div class="space-y-1 text-sm">

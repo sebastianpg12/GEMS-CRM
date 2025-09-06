@@ -2,22 +2,23 @@
   <div v-if="hasPermission">
     <slot />
   </div>
-  <div v-else class="flex items-center justify-center min-h-[400px]">
+  <div v-else-if="fallback" class="flex items-center justify-center min-h-[200px]">
     <div class="text-center">
-      <div class="w-24 h-24 mx-auto mb-6 bg-red-100 rounded-full flex items-center justify-center">
-        <i class="fas fa-ban text-4xl text-red-600"></i>
+      <div class="w-12 h-12 mx-auto mb-4 bg-red-100/20 rounded-full flex items-center justify-center">
+        <i class="fas fa-ban text-xl text-red-400"></i>
       </div>
-      <h2 class="text-2xl font-bold text-white mb-4">Acceso Denegado</h2>
-      <p class="text-gray-400 mb-6">No tienes permisos para acceder a esta sección.</p>
+      <h3 class="text-lg font-semibold text-white mb-2">Acceso Denegado</h3>
+      <p class="text-gray-400 text-sm mb-4">No tienes permisos para acceder a esta sección.</p>
       <router-link
         to="/"
-        class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200"
+        class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200"
       >
-        <i class="fas fa-home mr-2"></i>
+        <i class="fas fa-home mr-1 text-sm"></i>
         Volver al Dashboard
       </router-link>
     </div>
   </div>
+  <!-- When fallback is false, show nothing -->
 </template>
 
 <script setup lang="ts">
@@ -54,7 +55,7 @@ const hasPermission = computed(() => {
   }
 
   // Check specific permissions
-  if (props.permissions && props.permissions.length > 0) {
+  if (props.permissions && Array.isArray(props.permissions) && props.permissions.length > 0) {
     const permissionChecks = props.permissions.map(permission => {
       switch (permission) {
         case 'view-dashboard':
@@ -83,6 +84,18 @@ const hasPermission = computed(() => {
           return authStore.canEditActivities
         case 'delete-activities':
           return authStore.canDeleteActivities
+        case 'create-cases':
+          return authStore.canCreateCases
+        case 'edit-cases':
+          return authStore.canEditCases
+        case 'delete-cases':
+          return authStore.canDeleteCases
+        case 'create-team':
+          return authStore.canCreateTeam
+        case 'edit-team':
+          return authStore.canEditTeam
+        case 'delete-team':
+          return authStore.canDeleteTeam
         case 'manage-team':
           return authStore.canManageTeam
         case 'manage-accounting':

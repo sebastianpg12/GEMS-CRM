@@ -538,7 +538,7 @@ export const useSettingsStore = defineStore('settings', {
   }
 })
 
-// Team Store
+// Team Store (unified with Users)
 export const useTeamStore = defineStore('team', {
   state: () => ({
     members: [] as TeamMember[],
@@ -550,11 +550,22 @@ export const useTeamStore = defineStore('team', {
     async fetchTeam() {
       this.loading = true
       try {
-        const response = await axios.get(`${API_BASE_URL}/team`)
-        this.members = response.data
+        console.log('🔄 Fetching team data...')
+        console.log('📦 Token:', localStorage.getItem('token') ? 'Present' : 'Missing')
+        
+        const response = await axios.get(`${API_BASE_URL}/team`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        })
+        
+        console.log('✅ Team response:', response.data)
+        this.members = response.data.success ? response.data.data : []
         this.error = null
       } catch (error: any) {
-        this.error = error.message || 'Error fetching team'
+        console.error('❌ Error fetching team:', error.response || error)
+        this.error = error.response?.data?.message || 'Error fetching team'
+        console.error('Error fetching team:', error)
       } finally {
         this.loading = false
       }
@@ -563,12 +574,22 @@ export const useTeamStore = defineStore('team', {
     async createMember(memberData: Partial<TeamMember>) {
       this.loading = true
       try {
-        const response = await axios.post(`${API_BASE_URL}/team`, memberData)
-        this.members.push(response.data)
-        this.error = null
-        return response.data
+        const response = await axios.post(`${API_BASE_URL}/team`, memberData, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        })
+        
+        if (response.data.success) {
+          this.members.push(response.data.data)
+          this.error = null
+          return response.data.data
+        } else {
+          throw new Error(response.data.message || 'Error creating team member')
+        }
       } catch (error: any) {
-        this.error = error.message || 'Error creating team member'
+        this.error = error.response?.data?.message || error.message || 'Error creating team member'
+        console.error('Error creating team member:', error)
         throw error
       } finally {
         this.loading = false
@@ -578,15 +599,25 @@ export const useTeamStore = defineStore('team', {
     async updateMember(memberId: string, memberData: Partial<TeamMember>) {
       this.loading = true
       try {
-        const response = await axios.put(`${API_BASE_URL}/team/${memberId}`, memberData)
-        const index = this.members.findIndex(m => m._id === memberId)
-        if (index !== -1) {
-          this.members[index] = response.data
+        const response = await axios.put(`${API_BASE_URL}/team/${memberId}`, memberData, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        })
+        
+        if (response.data.success) {
+          const index = this.members.findIndex(m => m._id === memberId)
+          if (index !== -1) {
+            this.members[index] = response.data.data
+          }
+          this.error = null
+          return response.data.data
+        } else {
+          throw new Error(response.data.message || 'Error updating team member')
         }
-        this.error = null
-        return response.data
       } catch (error: any) {
-        this.error = error.message || 'Error updating team member'
+        this.error = error.response?.data?.message || error.message || 'Error updating team member'
+        console.error('Error updating team member:', error)
         throw error
       } finally {
         this.loading = false
@@ -596,11 +627,52 @@ export const useTeamStore = defineStore('team', {
     async deleteMember(memberId: string) {
       this.loading = true
       try {
-        await axios.delete(`${API_BASE_URL}/team/${memberId}`)
-        this.members = this.members.filter(m => m._id !== memberId)
-        this.error = null
+        const response = await axios.delete(`${API_BASE_URL}/team/${memberId}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        })
+        
+        if (response.data.success) {
+          const index = this.members.findIndex(m => m._id === memberId)
+          if (index !== -1) {
+            this.members[index] = { ...this.members[index], isActive: false }
+          }
+          this.error = null
+        } else {
+          throw new Error(response.data.message || 'Error deleting team member')
+        }
       } catch (error: any) {
-        this.error = error.message || 'Error deleting team member'
+        this.error = error.response?.data?.message || error.message || 'Error deleting team member'
+        console.error('Error deleting team member:', error)
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+    
+    async activateMember(memberId: string) {
+      this.loading = true
+      try {
+        const response = await axios.put(`${API_BASE_URL}/team/${memberId}/activate`, {}, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        })
+        
+        if (response.data.success) {
+          const index = this.members.findIndex(m => m._id === memberId)
+          if (index !== -1) {
+            this.members[index] = { ...this.members[index], isActive: true }
+          }
+          this.error = null
+          return response.data.data
+        } else {
+          throw new Error(response.data.message || 'Error activating team member')
+        }
+      } catch (error: any) {
+        this.error = error.response?.data?.message || error.message || 'Error activating team member'
+        console.error('Error activating team member:', error)
         throw error
       } finally {
         this.loading = false

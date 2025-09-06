@@ -9,13 +9,15 @@
       
       <div class="flex items-center gap-4">
         <!-- Botón crear -->
-        <button
-          @click="$emit('create')"
-          class="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 flex items-center gap-2"
-        >
-          <i class="fas fa-plus"></i>
-          Nueva Actividad
-        </button>
+        <PermissionGuard :permissions="['create-activities']" :fallback="false">
+          <button
+            @click="$emit('create')"
+            class="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 flex items-center gap-2"
+          >
+            <i class="fas fa-plus"></i>
+            Nueva Actividad
+          </button>
+        </PermissionGuard>
       </div>
     </div>
 
@@ -86,20 +88,24 @@
                 >
                   <i class="fas fa-check text-xs"></i>
                 </button>
-                <button
-                  @click="$emit('edit', activity)"
-                  class="p-1 text-gray-400 hover:text-purple-400 hover:bg-purple-500/20 rounded transition-all duration-200"
-                  title="Editar"
-                >
-                  <i class="fas fa-edit text-xs"></i>
-                </button>
-                <button
-                  @click="deleteActivity(activity._id!)"
-                  class="p-1 text-gray-400 hover:text-red-400 hover:bg-red-500/20 rounded transition-all duration-200"
-                  title="Eliminar"
-                >
-                  <i class="fas fa-trash text-xs"></i>
-                </button>
+                <PermissionGuard :permissions="['edit-activities']" :fallback="false">
+                  <button
+                    @click="$emit('edit', activity)"
+                    class="p-1 text-gray-400 hover:text-purple-400 hover:bg-purple-500/20 rounded transition-all duration-200"
+                    title="Editar"
+                  >
+                    <i class="fas fa-edit text-xs"></i>
+                  </button>
+                </PermissionGuard>
+                <PermissionGuard :permissions="['delete-activities']" :fallback="false">
+                  <button
+                    @click="deleteActivity(activity._id!)"
+                    class="p-1 text-gray-400 hover:text-red-400 hover:bg-red-500/20 rounded transition-all duration-200"
+                    title="Eliminar"
+                  >
+                    <i class="fas fa-trash text-xs"></i>
+                  </button>
+                </PermissionGuard>
               </div>
             </div>
 
@@ -166,20 +172,24 @@
                 <h3 class="text-white font-semibold text-sm leading-tight flex-1">{{ activity.title }}</h3>
               </div>
               <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  @click="$emit('edit', activity)"
-                  class="p-1 text-gray-400 hover:text-purple-400 hover:bg-purple-500/20 rounded transition-all duration-200"
-                  title="Editar"
-                >
-                  <i class="fas fa-edit text-xs"></i>
-                </button>
-                <button
-                  @click="deleteActivity(activity._id!)"
-                  class="p-1 text-gray-400 hover:text-red-400 hover:bg-red-500/20 rounded transition-all duration-200"
-                  title="Eliminar"
-                >
-                  <i class="fas fa-trash text-xs"></i>
-                </button>
+                <PermissionGuard :permissions="['edit-activities']" :fallback="false">
+                  <button
+                    @click="$emit('edit', activity)"
+                    class="p-1 text-gray-400 hover:text-purple-400 hover:bg-purple-500/20 rounded transition-all duration-200"
+                    title="Editar"
+                  >
+                    <i class="fas fa-edit text-xs"></i>
+                  </button>
+                </PermissionGuard>
+                <PermissionGuard :permissions="['delete-activities']" :fallback="false">
+                  <button
+                    @click="deleteActivity(activity._id!)"
+                    class="p-1 text-gray-400 hover:text-red-400 hover:bg-red-500/20 rounded transition-all duration-200"
+                    title="Eliminar"
+                  >
+                    <i class="fas fa-trash text-xs"></i>
+                  </button>
+                </PermissionGuard>
               </div>
             </div>
 
@@ -246,20 +256,24 @@
                 <h3 class="text-white font-semibold text-sm leading-tight flex-1">{{ activity.title }}</h3>
               </div>
               <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  @click="$emit('edit', activity)"
-                  class="p-1 text-gray-400 hover:text-purple-400 hover:bg-purple-500/20 rounded transition-all duration-200"
-                  title="Editar"
-                >
-                  <i class="fas fa-edit text-xs"></i>
-                </button>
-                <button
-                  @click="deleteActivity(activity._id!)"
-                  class="p-1 text-gray-400 hover:text-red-400 hover:bg-red-500/20 rounded transition-all duration-200"
-                  title="Eliminar"
-                >
-                  <i class="fas fa-trash text-xs"></i>
-                </button>
+                <PermissionGuard :permissions="['edit-activities']" :fallback="false">
+                  <button
+                    @click="$emit('edit', activity)"
+                    class="p-1 text-gray-400 hover:text-purple-400 hover:bg-purple-500/20 rounded transition-all duration-200"
+                    title="Editar"
+                  >
+                    <i class="fas fa-edit text-xs"></i>
+                  </button>
+                </PermissionGuard>
+                <PermissionGuard :permissions="['delete-activities']" :fallback="false">
+                  <button
+                    @click="deleteActivity(activity._id!)"
+                    class="p-1 text-gray-400 hover:text-red-400 hover:bg-red-500/20 rounded transition-all duration-200"
+                    title="Eliminar"
+                  >
+                    <i class="fas fa-trash text-xs"></i>
+                  </button>
+                </PermissionGuard>
               </div>
             </div>
 
@@ -299,13 +313,15 @@
         <p class="text-gray-400 mb-6">
           {{ searchTerm ? 'No se encontraron actividades que coincidan con tu búsqueda' : 'Comienza agregando tu primera actividad' }}
         </p>
-        <button
-          @click="$emit('create')"
-          class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200"
-        >
-          <i class="fas fa-plus mr-2"></i>
-          Crear Primera Actividad
-        </button>
+        <PermissionGuard :permissions="['create-activities']" :fallback="false">
+          <button
+            @click="$emit('create')"
+            class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200"
+          >
+            <i class="fas fa-plus mr-2"></i>
+            Crear Primera Actividad
+          </button>
+        </PermissionGuard>
       </div>
     </div>
   </div>
@@ -316,6 +332,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { activityService, type ActivityData } from '../../services/activityService'
 import { clientService, type ClientData } from '../../services/clientService'
 import { useNotifications } from '../../composables/useNotifications'
+import PermissionGuard from '../PermissionGuard.vue'
 
 // Props
 interface Props {
@@ -454,54 +471,6 @@ const getClientName = (clientData: string | any): string => {
   }
   
   return 'Cliente no válido'
-}
-
-const getActivityIcon = (status: string): string => {
-  switch (status) {
-    case 'completed':
-      return 'bg-green-500'
-    case 'cancelled':
-      return 'bg-red-500'
-    case 'pending':
-    default:
-      return 'bg-yellow-500'
-  }
-}
-
-const getActivityIconClass = (status: string): string => {
-  switch (status) {
-    case 'completed':
-      return 'fas fa-check'
-    case 'cancelled':
-      return 'fas fa-times'
-    case 'pending':
-    default:
-      return 'fas fa-clock'
-  }
-}
-
-const getStatusColor = (status: string): string => {
-  switch (status) {
-    case 'completed':
-      return 'bg-green-500/20 text-green-300'
-    case 'cancelled':
-      return 'bg-red-500/20 text-red-300'
-    case 'pending':
-    default:
-      return 'bg-yellow-500/20 text-yellow-300'
-  }
-}
-
-const getStatusText = (status: string): string => {
-  switch (status) {
-    case 'completed':
-      return 'Completada'
-    case 'cancelled':
-      return 'Cancelada'
-    case 'pending':
-    default:
-      return 'Pendiente'
-  }
 }
 
 const formatDate = (dateString: string): string => {

@@ -9,6 +9,43 @@ export interface User {
   role: 'admin' | 'manager' | 'employee' | 'viewer'
   department: string
   position: string
+  permissions?: {
+    dashboard: boolean
+    clients: {
+      view: boolean
+      create: boolean
+      edit: boolean
+      delete: boolean
+    }
+    activities: {
+      view: boolean
+      create: boolean
+      edit: boolean
+      delete: boolean
+    }
+    reports: {
+      view: boolean
+      export: boolean
+    }
+    accounting: {
+      view: boolean
+      create: boolean
+      edit: boolean
+      delete: boolean
+    }
+    cases: {
+      view: boolean
+      create: boolean
+      edit: boolean
+      delete: boolean
+    }
+    team: {
+      view: boolean
+      create: boolean
+      edit: boolean
+      delete: boolean
+    }
+  }
 }
 
 export interface LoginCredentials {
@@ -29,29 +66,56 @@ export const useAuthStore = defineStore('auth', () => {
   const isAdmin = computed(() => user.value?.role === 'admin')
   const isManager = computed(() => user.value?.role === 'manager' || user.value?.role === 'admin')
   
-  // Role-based permissions
-  const canViewDashboard = computed(() => isAuthenticated.value)
-  const canViewClients = computed(() => isAuthenticated.value)
-  const canViewActivities = computed(() => isAuthenticated.value)
-  const canViewReports = computed(() => ['admin', 'manager'].includes(user.value?.role || ''))
-  const canViewAccounting = computed(() => ['admin', 'manager'].includes(user.value?.role || ''))
-  const canViewCases = computed(() => ['admin', 'manager', 'employee'].includes(user.value?.role || ''))
-  const canViewTeam = computed(() => ['admin', 'manager'].includes(user.value?.role || ''))
+  // Helper function to safely access permissions
+  const getUserPermission = (module: string, action: string) => {
+    return user.value?.permissions?.[module]?.[action] || false
+  }
   
-  // Create/Edit permissions
-  const canCreateClients = computed(() => ['admin', 'manager', 'employee'].includes(user.value?.role || ''))
-  const canEditClients = computed(() => ['admin', 'manager', 'employee'].includes(user.value?.role || ''))
-  const canDeleteClients = computed(() => ['admin', 'manager'].includes(user.value?.role || ''))
+  const getUserModulePermission = (module: string) => {
+    return user.value?.permissions?.[module] || false
+  }
+
+  // Role-based permissions usando la estructura de permisos del backend con fallbacks
+  const canViewDashboard = computed(() => getUserModulePermission('dashboard') || !!user.value)
   
-  const canCreateActivities = computed(() => isAuthenticated.value)
-  const canEditActivities = computed(() => {
-    if (!user.value) return false
-    return ['admin', 'manager'].includes(user.value.role) || user.value.role === 'employee'
+  // Clientes: Admin y Manager pueden ver, Empleado NO
+  const canViewClients = computed(() => {
+    if (user.value?.role === 'employee') return false // Empleado NO puede ver clientes
+    return getUserPermission('clients', 'view') || ['admin', 'manager'].includes(user.value?.role || '')
   })
-  const canDeleteActivities = computed(() => ['admin', 'manager'].includes(user.value?.role || ''))
   
-  const canManageTeam = computed(() => ['admin', 'manager'].includes(user.value?.role || ''))
-  const canManageAccounting = computed(() => user.value?.role === 'admin')
+  const canViewActivities = computed(() => getUserPermission('activities', 'view') || !!user.value)
+  const canViewReports = computed(() => getUserPermission('reports', 'view') || ['admin', 'manager'].includes(user.value?.role || ''))
+  const canViewAccounting = computed(() => getUserPermission('accounting', 'view') || ['admin', 'manager'].includes(user.value?.role || ''))
+  
+  // Casos: Admin, Manager y Empleado pueden ver
+  const canViewCases = computed(() => getUserPermission('cases', 'view') || ['admin', 'manager', 'employee'].includes(user.value?.role || ''))
+  
+  // Equipo: Admin, Manager y Empleado pueden ver  
+  const canViewTeam = computed(() => getUserPermission('team', 'view') || ['admin', 'manager', 'employee'].includes(user.value?.role || ''))
+  
+  // Create/Edit permissions with fallbacks
+  // Clientes: Solo Admin y Manager pueden crear/editar
+  const canCreateClients = computed(() => getUserPermission('clients', 'create') || ['admin', 'manager'].includes(user.value?.role || ''))
+  const canEditClients = computed(() => getUserPermission('clients', 'edit') || ['admin', 'manager'].includes(user.value?.role || ''))
+  const canDeleteClients = computed(() => getUserPermission('clients', 'delete') || ['admin'].includes(user.value?.role || ''))
+  
+  // Actividades: Admin, Manager y Empleado pueden hacer todo
+  const canCreateActivities = computed(() => getUserPermission('activities', 'create') || ['admin', 'manager', 'employee'].includes(user.value?.role || ''))
+  const canEditActivities = computed(() => getUserPermission('activities', 'edit') || ['admin', 'manager', 'employee'].includes(user.value?.role || ''))
+  const canDeleteActivities = computed(() => getUserPermission('activities', 'delete') || ['admin', 'manager', 'employee'].includes(user.value?.role || ''))
+  
+  // Casos: Solo Admin y Manager pueden crear/editar, Empleado solo ve
+  const canCreateCases = computed(() => getUserPermission('cases', 'create') || ['admin', 'manager'].includes(user.value?.role || ''))
+  const canEditCases = computed(() => getUserPermission('cases', 'edit') || ['admin', 'manager'].includes(user.value?.role || ''))
+  const canDeleteCases = computed(() => getUserPermission('cases', 'delete') || ['admin'].includes(user.value?.role || ''))
+  
+  // Equipo: Solo Admin y Manager pueden crear/editar, Empleado solo ve
+  const canCreateTeam = computed(() => getUserPermission('team', 'create') || ['admin', 'manager'].includes(user.value?.role || ''))
+  const canEditTeam = computed(() => getUserPermission('team', 'edit') || ['admin', 'manager'].includes(user.value?.role || ''))
+  const canDeleteTeam = computed(() => getUserPermission('team', 'delete') || ['admin'].includes(user.value?.role || ''))
+  const canManageTeam = computed(() => canCreateTeam.value || canEditTeam.value || canDeleteTeam.value)
+  const canManageAccounting = computed(() => getUserPermission('accounting', 'create') || getUserPermission('accounting', 'edit') || ['admin', 'manager'].includes(user.value?.role || ''))
 
   // Department-based access (for more granular control)
   const canViewMarketingSection = computed(() => {
@@ -225,7 +289,7 @@ export const useAuthStore = defineStore('auth', () => {
     isAdmin,
     isManager,
     
-    // Permissions
+    // Permission computed properties
     canViewDashboard,
     canViewClients,
     canViewActivities,
@@ -239,16 +303,23 @@ export const useAuthStore = defineStore('auth', () => {
     canCreateActivities,
     canEditActivities,
     canDeleteActivities,
+    canCreateCases,
+    canEditCases,
+    canDeleteCases,
+    canCreateTeam,
+    canEditTeam,
+    canDeleteTeam,
     canManageTeam,
     canManageAccounting,
+    
+    // Department access
     canViewMarketingSection,
     canViewSalesSection,
-    getAvailableModules,
     
     // Actions
     login,
     logout,
     checkAuth,
-    updateProfile
+    getAvailableModules,
   }
 })
