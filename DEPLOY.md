@@ -1,88 +1,54 @@
 # 🚀 Guía de Despliegue - GEMS CRM
 
-## Problema con GitHub Pages
+## ✅ Despliegue Automático (GitHub Actions)
 
-Si ves el error: *"Branch 'main' is not allowed to deploy to github-pages due to environment protection rules"*, hay varias soluciones:
+El despliegue se ejecuta automáticamente cuando haces push a `main`:
 
-## ✅ Solución 1: Configurar GitHub Pages correctamente
+- **Workflow**: `.github/workflows/deploy.yml`
+- **Método**: Deploy directo a rama `gh-pages`
+- **URL**: https://sebastianpg12.github.io/GEMS-CRM/
 
-1. Ve a tu repositorio en GitHub
-2. Settings → Pages
-3. En "Source", selecciona **"Deploy from a branch"**
-4. Selecciona la rama **"gh-pages"** 
-5. Carpeta: **"/ (root)"**
+## ✅ Despliegue Manual
 
-## ✅ Solución 2: Despliegue Manual (Recomendado)
-
-### PowerShell (Windows)
+### Opción 1: Script PowerShell
 ```powershell
 .\deploy.ps1
 ```
 
-### Bash (Linux/Mac)
-```bash
-chmod +x deploy.sh
-./deploy.sh
-```
-
-### npm script
+### Opción 2: npm command
 ```bash
 npm run deploy
 ```
 
-## ✅ Solución 3: GitHub Actions Alternativo
+## 🔧 Configuración
 
-Tenemos 2 workflows configurados:
+### Variables de Entorno (Solo en Workflow)
+Las variables se configuran directamente en el workflow:
+- `VITE_API_BASE_URL_PROD`: https://gems-crm-backend.onrender.com/api
+- `VITE_APP_NAME`: GEMS CRM
+- `VITE_DEBUG_MODE`: false
 
-### 1. `deploy.yml` - GitHub Pages Actions
-- Usa la nueva API de GitHub Pages
-- Requiere configuración específica en Settings
+### Detección Automática
+- **Desarrollo**: localhost → `http://localhost:4000/api`
+- **Producción**: GitHub Pages → `https://gems-crm-backend.onrender.com/api`
 
-### 2. `deploy-gh-pages.yml` - Rama gh-pages
-- Usa el método tradicional con rama gh-pages
-- Más compatible con configuraciones existentes
-
-## 🔧 Configuración Automática
-
-### Variables de Entorno (Producción)
-```env
-VITE_API_BASE_URL_PROD=https://gems-crm-backend.onrender.com/api
-VITE_APP_NAME=GEMS CRM
-VITE_APP_VERSION=1.0.0
-VITE_DEBUG_MODE=false
-```
-
-### Detección Automática de Ambiente
-- **Desarrollo**: `localhost` → API local (`http://localhost:4000/api`)
-- **Producción**: Cualquier dominio → API de producción
-
-## 🌐 URLs del Proyecto
+## 🌐 URLs
 
 - **Frontend**: https://sebastianpg12.github.io/GEMS-CRM/
 - **Backend**: https://gems-crm-backend.onrender.com/api
 
 ## 🛠️ Troubleshooting
 
-### Error: "environment protection rules"
-**Solución**: Cambiar source en GitHub Pages Settings a "Deploy from a branch" → "gh-pages"
-
-### Error: Node.js version
-**Solución**: Usamos Node.js 22 en workflow, versiones compatibles: >=20.19.0
-
-### Error: crypto.hash is not a function
-**Solución**: Downgraded Vite a v5.4.10 para compatibilidad
-
-### Error: Build fails
-1. Verificar versión de Node.js: `node --version`
-2. Limpiar cache: `npm cache clean --force`
+### Build falla localmente
+1. Verificar Node.js: `node --version` (requiere >=20.19.0)
+2. Limpiar cache: `npm cache clean --force`  
 3. Reinstalar: `npm ci`
-4. Build local: `npm run build`
+4. Build: `npm run build`
 
-## 📈 Estados del Despliegue
-
-- 🟢 **Desarrollo**: `npm run dev` → http://localhost:5173/
-- 🟡 **Build Local**: `npm run build` → carpeta `dist/`  
-- 🚀 **Producción**: GitHub Actions o Manual → GitHub Pages
+### Despliegue manual falla
+- Verificar que git está configurado
+- Verificar conexión a internet
+- Ejecutar: `git pull origin main` antes del deploy
 
 ---
-**Última actualización**: 2025-01-08
+**Configuración simplificada - Sin archivos .env en repo**
