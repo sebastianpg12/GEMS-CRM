@@ -8,7 +8,7 @@ El despliegue se ejecuta automáticamente cuando haces push a `main`:
 - **Método**: Deploy directo a rama `gh-pages`
 - **URL**: https://sebastianpg12.github.io/GEMS-CRM/
 
-## ✅ Despliegue Manual
+## ✅ Despliegue Manualaaaa
 
 ### Opción 1: Script PowerShell
 ```powershell
