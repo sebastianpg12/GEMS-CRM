@@ -51,8 +51,21 @@ Sistema completo de gestión empresarial (Customer Relationship Management) desa
    ```
 
 3. **Configurar variables de entorno**
-   - El API base URL está configurado en `src/config/api.ts`
-   - Por defecto apunta a `http://localhost:4000/api`
+   ```bash
+   cp .env.example .env
+   ```
+   
+   El sistema utiliza **configuración automática de ambiente**:
+   - **Desarrollo**: Detecta automáticamente localhost y usa `http://localhost:4000/api`
+   - **Producción**: Usa automáticamente `https://gems-crm-backend.onrender.com/api`
+   
+   Variables disponibles en `.env`:
+   ```env
+   VITE_API_BASE_URL_DEV=http://localhost:4000/api
+   VITE_API_BASE_URL_PROD=https://gems-crm-backend.onrender.com/api
+   VITE_APP_NAME=GEMS CRM
+   VITE_APP_VERSION=1.0.0
+   ```
 
 4. **Ejecutar en desarrollo**
    ```bash
@@ -134,12 +147,29 @@ npm run lint     # Linting con ESLint
 ```
 
 ### Variables de Entorno
-Configurar en `src/config/api.ts`:
+
+El sistema cuenta con **configuración automática de ambiente**:
+
 ```typescript
-export const API_CONFIG = {
-  BASE_URL: 'http://localhost:4000/api',
-  TIMEOUT: 10000
+// src/config/api.ts
+const getBaseURL = (): string => {
+  // Desarrollo: localhost detectado automáticamente
+  if (import.meta.env.DEV || window.location.hostname === 'localhost') {
+    return 'http://localhost:4000/api'
+  }
+  // Producción: cualquier otro dominio
+  return 'https://gems-crm-backend.onrender.com/api'
 }
+```
+
+**Variables disponibles** (archivo `.env`):
+```env
+VITE_API_BASE_URL_DEV=http://localhost:4000/api
+VITE_API_BASE_URL_PROD=https://gems-crm-backend.onrender.com/api
+VITE_APP_NAME=GEMS CRM
+VITE_APP_VERSION=1.0.0
+VITE_API_TIMEOUT=10000
+VITE_DEBUG_MODE=false
 ```
 
 ## 📱 Responsive Design
@@ -162,13 +192,29 @@ El sistema está optimizado para:
 
 ## 🚀 Despliegue
 
+### Configuración Automática
+El sistema **detecta automáticamente el ambiente**:
+- ✅ **Desarrollo**: `localhost` → API local (`http://localhost:4000/api`)
+- ✅ **Producción**: Cualquier dominio → API de producción (`https://gems-crm-backend.onrender.com/api`)
+
 ### Build de Producción
 ```bash
 npm run build
 ```
 
-### Variables para Producción
-Actualizar `BASE_URL` en `src/config/api.ts` con la URL del servidor de producción.
+### Despliegue en Servicios Cloud
+Para servicios como **Netlify**, **Vercel**, **GitHub Pages**:
+
+1. **Configurar variables de entorno** en el panel del servicio:
+   ```env
+   VITE_API_BASE_URL_PROD=https://gems-crm-backend.onrender.com/api
+   VITE_APP_NAME=GEMS CRM
+   VITE_DEBUG_MODE=false
+   ```
+
+2. **Build automático**: El servicio detectará automáticamente el framework Vue/Vite
+
+3. **Sin configuración adicional**: La detección de ambiente es automática
 
 ## 👨‍💻 Desarrollo
 

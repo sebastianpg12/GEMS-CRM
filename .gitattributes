@@ -1,0 +1,31 @@
+# Configuración de terminaciones de línea para Git
+* text=auto
+
+# Archivos de texto específicos
+*.ts text eol=lf
+*.js text eol=lf
+*.vue text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Archivos de configuración Unix
+*.sh text eol=lf
+.env* text eol=lf
+.gitignore text eol=lf
+
+# Archivos de configuración Windows
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+
+# Archivos binarios
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
