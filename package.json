@@ -10,8 +10,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build-github": "GITHUB_PAGES=true vite build",
-    "build-custom": "vite build",
+    "build-github": "cross-env CUSTOM_DOMAIN=true vite build",
+    "build-github-fallback": "cross-env GITHUB_PAGES=true vite build",
+    "build-custom": "cross-env CUSTOM_DOMAIN=true vite build",
     "build-prod": "vue-tsc -b && vite build",
     "preview": "vite preview",
     "deploy": "npm run build && gh-pages -d dist"
@@ -32,6 +33,7 @@
     "@vitejs/plugin-vue": "^5.0.5",
     "@vue/tsconfig": "^0.7.0",
     "autoprefixer": "^10.4.21",
+    "cross-env": "^10.0.0",
     "gh-pages": "^6.3.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",

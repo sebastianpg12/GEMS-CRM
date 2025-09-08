@@ -6,9 +6,10 @@ export default defineConfig({
   plugins: [vue()],
   // Configuración inteligente de base según el ambiente
   // - Desarrollo: '/'
-  // - GitHub Pages: '/GEMS-CRM/'
-  // - Dominio personalizado: '/'
-  base: process.env.GITHUB_PAGES === 'true' ? '/GEMS-CRM/' : '/',
+  // - GitHub Pages con dominio personalizado: '/'
+  // - GitHub Pages sin dominio personalizado: '/GEMS-CRM/'
+  base: process.env.CUSTOM_DOMAIN === 'true' ? '/' : 
+        (process.env.GITHUB_PAGES === 'true' ? '/GEMS-CRM/' : '/'),
   build: {
     outDir: 'dist',
     sourcemap: false
