@@ -8,7 +8,7 @@ El despliegue se ejecuta automáticamente cuando haces push a `main`:
 - **Método**: Deploy directo a rama `gh-pages`
 - **URL**: https://sebastianpg12.github.io/GEMS-CRM/
 
-## ✅ Despliegue Manualaaaa
+## ✅ Despliegue Manual
 
 ### Opción 1: Script PowerShell
 ```powershell
@@ -20,6 +20,40 @@ El despliegue se ejecuta automáticamente cuando haces push a `main`:
 npm run deploy
 ```
 
+## 🌐 Despliegue en Dominio Personalizado
+
+### Para tu dominio: `crmgemsinterno.gemsinnovations.com`
+
+#### Método 1: Script Automatizado
+```powershell
+.\build-custom-domain.ps1
+```
+
+#### Método 2: Manual
+```bash
+npm run build-custom
+```
+
+**Importante**: El build para dominio personalizado **NO** incluye el prefijo `/GEMS-CRM/` en las rutas.
+
+### Configuración del Servidor
+
+1. **Subir archivos**: Copia todo el contenido de `./dist/` a tu servidor
+2. **Configurar como SPA**: El servidor debe redirigir todas las rutas a `index.html`
+
+#### Ejemplo Nginx:
+```nginx
+location / {
+    try_files $uri $uri/ /index.html;
+}
+```
+
+#### Ejemplo Apache (.htaccess):
+```apache
+RewriteEngine On
+RewriteRule ^(?!.*\.).*$ /index.html [L]
+```
+
 ## 🔧 Configuración
 
 ### Variables de Entorno (Solo en Workflow)
@@ -28,16 +62,21 @@ Las variables se configuran directamente en el workflow:
 - `VITE_APP_NAME`: GEMS CRM
 - `VITE_DEBUG_MODE`: false
 
-### Detección Automática
+### Detección Automática de API
 - **Desarrollo**: localhost → `http://localhost:4000/api`
-- **Producción**: GitHub Pages → `https://gems-crm-backend.onrender.com/api`
+- **Producción**: Cualquier dominio → `https://gems-crm-backend.onrender.com/api`
 
 ## 🌐 URLs
 
-- **Frontend**: https://sebastianpg12.github.io/GEMS-CRM/
+- **GitHub Pages**: https://sebastianpg12.github.io/GEMS-CRM/
+- **Dominio Personalizado**: https://crmgemsinterno.gemsinnovations.com/
 - **Backend**: https://gems-crm-backend.onrender.com/api
 
 ## 🛠️ Troubleshooting
+
+### Error: Assets 404 en dominio personalizado
+**Causa**: Las rutas incluyen `/GEMS-CRM/` cuando no deberían
+**Solución**: Usar `npm run build-custom` en lugar de `npm run build`
 
 ### Build falla localmente
 1. Verificar Node.js: `node --version` (requiere >=20.19.0)

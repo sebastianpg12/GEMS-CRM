@@ -29,7 +29,7 @@ jobs:
 
       - name: Build
         run: |
-          NODE_ENV=production npm run build
+          npm run build-github
         env:
           VITE_API_BASE_URL_PROD: https://gems-crm-backend.onrender.com/api
           VITE_APP_NAME: GEMS CRM

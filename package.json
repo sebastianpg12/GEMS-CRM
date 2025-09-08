@@ -10,6 +10,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build-github": "GITHUB_PAGES=true vite build",
+    "build-custom": "vite build",
     "build-prod": "vue-tsc -b && vite build",
     "preview": "vite preview",
     "deploy": "npm run build && gh-pages -d dist"

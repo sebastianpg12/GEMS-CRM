@@ -5,7 +5,10 @@ import vue from '@vitejs/plugin-vue'
 export default defineConfig({
   plugins: [vue()],
   // Configuración inteligente de base según el ambiente
-  base: process.env.NODE_ENV === 'production' ? '/GEMS-CRM/' : '/',
+  // - Desarrollo: '/'
+  // - GitHub Pages: '/GEMS-CRM/'
+  // - Dominio personalizado: '/'
+  base: process.env.GITHUB_PAGES === 'true' ? '/GEMS-CRM/' : '/',
   build: {
     outDir: 'dist',
     sourcemap: false
