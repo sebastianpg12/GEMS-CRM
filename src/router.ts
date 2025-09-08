@@ -8,8 +8,10 @@ import Clients from './pages/Clients.vue'
 import Activities from './pages/Activities.vue'
 import ReportsView from './pages/ReportsView.vue'
 import Team from './pages/Team.vue'
+import TeamActivities from './pages/TeamActivities.vue'
 import AccountingView from './components/AccountingView.vue'
 import CasesView from './components/CasesView.vue'
+import ProfileView from './pages/ProfileView.vue'
 
 const routes = [
   {
@@ -76,6 +78,23 @@ const routes = [
     meta: { 
       requiresAuth: true,
       requiredPermissions: ['view-team']
+    }
+  },
+  {
+    path: '/team-activities',
+    name: 'TeamActivities',
+    component: TeamActivities,
+    meta: { 
+      requiresAuth: true,
+      requiredPermissions: ['view-activities', 'view-team']
+    }
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: ProfileView,
+    meta: { 
+      requiresAuth: true
     }
   },
   {

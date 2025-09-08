@@ -151,10 +151,11 @@
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
                   <div class="flex-shrink-0 h-10 w-10">
-                    <div class="h-10 w-10 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 
-                               flex items-center justify-center text-white font-medium">
-                      {{ member.name.charAt(0).toUpperCase() }}
-                    </div>
+                    <UserAvatar
+                      :name="member.name"
+                      :photo="member.photo"
+                      size="md"
+                    />
                   </div>
                   <div class="ml-4">
                     <div class="text-sm font-medium text-white">{{ member.name }}</div>
@@ -373,6 +374,7 @@ import { ref, computed, onMounted, reactive } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useTeamStore } from '../stores'
 import PermissionGuard from '../components/PermissionGuard.vue'
+import UserAvatar from '../components/ui/UserAvatar.vue'
 import type { TeamMember } from '../types'
 import {
   UserPlusIcon,

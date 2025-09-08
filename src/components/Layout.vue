@@ -136,9 +136,11 @@ const showNotifications = ref(false)
 const navigation = [
   { name: 'Dashboard', path: '/', icon: 'logo' },
   { name: 'Clientes', path: '/clients', icon: UserGroupIcon },
+  { name: 'Actividades', path: '/activities', icon: ClipboardDocumentListIcon },
+  { name: 'Actividades por Equipo', path: '/team-activities', icon: UsersIcon },
   { name: 'Contabilidad', path: '/accounting', icon: CurrencyDollarIcon },
   { name: 'Gestión de Casos', path: '/cases', icon: FolderIcon },
-  { name: 'Equipo', path: '/team', icon: UsersIcon },
+  { name: 'Equipo', path: '/team', icon: DocumentTextIcon },
 ]
 
 const pageTitle = computed(() => {
@@ -150,6 +152,8 @@ const pageDescription = computed(() => {
   const descriptions: Record<string, string> = {
     '/': 'Panel de control principal',
     '/clients': 'Gestión de clientes',
+    '/activities': 'Gestión de actividades y tareas',
+    '/team-activities': 'Actividades asignadas por miembro del equipo',
     '/accounting': 'Gestión financiera unificada',
     '/cases': 'Documentos, incidencias y seguimientos',
     '/team': 'Gestión del equipo de trabajo'

@@ -9,6 +9,7 @@ export interface User {
   role: 'admin' | 'manager' | 'employee' | 'viewer'
   department: string
   position: string
+  photo?: string
   permissions?: {
     dashboard: boolean
     clients: {
@@ -276,6 +277,21 @@ export const useAuthStore = defineStore('auth', () => {
     return modules.filter(m => m.canAccess)
   })
 
+  // Helper functions for updating user data
+  const updateUserPhoto = (photo: string) => {
+    if (user.value) {
+      user.value.photo = photo
+      localStorage.setItem('user', JSON.stringify(user.value))
+    }
+  }
+
+  const updateUserProfile = (profileData: Partial<User>) => {
+    if (user.value) {
+      user.value = { ...user.value, ...profileData }
+      localStorage.setItem('user', JSON.stringify(user.value))
+    }
+  }
+
   return {
     // State
     user,
@@ -320,6 +336,8 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     logout,
     checkAuth,
+    updateUserPhoto,
+    updateUserProfile,
     getAvailableModules,
   }
 })

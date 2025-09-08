@@ -5,8 +5,24 @@ export interface ActivityData {
   title: string
   description: string
   date: string
-  status: 'pending' | 'completed' | 'cancelled'
+  status: 'pending' | 'in-progress' | 'completed' | 'cancelled' | 'overdue'
   clientId: string
+  assignedTo?: string
+  assignedToUser?: {
+    _id: string
+    name: string
+    email: string
+    role: string
+  }
+  priority?: 'low' | 'medium' | 'high' | 'urgent'
+  dueDate?: string
+  estimatedTime?: string
+  createdBy?: string
+  createdByUser?: {
+    _id: string
+    name: string
+    email: string
+  }
   createdAt?: string
   updatedAt?: string
 }
@@ -122,6 +138,95 @@ class ActivityService {
     } catch (error) {
       console.error('Error deleting activity:', error)
       throw new Error('No se pudo eliminar la actividad')
+    }
+  }
+
+  // Métodos específicos para asignaciones
+  async getByAssignedUser(userId: string): Promise<ActivityData[]> {
+    try {
+      const response = await fetch(`${this.baseUrl}${this.endpoint}/assigned/${userId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
+      const data = await response.json()
+      return Array.isArray(data) ? data : []
+    } catch (error) {
+      console.error('Error fetching assigned activities:', error)
+      throw new Error('No se pudieron cargar las actividades asignadas')
+    }
+  }
+
+  async getWithFilters(filters: { assignedTo?: string, status?: string }): Promise<ActivityData[]> {
+    try {
+      const params = new URLSearchParams()
+      if (filters.assignedTo) params.append('assignedTo', filters.assignedTo)
+      if (filters.status) params.append('status', filters.status)
+
+      const response = await fetch(`${this.baseUrl}${this.endpoint}?${params.toString()}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
+      const data = await response.json()
+      return Array.isArray(data) ? data : []
+    } catch (error) {
+      console.error('Error fetching filtered activities:', error)
+      throw new Error('No se pudieron cargar las actividades filtradas')
+    }
+  }
+
+  async updateStatus(id: string, status: 'pending' | 'in-progress' | 'completed' | 'cancelled' | 'overdue'): Promise<ActivityData> {
+    try {
+      const response = await fetch(`${this.baseUrl}${this.endpoint}/${id}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status }),
+      })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
+      return await response.json()
+    } catch (error) {
+      console.error('Error updating activity status:', error)
+      throw new Error('No se pudo actualizar el estado de la actividad')
+    }
+  }
+
+  async reassignActivity(id: string, assignedTo: string | null): Promise<ActivityData> {
+    try {
+      const response = await fetch(`${this.baseUrl}${this.endpoint}/${id}/assign`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ assignedTo }),
+      })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
+      return await response.json()
+    } catch (error) {
+      console.error('Error reassigning activity:', error)
+      throw new Error('No se pudo reasignar la actividad')
     }
   }
 }

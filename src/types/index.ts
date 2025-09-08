@@ -14,8 +14,15 @@ export interface Activity {
   title: string
   description: string
   date: string
-  status: 'pending' | 'completed' | 'cancelled'
+  status: 'pending' | 'in-progress' | 'completed' | 'cancelled' | 'overdue'
   clientId: string
+  assignedTo?: string // ID del usuario asignado
+  assignedToUser?: TeamMember // Datos del usuario asignado (populated)
+  priority?: 'low' | 'medium' | 'high' | 'urgent'
+  dueDate?: string
+  estimatedTime?: string
+  createdBy?: string // ID del usuario que creó la actividad
+  createdByUser?: TeamMember // Datos del usuario que creó (populated)
   createdAt?: string
   updatedAt?: string
 }
@@ -103,6 +110,7 @@ export interface TeamMember {
   department?: string
   position?: string
   phone?: string
+  photo?: string
   isActive: boolean
   lastLogin?: string
   permissions?: {
@@ -160,6 +168,10 @@ export interface ActivityForm {
   date: string
   status: Activity['status']
   clientId: string
+  assignedTo?: string
+  priority?: Activity['priority']
+  dueDate?: string
+  estimatedTime?: string
 }
 
 export interface PaymentForm {
