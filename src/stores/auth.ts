@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authService } from '../services/authService'
+import { getFullPhotoUrl } from '@/utils/photoUtils'
 
 export interface User {
   _id: string
@@ -145,9 +146,19 @@ export const useAuthStore = defineStore('auth', () => {
       
       if (response.success && response.user && response.token) {
         user.value = response.user
+        // Normalize photo URL to absolute to avoid localhost origin
+        if (user.value.photo) {
+          user.value.photo = getFullPhotoUrl(user.value.photo)
+        }
         token.value = response.token
         localStorage.setItem('token', response.token)
-        localStorage.setItem('user', JSON.stringify(response.user))
+        // Persist normalized user
+        localStorage.setItem('user', JSON.stringify(user.value))
+        // Preload photo to warm caches and avoid first-error flicker
+        if (user.value.photo) {
+          const img = new Image()
+          img.src = user.value.photo
+        }
         
         console.log('✅ Login successful!')
         console.log('👤 User:', response.user?.name, '- Role:', response.user?.role)
@@ -199,6 +210,14 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       token.value = storedToken
       user.value = JSON.parse(storedUser)
+      if (user.value?.photo) {
+        user.value.photo = getFullPhotoUrl(user.value.photo)
+      }
+      // Optional preload
+      if (user.value?.photo) {
+        const img = new Image()
+        img.src = user.value.photo
+      }
       
       console.log('✅ Auth restored from localStorage')
       console.log('👤 User:', user.value?.name, '- Role:', user.value?.role)
@@ -280,7 +299,7 @@ export const useAuthStore = defineStore('auth', () => {
   // Helper functions for updating user data
   const updateUserPhoto = (photo: string) => {
     if (user.value) {
-      user.value.photo = photo
+      user.value.photo = getFullPhotoUrl(photo)
       localStorage.setItem('user', JSON.stringify(user.value))
     }
   }

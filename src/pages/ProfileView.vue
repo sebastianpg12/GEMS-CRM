@@ -361,6 +361,10 @@ const onImageError = (event: Event) => {
   console.error('URL de imagen que falló:', img.src)
   console.error('ProfileData.photo:', profileData.value?.photo)
   toast.error('Error al cargar la imagen de perfil')
+  // Fallback inmediato a iniciales
+  if (profileData.value) {
+    profileData.value.photo = ''
+  }
 }
 
 // Función para confirmar carga exitosa de imagen

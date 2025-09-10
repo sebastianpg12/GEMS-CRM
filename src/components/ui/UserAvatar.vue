@@ -12,8 +12,8 @@
   >
     <!-- Imagen -->
     <img
-      v-if="photo"
-      :src="photo"
+      v-if="resolvedPhoto"
+      :src="resolvedPhoto"
       :alt="name"
       class="w-full h-full object-cover"
       @error="handleImageError"
@@ -21,7 +21,7 @@
     
     <!-- Iniciales como fallback -->
     <div
-      v-else
+  v-else
       :class="[
         'w-full h-full flex items-center justify-center',
         bgGradient || defaultGradient,
@@ -52,7 +52,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { getFullPhotoUrl } from '@/utils/photoUtils'
 
 interface Props {
   name: string
@@ -125,6 +126,9 @@ const statusClasses = {
 // Gradiente por defecto
 const defaultGradient = 'bg-gradient-to-br from-purple-600 to-pink-600'
 
+// State for image error to fallback to initials
+const imgError = ref(false)
+
 // Computed
 const initials = computed(() => {
   if (!props.name) return '?'
@@ -139,6 +143,11 @@ const initials = computed(() => {
     .join('')
 })
 
+const resolvedPhoto = computed(() => {
+  if (!props.photo || imgError.value) return ''
+  return getFullPhotoUrl(props.photo)
+})
+
 // Methods
 const handleClick = (event: MouseEvent) => {
   if (props.clickable) {
@@ -147,8 +156,13 @@ const handleClick = (event: MouseEvent) => {
 }
 
 const handleImageError = () => {
-  // La imagen se ocultará automáticamente y se mostrará el fallback
+  imgError.value = true
 }
+
+// Reset error when photo changes
+watch(() => props.photo, () => {
+  imgError.value = false
+})
 
 // Generar gradiente basado en el nombre (para consistencia)
 const generateGradient = (name: string) => {
