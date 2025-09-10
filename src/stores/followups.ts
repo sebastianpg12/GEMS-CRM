@@ -1,8 +1,9 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
 import type { Followup } from '../types'
+import { API_CONFIG } from '@/config/api'
 
-const API_BASE_URL = 'http://localhost:4000/api'
+const API_BASE_URL = API_CONFIG.BASE_URL
 
 export const useFollowupsStore = defineStore('followups', {
   state: () => ({

@@ -21,9 +21,11 @@ interface UpdatePasswordData {
   newPassword: string
 }
 
+import { API_CONFIG } from '@/config/api'
+
 class UserService {
-  private baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000'
-  private endpoint = '/api/auth'
+  private baseUrl = API_CONFIG.BASE_URL
+  private endpoint = '/auth'
 
   // Normaliza URLs de archivos: si viene '/uploads/...', la convierte a absoluta con el origen del backend
   private toAbsoluteUrl = (url?: string) => {
@@ -31,13 +33,9 @@ class UserService {
     if (/^https?:\/\//i.test(url)) return url
     // Obtener origen del backend a partir de baseUrl
     // Soporta valores como 'http://host:4000' o 'http://host:4000/api'
-    let origin = this.baseUrl
+  let origin = this.baseUrl
     // Si incluye '/api' al final, lo removemos para apuntar al origen raíz
     origin = origin.replace(/\/?api\/?$/i, '')
-    // Asegurar que tenga protocolo
-    if (!/^https?:\/\//i.test(origin)) {
-      origin = `http://${origin.replace(/^\/+/, '')}`
-    }
     // Evitar doble slash al concatenar
     return `${origin.replace(/\/$/, '')}/${url.replace(/^\//, '')}`
   }

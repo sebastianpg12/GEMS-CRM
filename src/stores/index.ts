@@ -1,8 +1,9 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
 import type { Issue, Notification, Document, Minute, Setting, TeamMember } from '../types'
+import { API_CONFIG } from '@/config/api'
 
-const API_BASE_URL = 'http://localhost:4000/api'  // Match backend port
+const API_BASE_URL = API_CONFIG.BASE_URL  // Centralized API base URL
 
 // Export auth store
 export { useAuthStore } from './auth'

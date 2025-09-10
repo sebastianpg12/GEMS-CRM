@@ -19,6 +19,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watchEffect } from 'vue'
+import { API_CONFIG } from '@/config/api'
 
 const props = withDefaults(defineProps<{
   name?: string
@@ -35,9 +36,7 @@ const resolvedUrl = computed(() => {
   const url = photoUrl.value
   if (!url) return ''
   if (/^https?:\/\//i.test(url)) return url
-  const apiBase = (import.meta as any).env?.VITE_API_BASE_URL || (import.meta as any).env?.VITE_API_BASE_URL_DEV || 'http://localhost:4000'
-  let origin = String(apiBase).replace(/\/?api\/?$/i, '')
-  if (!/^https?:\/\//i.test(origin)) origin = `http://${origin.replace(/^\/+/, '')}`
+  const origin = String(API_CONFIG.BASE_URL).replace(/\/?api\/?$/i, '')
   return `${origin.replace(/\/$/, '')}/${url.replace(/^\//, '')}`
 })
 

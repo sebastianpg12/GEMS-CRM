@@ -1,8 +1,9 @@
 import axios from 'axios'
 import type { LoginCredentials, User } from '../stores/auth'
+import { API_CONFIG } from '@/config/api'
 
 // Configuration
-const API_BASE_URL = 'http://localhost:4000/api'
+const API_BASE_URL = API_CONFIG.BASE_URL
 
 // Create axios instance with interceptors
 const apiClient = axios.create({

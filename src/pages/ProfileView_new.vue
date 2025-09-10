@@ -8,11 +8,9 @@
           <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-purple-500/50 shadow-2xl">
             <img
               v-if="profileData?.photo"
-              :src="resolvedPhotoUrl"
+              :src="profileData.photo"
               :alt="profileData.name || 'Usuario'"
               class="w-full h-full object-cover"
-              @error="onImageError"
-              @load="onImageLoad"
             >
             <div
               v-else
@@ -278,11 +276,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
-import { userService } from '@/services/userService'
+import { userService } from '@/services/api'
 import { toast } from 'vue3-toastify'
-import { API_CONFIG } from '@/config/api'
 
 const authStore = useAuthStore()
 
@@ -300,16 +297,6 @@ const profileData = ref({
   photo: '',
   createdAt: '',
   updatedAt: ''
-})
-
-// URL absoluta para la foto en entorno local/prod
-const resolvedPhotoUrl = computed(() => {
-  const url = profileData.value?.photo || ''
-  if (!url) return ''
-  if (/^https?:\/\//i.test(url)) return url
-  // Use centralized API base URL, never fallback to localhost in production
-  let origin = String(API_CONFIG.BASE_URL).replace(/\/?api\/?$/i, '')
-  return `${origin.replace(/\/$/, '')}/${url.replace(/^\//, '')}`
 })
 
 const editForm = ref({
@@ -352,22 +339,6 @@ const formatDate = (dateString: string) => {
   } catch {
     return 'Fecha inválida'
   }
-}
-
-// Función para manejar errores de carga de imagen
-const onImageError = (event: Event) => {
-  console.error('Error al cargar la imagen:', event)
-  const img = event.target as HTMLImageElement
-  console.error('URL de imagen que falló:', img.src)
-  console.error('ProfileData.photo:', profileData.value?.photo)
-  toast.error('Error al cargar la imagen de perfil')
-}
-
-// Función para confirmar carga exitosa de imagen
-const onImageLoad = (event: Event) => {
-  console.log('Imagen cargada exitosamente')
-  const img = event.target as HTMLImageElement
-  console.log('URL de imagen cargada:', img.src)
 }
 
 const toggleEditMode = () => {
@@ -454,39 +425,26 @@ const handleFileSelect = async (event: Event) => {
   
   if (!file) return
   
-  // Validar tipo de archivo
-  if (!file.type.startsWith('image/')) {
-    toast.error('Por favor selecciona un archivo de imagen')
-    return
-  }
-  
-  // Validar tamaño (máximo 5MB)
-  if (file.size > 5 * 1024 * 1024) {
-    toast.error('La imagen debe ser menor a 5MB')
-    return
-  }
-  
   try {
     loading.value = true
-    console.log('📸 Iniciando subida de foto...')
     
-    const photoUrl = await userService.uploadPhoto(file)
-    console.log('✅ Foto subida exitosamente:', photoUrl)
+    const formData = new FormData()
+    formData.append('photo', file)
     
-    // Actualizar foto usando el método del authStore
-    authStore.updateUserPhoto(photoUrl)
+    const response = await userService.updatePhoto(formData)
     
-    // Actualizar foto en profileData local
-    if (profileData.value) {
-      profileData.value.photo = photoUrl
-      console.log('📋 ProfileData actualizado con nueva foto')
+    // Actualizar foto
+    profileData.value.photo = response.photo
+    
+    if (authStore.user) {
+      authStore.user.photo = response.photo
     }
     
     toast.success('Foto actualizada correctamente')
     
-  } catch (error: any) {
-    console.error('❌ Error al subir foto:', error)
-    toast.error('Error al subir la foto: ' + (error.message || 'Error desconocido'))
+  } catch (error) {
+    console.error('Error al subir foto:', error)
+    toast.error('Error al subir la foto')
   } finally {
     loading.value = false
     // Limpiar input
@@ -498,12 +456,8 @@ const loadProfile = async () => {
   try {
     loading.value = true
     
-    console.log('🔄 Iniciando carga de perfil...')
-    console.log('👤 AuthStore user:', authStore.user)
-    
     // Inicializar inmediatamente con datos del store si están disponibles
     if (authStore.user) {
-      console.log('✅ Datos encontrados en authStore, inicializando...')
       profileData.value = {
         name: authStore.user.name || '',
         email: authStore.user.email || '',
@@ -514,23 +468,16 @@ const loadProfile = async () => {
         createdAt: authStore.user.createdAt || '',
         updatedAt: authStore.user.updatedAt || ''
       }
-      console.log('📋 ProfileData inicial:', profileData.value)
-    } else {
-      console.log('❌ No se encontraron datos en authStore')
     }
     
     // Intentar cargar datos actualizados del servidor
     try {
-      console.log('🌐 Cargando perfil del servidor...')
       const profile = await userService.getProfile()
-      console.log('✅ Perfil cargado del servidor:', profile)
       profileData.value = profile
     } catch (serverError) {
-      console.error('❌ Error al cargar perfil del servidor:', serverError)
-      
+      console.error('Error al cargar perfil del servidor:', serverError)
       // Si falla la carga del servidor pero tenemos datos del store, los usamos
       if (!profileData.value.name && authStore.user) {
-        console.log('🔄 Usando datos de respaldo del authStore...')
         profileData.value = {
           name: authStore.user.name || '',
           email: authStore.user.email || '',
@@ -545,31 +492,9 @@ const loadProfile = async () => {
     }
     
   } catch (error) {
-    console.error('❌ Error general al cargar perfil:', error)
-    toast.error('Error al cargar el perfil: ' + (error?.message || 'Error desconocido'))
+    console.error('Error general al cargar perfil:', error)
   } finally {
     loading.value = false
-    console.log('🏁 Carga de perfil completada')
-    console.log('📋 ProfileData final:', profileData.value)
-    
-    // Debug específico para la foto
-    console.log('🖼️ DEBUGGING FOTO:')
-    console.log('- profileData.value?.photo:', profileData.value?.photo)
-    console.log('- Tipo de dato:', typeof profileData.value?.photo)
-    console.log('- Longitud de URL:', profileData.value?.photo?.length)
-    console.log('- Es string válido:', typeof profileData.value?.photo === 'string' && profileData.value.photo.length > 0)
-    
-    if (profileData.value?.photo) {
-      console.log('✅ Foto detectada, URL original:', profileData.value.photo)
-      console.log('🔗 URL resuelta:', resolvedPhotoUrl.value)
-      // Verificar si la URL es accesible (usando la resuelta)
-      const img = new Image()
-      img.onload = () => console.log('✅ Imagen accesible desde:', resolvedPhotoUrl.value)
-      img.onerror = (err) => console.error('❌ Imagen NO accesible:', err, 'URL:', resolvedPhotoUrl.value)
-      img.src = resolvedPhotoUrl.value
-    } else {
-      console.log('❌ No hay foto disponible')
-    }
   }
 }
 
