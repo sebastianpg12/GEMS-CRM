@@ -233,9 +233,10 @@
                 <!-- Indicador de prioridad -->
                 <span 
                   v-if="activity.priority"
-                  class="px-2 py-1 rounded-full text-xs font-medium"
+                  class="px-2.5 py-1 rounded-full text-[10px] font-semibold border inline-flex items-center gap-1"
                   :class="getPriorityClass(activity.priority)"
                 >
+                  <i :class="getPriorityIcon(activity.priority)" class="text-[10px]"></i>
                   {{ getPriorityLabel(activity.priority) }}
                 </span>
               </div>
@@ -276,10 +277,10 @@
 
             <!-- Asignado a -->
             <div class="flex items-center gap-2 mb-3">
-              <i class="fas fa-user text-gray-400 text-xs"></i>
-              <span class="text-xs text-gray-400">
-                {{ getSmartAssignedName(activity) }}
-              </span>
+              <AvatarInline
+                :name="getSmartAssignedName(activity)"
+                :photo="(activity.assignedTo && typeof activity.assignedTo === 'object') ? activity.assignedTo.photo : ''"
+              />
               <button
                 v-if="!activity.assignedTo"
                 @click="showAssignModal(activity)"
@@ -371,9 +372,10 @@
                 <!-- Indicador de prioridad -->
                 <span 
                   v-if="activity.priority"
-                  class="px-2 py-1 rounded-full text-xs font-medium"
+                  class="px-2.5 py-1 rounded-full text-[10px] font-semibold border inline-flex items-center gap-1"
                   :class="getPriorityClass(activity.priority)"
                 >
+                  <i :class="getPriorityIcon(activity.priority)" class="text-[10px]"></i>
                   {{ getPriorityLabel(activity.priority) }}
                 </span>
               </div>
@@ -414,10 +416,10 @@
 
             <!-- Asignado a -->
             <div class="flex items-center gap-2 mb-3">
-              <i class="fas fa-user text-gray-400 text-xs"></i>
-              <span class="text-xs text-gray-400">
-                {{ getSmartAssignedName(activity) }}
-              </span>
+              <AvatarInline
+                :name="getSmartAssignedName(activity)"
+                :photo="(activity.assignedTo && typeof activity.assignedTo === 'object') ? activity.assignedTo.photo : ''"
+              />
               <button
                 v-if="!activity.assignedTo"
                 @click="showAssignModal(activity)"
@@ -509,9 +511,10 @@
                 <!-- Indicador de prioridad -->
                 <span 
                   v-if="activity.priority"
-                  class="px-2 py-1 rounded-full text-xs font-medium"
+                  class="px-2.5 py-1 rounded-full text-[10px] font-semibold border inline-flex items-center gap-1"
                   :class="getPriorityClass(activity.priority)"
                 >
+                  <i :class="getPriorityIcon(activity.priority)" class="text-[10px]"></i>
                   {{ getPriorityLabel(activity.priority) }}
                 </span>
               </div>
@@ -552,10 +555,10 @@
 
             <!-- Asignado a -->
             <div class="flex items-center gap-2 mb-3">
-              <i class="fas fa-user text-gray-400 text-xs"></i>
-              <span class="text-xs text-gray-400">
-                {{ getSmartAssignedName(activity) }}
-              </span>
+              <AvatarInline
+                :name="getSmartAssignedName(activity)"
+                :photo="(activity.assignedTo && typeof activity.assignedTo === 'object') ? activity.assignedTo.photo : ''"
+              />
             </div>
 
             <!-- Fecha -->
@@ -617,9 +620,10 @@
                 <!-- Indicador de prioridad -->
                 <span 
                   v-if="activity.priority"
-                  class="px-2 py-1 rounded-full text-xs font-medium"
+                  class="px-2.5 py-1 rounded-full text-[10px] font-semibold border inline-flex items-center gap-1"
                   :class="getPriorityClass(activity.priority)"
                 >
+                  <i :class="getPriorityIcon(activity.priority)" class="text-[10px]"></i>
                   {{ getPriorityLabel(activity.priority) }}
                 </span>
               </div>
@@ -660,10 +664,10 @@
 
             <!-- Asignado a -->
             <div class="flex items-center gap-2 mb-3">
-              <i class="fas fa-user text-gray-400 text-xs"></i>
-              <span class="text-xs text-gray-400">
-                {{ getSmartAssignedName(activity) }}
-              </span>
+              <AvatarInline
+                :name="getSmartAssignedName(activity)"
+                :photo="(activity.assignedTo && typeof activity.assignedTo === 'object') ? activity.assignedTo.photo : ''"
+              />
             </div>
 
             <!-- Fecha -->
@@ -725,9 +729,10 @@
                 <!-- Indicador de prioridad -->
                 <span 
                   v-if="activity.priority"
-                  class="px-2 py-1 rounded-full text-xs font-medium"
+                  class="px-2.5 py-1 rounded-full text-[10px] font-semibold border inline-flex items-center gap-1"
                   :class="getPriorityClass(activity.priority)"
                 >
+                  <i :class="getPriorityIcon(activity.priority)" class="text-[10px]"></i>
                   {{ getPriorityLabel(activity.priority) }}
                 </span>
               </div>
@@ -775,10 +780,10 @@
 
             <!-- Asignado a -->
             <div class="flex items-center gap-2 mb-3">
-              <i class="fas fa-user text-gray-400 text-xs"></i>
-              <span class="text-xs text-gray-400">
-                {{ getSmartAssignedName(activity) }}
-              </span>
+              <AvatarInline
+                :name="getSmartAssignedName(activity)"
+                :photo="(activity.assignedTo && typeof activity.assignedTo === 'object') ? activity.assignedTo.photo : ''"
+              />
             </div>
 
             <!-- Fecha y tiempo estimado -->
@@ -1049,6 +1054,7 @@ import ActivityFormModal from '../forms/ActivityFormModal.vue'
 import AssignActivityModal from '../modals/AssignActivityModal.vue'
 import MonthlyCalendar from '../calendar/MonthlyCalendar.vue'
 import QuickTaskModal from '../modals/QuickTaskModal.vue'
+import AvatarInline from '../AvatarInline.vue'
 
 // Props
 interface Props {
@@ -1784,6 +1790,7 @@ const getAssignedToName = (assignedParam?: any, activity?: any): string => {
 
 // Función auxiliar para buscar actividad por ID y obtener el nombre del asignado
 const findActivityAssignment = (activityId: string): string => {
+ 
   const allActivities = [
     ...pendingActivities.value,
     ...inProgressActivities.value, 
@@ -1802,12 +1809,22 @@ const findActivityAssignment = (activityId: string): string => {
 
 const getPriorityClass = (priority: string) => {
   const classes = {
-    low: 'bg-blue-100 text-blue-800',
-    medium: 'bg-yellow-100 text-yellow-800',
-    high: 'bg-orange-100 text-orange-800',
-    urgent: 'bg-red-100 text-red-800'
+    low: 'bg-blue-900/20 text-blue-300 border-blue-500/30',
+    medium: 'bg-yellow-900/20 text-yellow-300 border-yellow-500/30',
+    high: 'bg-orange-900/20 text-orange-300 border-orange-500/30',
+    urgent: 'bg-red-900/20 text-red-300 border-red-500/30'
   }
   return classes[priority as keyof typeof classes] || classes.medium
+}
+
+const getPriorityIcon = (priority: string) => {
+  const icons = {
+    low: 'fas fa-arrow-down',
+    medium: 'fas fa-minus',
+    high: 'fas fa-arrow-up',
+    urgent: 'fas fa-exclamation'
+  }
+  return icons[priority as keyof typeof icons] || icons.medium
 }
 
 const getPriorityLabel = (priority: string) => {

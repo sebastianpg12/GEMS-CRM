@@ -1,0 +1,59 @@
+<template>
+  <div class="flex items-center gap-2 min-w-0">
+    <div
+      class="flex-shrink-0 w-5 h-5 rounded-full overflow-hidden border border-gray-600 bg-gray-700 text-[10px] flex items-center justify-center text-white"
+      :title="name"
+    >
+      <img
+        v-if="photoUrl"
+        :src="resolvedUrl"
+        alt="avatar"
+        class="w-full h-full object-cover"
+        @error="onError"
+      />
+      <span v-else>{{ initials }}</span>
+    </div>
+    <span class="text-xs text-gray-300 truncate">{{ name || 'Sin asignar' }}</span>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed, ref, watchEffect } from 'vue'
+
+const props = withDefaults(defineProps<{
+  name?: string
+  photo?: string
+}>(), {
+  name: '',
+  photo: ''
+})
+
+const errored = ref(false)
+const photoUrl = computed(() => (!props.photo || errored.value) ? '' : props.photo)
+
+const resolvedUrl = computed(() => {
+  const url = photoUrl.value
+  if (!url) return ''
+  if (/^https?:\/\//i.test(url)) return url
+  const apiBase = (import.meta as any).env?.VITE_API_BASE_URL || (import.meta as any).env?.VITE_API_BASE_URL_DEV || 'http://localhost:4000'
+  let origin = String(apiBase).replace(/\/?api\/?$/i, '')
+  if (!/^https?:\/\//i.test(origin)) origin = `http://${origin.replace(/^\/+/, '')}`
+  return `${origin.replace(/\/$/, '')}/${url.replace(/^\//, '')}`
+})
+
+const initials = computed(() => {
+  const n = props.name?.trim() || ''
+  if (!n) return 'U'
+  return n.split(' ').map(s => s[0]).join('').toUpperCase().slice(0,2)
+})
+
+const onError = () => { errored.value = true }
+
+watchEffect(() => {
+  // reset error when photo changes
+  errored.value = false
+})
+</script>
+
+<style scoped>
+</style>

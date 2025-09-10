@@ -7,16 +7,18 @@
         <div class="relative">
           <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-purple-500/50 shadow-2xl">
             <img
-              v-if="profileData.photo"
-              :src="profileData.photo"
-              :alt="profileData.name"
+              v-if="profileData?.photo"
+              :src="resolvedPhotoUrl"
+              :alt="profileData.name || 'Usuario'"
               class="w-full h-full object-cover"
+              @error="onImageError"
+              @load="onImageLoad"
             >
             <div
               v-else
               class="w-full h-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center text-white text-4xl font-bold"
             >
-              {{ getInitials(profileData.name) }}
+              {{ getInitials(profileData?.name || 'U') }}
             </div>
           </div>
           
@@ -28,22 +30,13 @@
           >
             <i class="fas fa-camera text-sm"></i>
           </button>
-          
-          <!-- Input file oculto -->
-          <input
-            ref="fileInput"
-            type="file"
-            accept="image/*"
-            @change="handleFileUpload"
-            class="hidden"
-          >
         </div>
         
         <!-- Info básica -->
         <div class="text-center md:text-left flex-1">
-          <h1 class="text-3xl font-bold text-white mb-2">{{ profileData.name }}</h1>
-          <p class="text-purple-300 text-lg mb-2">{{ getRoleDisplayName(profileData.role) }}</p>
-          <p class="text-gray-400 mb-4">{{ profileData.email }}</p>
+          <h1 class="text-3xl font-bold text-white mb-2">{{ profileData?.name || 'Cargando...' }}</h1>
+          <p class="text-purple-300 text-lg mb-2">{{ getRoleDisplayName(profileData?.role || '') }}</p>
+          <p class="text-gray-400 mb-4">{{ profileData?.email || '' }}</p>
           
           <div class="flex flex-wrap gap-2 justify-center md:justify-start">
             <span class="px-3 py-1 bg-green-600/20 text-green-300 rounded-full text-sm">
@@ -52,200 +45,243 @@
             </span>
             <span class="px-3 py-1 bg-blue-600/20 text-blue-300 rounded-full text-sm">
               <i class="fas fa-calendar mr-1"></i>
-              Desde {{ formatDate(profileData.createdAt) }}
+              Desde {{ formatDate(profileData?.createdAt || '') }}
             </span>
           </div>
         </div>
-        
-        <!-- Botón editar -->
-        <button
-          @click="toggleEditMode"
-          class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-200 transform hover:scale-105 shadow-lg"
-        >
-          <i class="fas fa-edit mr-2"></i>
-          {{ isEditing ? 'Cancelar' : 'Editar Perfil' }}
-        </button>
+
+        <!-- Botón de editar -->
+        <div class="flex gap-3">
+          <button
+            @click="toggleEditMode"
+            :class="[
+              'px-6 py-3 rounded-xl font-medium transition-all duration-300 transform hover:scale-105',
+              isEditing 
+                ? 'bg-red-600 hover:bg-red-700 text-white' 
+                : 'bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white'
+            ]"
+          >
+            <i :class="isEditing ? 'fas fa-times' : 'fas fa-edit'" class="mr-2"></i>
+            {{ isEditing ? 'Cancelar' : 'Editar Perfil' }}
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Formulario de edición / Vista de información -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Información personal -->
-      <div class="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
-        <h2 class="text-xl font-bold text-white mb-6 flex items-center">
-          <i class="fas fa-user mr-3 text-purple-400"></i>
-          Información Personal
-        </h2>
-        
-        <div class="space-y-4">
-          <!-- Nombre -->
-          <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Nombre completo</label>
+    <!-- Información Personal -->
+    <div class="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
+      <h2 class="text-xl font-bold text-white mb-6 flex items-center">
+        <i class="fas fa-user mr-3 text-purple-400"></i>
+        Información Personal
+      </h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Nombre -->
+        <div>
+          <label class="block text-sm font-medium text-gray-300 mb-2">
+            <i class="fas fa-signature mr-2"></i>
+            Nombre Completo
+          </label>
+          <div v-if="isEditing">
             <input
-              v-if="isEditing"
               v-model="editForm.name"
               type="text"
               class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               placeholder="Tu nombre completo"
-            >
-            <p v-else class="text-white bg-gray-700 px-4 py-3 rounded-lg">{{ profileData.name }}</p>
+            />
           </div>
-          
-          <!-- Email -->
-          <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Email</label>
+          <div v-else>
+            <p class="text-white bg-gray-700 px-4 py-3 rounded-lg">{{ profileData?.name || 'No especificado' }}</p>
+          </div>
+        </div>
+
+        <!-- Email -->
+        <div>
+          <label class="block text-sm font-medium text-gray-300 mb-2">
+            <i class="fas fa-envelope mr-2"></i>
+            Correo Electrónico
+          </label>
+          <div v-if="isEditing">
             <input
-              v-if="isEditing"
               v-model="editForm.email"
               type="email"
               class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               placeholder="tu@email.com"
-            >
-            <p v-else class="text-white bg-gray-700 px-4 py-3 rounded-lg">{{ profileData.email }}</p>
+            />
           </div>
-          
-          <!-- Teléfono -->
-          <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Teléfono</label>
+          <div v-else>
+            <p class="text-white bg-gray-700 px-4 py-3 rounded-lg">{{ profileData?.email || 'No especificado' }}</p>
+          </div>
+        </div>
+
+        <!-- Teléfono -->
+        <div>
+          <label class="block text-sm font-medium text-gray-300 mb-2">
+            <i class="fas fa-phone mr-2"></i>
+            Teléfono
+          </label>
+          <div v-if="isEditing">
             <input
-              v-if="isEditing"
               v-model="editForm.phone"
               type="tel"
               class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              placeholder="+1 234 567 8900"
-            >
-            <p v-else class="text-white bg-gray-700 px-4 py-3 rounded-lg">{{ profileData.phone || 'No especificado' }}</p>
+              placeholder="+57 300 000 0000"
+            />
           </div>
-          
-          <!-- Departamento -->
-          <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Departamento</label>
+          <div v-else>
+            <p class="text-white bg-gray-700 px-4 py-3 rounded-lg">{{ profileData?.phone || 'No especificado' }}</p>
+          </div>
+        </div>
+
+        <!-- Departamento -->
+        <div>
+          <label class="block text-sm font-medium text-gray-300 mb-2">
+            <i class="fas fa-building mr-2"></i>
+            Departamento
+          </label>
+          <div v-if="isEditing">
             <input
-              v-if="isEditing"
               v-model="editForm.department"
               type="text"
               class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              placeholder="Departamento o área"
-            >
-            <p v-else class="text-white bg-gray-700 px-4 py-3 rounded-lg">{{ profileData.department || 'No especificado' }}</p>
+              placeholder="Tu departamento"
+            />
+          </div>
+          <div v-else>
+            <p class="text-white bg-gray-700 px-4 py-3 rounded-lg">{{ profileData?.department || 'No especificado' }}</p>
+          </div>
+        </div>
+
+        <!-- Rol (solo lectura) -->
+        <div>
+          <label class="block text-sm font-medium text-gray-300 mb-2">
+            <i class="fas fa-user-tag mr-2"></i>
+            Rol
+          </label>
+          <div>
+            <p class="text-white bg-gray-700 px-4 py-3 rounded-lg">{{ getRoleDisplayName(profileData?.role || '') }}</p>
+          </div>
+        </div>
+
+        <!-- Fecha de registro -->
+        <div>
+          <label class="block text-sm font-medium text-gray-300 mb-2">
+            <i class="fas fa-calendar-plus mr-2"></i>
+            Fecha de Registro
+          </label>
+          <div>
+            <p class="text-white bg-gray-700 px-4 py-3 rounded-lg">{{ formatDate(profileData?.createdAt || '') }}</p>
+          </div>
+        </div>
+
+        <!-- Última actualización -->
+        <div>
+          <label class="block text-sm font-medium text-gray-300 mb-2">
+            <i class="fas fa-clock mr-2"></i>
+            Última Actualización
+          </label>
+          <div>
+            <p class="text-white bg-gray-700 px-4 py-3 rounded-lg">{{ formatDate(profileData?.updatedAt || '') }}</p>
           </div>
         </div>
       </div>
-      
-      <!-- Información del sistema -->
-      <div class="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
-        <h2 class="text-xl font-bold text-white mb-6 flex items-center">
-          <i class="fas fa-cog mr-3 text-purple-400"></i>
-          Información del Sistema
-        </h2>
-        
-        <div class="space-y-4">
-          <!-- Rol -->
-          <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Rol</label>
-            <p class="text-white bg-gray-700 px-4 py-3 rounded-lg">{{ getRoleDisplayName(profileData.role) }}</p>
-          </div>
-          
-          <!-- Fecha de creación -->
-          <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Fecha de registro</label>
-            <p class="text-white bg-gray-700 px-4 py-3 rounded-lg">{{ formatDate(profileData.createdAt) }}</p>
-          </div>
-          
-          <!-- Última actividad -->
-          <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Última actividad</label>
-            <p class="text-white bg-gray-700 px-4 py-3 rounded-lg">{{ formatDate(profileData.updatedAt) }}</p>
-          </div>
-          
-          <!-- Estado -->
-          <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Estado</label>
-            <div class="flex items-center gap-2">
-              <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-              <span class="text-green-300">Activo</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Cambio de contraseña -->
-    <div class="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
-      <h2 class="text-xl font-bold text-white mb-6 flex items-center">
-        <i class="fas fa-lock mr-3 text-purple-400"></i>
-        Seguridad
-      </h2>
-      
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-300 mb-2">Contraseña actual</label>
-          <input
-            v-model="passwordForm.currentPassword"
-            type="password"
-            class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            placeholder="••••••••"
-          >
-        </div>
-        
-        <div>
-          <label class="block text-sm font-medium text-gray-300 mb-2">Nueva contraseña</label>
-          <input
-            v-model="passwordForm.newPassword"
-            type="password"
-            class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            placeholder="••••••••"
-          >
-        </div>
-        
-        <div>
-          <label class="block text-sm font-medium text-gray-300 mb-2">Confirmar contraseña</label>
-          <input
-            v-model="passwordForm.confirmPassword"
-            type="password"
-            class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            placeholder="••••••••"
-          >
-        </div>
-      </div>
-      
-      <div class="flex justify-end mt-4">
+
+      <!-- Botones de acción para modo edición -->
+      <div v-if="isEditing" class="flex gap-4 mt-6 justify-end">
         <button
-          @click="updatePassword"
-          :disabled="!canUpdatePassword"
-          class="px-6 py-3 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-all duration-200"
+          @click="toggleEditMode"
+          class="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-xl font-medium transition-all duration-300"
         >
-          <i class="fas fa-key mr-2"></i>
-          Cambiar Contraseña
+          <i class="fas fa-times mr-2"></i>
+          Cancelar
+        </button>
+        <button
+          @click="updateProfile"
+          :disabled="loading"
+          class="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl font-medium transition-all duration-300 disabled:opacity-50"
+        >
+          <i class="fas fa-save mr-2"></i>
+          {{ loading ? 'Guardando...' : 'Guardar Cambios' }}
         </button>
       </div>
     </div>
-    
-    <!-- Botones de acción -->
-    <div v-if="isEditing" class="flex justify-end gap-4">
-      <button
-        @click="toggleEditMode"
-        class="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-all duration-200"
-      >
-        Cancelar
-      </button>
-      <button
-        @click="saveProfile"
-        :disabled="loading"
-        class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        <i class="fas fa-save mr-2"></i>
-        {{ loading ? 'Guardando...' : 'Guardar Cambios' }}
-      </button>
+
+    <!-- Cambiar Contraseña -->
+    <div class="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
+      <h2 class="text-xl font-bold text-white mb-6 flex items-center">
+        <i class="fas fa-lock mr-3 text-purple-400"></i>
+        Cambiar Contraseña
+      </h2>
+      
+      <form @submit.prevent="updatePassword" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-2">
+              Contraseña Actual
+            </label>
+            <input
+              v-model="passwordForm.currentPassword"
+              type="password"
+              class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              placeholder="••••••••"
+              required
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-2">
+              Nueva Contraseña
+            </label>
+            <input
+              v-model="passwordForm.newPassword"
+              type="password"
+              class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              placeholder="••••••••"
+              required
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-300 mb-2">
+              Confirmar Contraseña
+            </label>
+            <input
+              v-model="passwordForm.confirmPassword"
+              type="password"
+              class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              placeholder="••••••••"
+              required
+            />
+          </div>
+        </div>
+        
+        <div class="flex justify-end">
+          <button
+            type="submit"
+            :disabled="loading || !passwordForm.currentPassword || !passwordForm.newPassword || passwordForm.newPassword !== passwordForm.confirmPassword"
+            class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl font-medium transition-all duration-300 disabled:opacity-50"
+          >
+            <i class="fas fa-key mr-2"></i>
+            {{ loading ? 'Actualizando...' : 'Cambiar Contraseña' }}
+          </button>
+        </div>
+      </form>
     </div>
+
+    <!-- Input de archivo oculto -->
+    <input
+      ref="fileInput"
+      type="file"
+      accept="image/*"
+      @change="handleFileSelect"
+      class="hidden"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useAuthStore } from '../stores/auth'
-import { userService } from '../services/userService'
-import { toast } from '../utils/toast'
+import { ref, onMounted, computed } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+import { userService } from '@/services/userService'
+import { toast } from 'vue3-toastify'
 
 const authStore = useAuthStore()
 
@@ -265,6 +301,17 @@ const profileData = ref({
   updatedAt: ''
 })
 
+// URL absoluta para la foto en entorno local/prod
+const resolvedPhotoUrl = computed(() => {
+  const url = profileData.value?.photo || ''
+  if (!url) return ''
+  if (/^https?:\/\//i.test(url)) return url
+  const apiBase = (import.meta as any).env?.VITE_API_BASE_URL || (import.meta as any).env?.VITE_API_BASE_URL_DEV || 'http://localhost:4000'
+  let origin = String(apiBase).replace(/\/?api\/?$/i, '')
+  if (!/^https?:\/\//i.test(origin)) origin = `http://${origin.replace(/^\/+/, '')}`
+  return `${origin.replace(/\/$/, '')}/${url.replace(/^\//, '')}`
+})
+
 const editForm = ref({
   name: '',
   email: '',
@@ -278,54 +325,67 @@ const passwordForm = ref({
   confirmPassword: ''
 })
 
-// Computed
-const canUpdatePassword = computed(() => {
-  return passwordForm.value.currentPassword && 
-         passwordForm.value.newPassword && 
-         passwordForm.value.confirmPassword &&
-         passwordForm.value.newPassword === passwordForm.value.confirmPassword &&
-         passwordForm.value.newPassword.length >= 6
-})
-
 // Methods
 const getInitials = (name: string) => {
-  return name.split(' ').map(n => n.charAt(0)).join('').toUpperCase()
+  if (!name) return 'U'
+  return name.split(' ').map(n => n.charAt(0)).join('').toUpperCase().substring(0, 2)
 }
 
 const getRoleDisplayName = (role: string) => {
-  const roleNames: Record<string, string> = {
-    admin: 'Administrador',
-    manager: 'Gerente',
-    employee: 'Empleado',
-    viewer: 'Visualizador'
+  const roles: { [key: string]: string } = {
+    'admin': 'Administrador',
+    'manager': 'Gerente',
+    'user': 'Usuario',
+    'employee': 'Empleado'
   }
-  return roleNames[role] || role
+  return roles[role] || role || 'Sin rol'
 }
 
 const formatDate = (dateString: string) => {
   if (!dateString) return 'No disponible'
-  const date = new Date(dateString)
-  return date.toLocaleDateString('es-ES', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
+  try {
+    return new Date(dateString).toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+  } catch {
+    return 'Fecha inválida'
+  }
+}
+
+// Función para manejar errores de carga de imagen
+const onImageError = (event: Event) => {
+  console.error('Error al cargar la imagen:', event)
+  const img = event.target as HTMLImageElement
+  console.error('URL de imagen que falló:', img.src)
+  console.error('ProfileData.photo:', profileData.value?.photo)
+  toast.error('Error al cargar la imagen de perfil')
+}
+
+// Función para confirmar carga exitosa de imagen
+const onImageLoad = (event: Event) => {
+  console.log('Imagen cargada exitosamente')
+  const img = event.target as HTMLImageElement
+  console.log('URL de imagen cargada:', img.src)
 }
 
 const toggleEditMode = () => {
+  if (!profileData.value) return
+  
   if (isEditing.value) {
     // Cancelar - restaurar datos originales
     editForm.value = {
-      name: profileData.value.name,
-      email: profileData.value.email,
+      name: profileData.value.name || '',
+      email: profileData.value.email || '',
       phone: profileData.value.phone || '',
       department: profileData.value.department || ''
     }
   } else {
     // Iniciar edición - copiar datos actuales
     editForm.value = {
-      name: profileData.value.name,
-      email: profileData.value.email,
+      name: profileData.value.name || '',
+      email: profileData.value.email || '',
       phone: profileData.value.phone || '',
       department: profileData.value.department || ''
     }
@@ -333,82 +393,22 @@ const toggleEditMode = () => {
   isEditing.value = !isEditing.value
 }
 
-const triggerFileInput = () => {
-  fileInput.value?.click()
-}
-
-const handleFileUpload = async (event: Event) => {
-  const file = (event.target as HTMLInputElement).files?.[0]
-  if (!file) return
-  
-  // Validar tipo y tamaño
-  if (!file.type.startsWith('image/')) {
-    toast.error('Por favor selecciona una imagen válida')
-    return
-  }
-  
-  if (file.size > 5 * 1024 * 1024) { // 5MB
-    toast.error('La imagen debe ser menor a 5MB')
-    return
-  }
-  
+const updateProfile = async () => {
   try {
     loading.value = true
     
-    // Convertir a base64 para preview inmediato
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      if (profileData.value) {
-        profileData.value.photo = e.target?.result as string
-      }
-    }
-    reader.readAsDataURL(file)
-    
-    // Aquí subirías la imagen al servidor
-    // const photoUrl = await userService.uploadPhoto(file)
-    // profileData.value.photo = photoUrl
-    
-    toast.success('Foto de perfil actualizada')
-  } catch (error) {
-    console.error('Error al subir foto:', error)
-    toast.error('Error al subir la foto')
-  } finally {
-    loading.value = false
-  }
-}
-
-const saveProfile = async () => {
-  if (!editForm.value.name.trim()) {
-    toast.error('El nombre es requerido')
-    return
-  }
-  
-  if (!editForm.value.email.trim()) {
-    toast.error('El email es requerido')
-    return
-  }
-  
-  try {
-    loading.value = true
-    
-    const updateData = {
-      name: editForm.value.name.trim(),
-      email: editForm.value.email.trim(),
-      phone: editForm.value.phone.trim() || null,
-      department: editForm.value.department.trim() || null
-    }
-    
-    // Actualizar en el servidor
-    await userService.updateProfile(updateData)
+    await userService.updateProfile(editForm.value)
     
     // Actualizar datos locales
-    Object.assign(profileData.value, updateData)
+    Object.assign(profileData.value, editForm.value)
     
-    // Actualizar store de auth
-    await authStore.refreshUserData()
+    // Actualizar también el store
+    if (authStore.user) {
+      Object.assign(authStore.user, editForm.value)
+    }
     
-    toast.success('Perfil actualizado correctamente')
     isEditing.value = false
+    toast.success('Perfil actualizado correctamente')
     
   } catch (error) {
     console.error('Error al actualizar perfil:', error)
@@ -444,18 +444,66 @@ const updatePassword = async () => {
   }
 }
 
+const triggerFileInput = () => {
+  fileInput.value?.click()
+}
+
+const handleFileSelect = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  
+  if (!file) return
+  
+  // Validar tipo de archivo
+  if (!file.type.startsWith('image/')) {
+    toast.error('Por favor selecciona un archivo de imagen')
+    return
+  }
+  
+  // Validar tamaño (máximo 5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    toast.error('La imagen debe ser menor a 5MB')
+    return
+  }
+  
+  try {
+    loading.value = true
+    console.log('📸 Iniciando subida de foto...')
+    
+    const photoUrl = await userService.uploadPhoto(file)
+    console.log('✅ Foto subida exitosamente:', photoUrl)
+    
+    // Actualizar foto usando el método del authStore
+    authStore.updateUserPhoto(photoUrl)
+    
+    // Actualizar foto en profileData local
+    if (profileData.value) {
+      profileData.value.photo = photoUrl
+      console.log('📋 ProfileData actualizado con nueva foto')
+    }
+    
+    toast.success('Foto actualizada correctamente')
+    
+  } catch (error: any) {
+    console.error('❌ Error al subir foto:', error)
+    toast.error('Error al subir la foto: ' + (error.message || 'Error desconocido'))
+  } finally {
+    loading.value = false
+    // Limpiar input
+    if (target) target.value = ''
+  }
+}
+
 const loadProfile = async () => {
   try {
     loading.value = true
     
-    // Cargar datos del perfil
-    const profile = await userService.getProfile()
-    profileData.value = profile
+    console.log('🔄 Iniciando carga de perfil...')
+    console.log('👤 AuthStore user:', authStore.user)
     
-  } catch (error) {
-    console.error('Error al cargar perfil:', error)
-    // Usar datos del store como fallback
+    // Inicializar inmediatamente con datos del store si están disponibles
     if (authStore.user) {
+      console.log('✅ Datos encontrados en authStore, inicializando...')
       profileData.value = {
         name: authStore.user.name || '',
         email: authStore.user.email || '',
@@ -466,9 +514,62 @@ const loadProfile = async () => {
         createdAt: authStore.user.createdAt || '',
         updatedAt: authStore.user.updatedAt || ''
       }
+      console.log('📋 ProfileData inicial:', profileData.value)
+    } else {
+      console.log('❌ No se encontraron datos en authStore')
     }
+    
+    // Intentar cargar datos actualizados del servidor
+    try {
+      console.log('🌐 Cargando perfil del servidor...')
+      const profile = await userService.getProfile()
+      console.log('✅ Perfil cargado del servidor:', profile)
+      profileData.value = profile
+    } catch (serverError) {
+      console.error('❌ Error al cargar perfil del servidor:', serverError)
+      
+      // Si falla la carga del servidor pero tenemos datos del store, los usamos
+      if (!profileData.value.name && authStore.user) {
+        console.log('🔄 Usando datos de respaldo del authStore...')
+        profileData.value = {
+          name: authStore.user.name || '',
+          email: authStore.user.email || '',
+          role: authStore.user.role || '',
+          phone: authStore.user.phone || '',
+          department: authStore.user.department || '',
+          photo: authStore.user.photo || '',
+          createdAt: authStore.user.createdAt || '',
+          updatedAt: authStore.user.updatedAt || ''
+        }
+      }
+    }
+    
+  } catch (error) {
+    console.error('❌ Error general al cargar perfil:', error)
+    toast.error('Error al cargar el perfil: ' + (error?.message || 'Error desconocido'))
   } finally {
     loading.value = false
+    console.log('🏁 Carga de perfil completada')
+    console.log('📋 ProfileData final:', profileData.value)
+    
+    // Debug específico para la foto
+    console.log('🖼️ DEBUGGING FOTO:')
+    console.log('- profileData.value?.photo:', profileData.value?.photo)
+    console.log('- Tipo de dato:', typeof profileData.value?.photo)
+    console.log('- Longitud de URL:', profileData.value?.photo?.length)
+    console.log('- Es string válido:', typeof profileData.value?.photo === 'string' && profileData.value.photo.length > 0)
+    
+    if (profileData.value?.photo) {
+      console.log('✅ Foto detectada, URL original:', profileData.value.photo)
+      console.log('🔗 URL resuelta:', resolvedPhotoUrl.value)
+      // Verificar si la URL es accesible (usando la resuelta)
+      const img = new Image()
+      img.onload = () => console.log('✅ Imagen accesible desde:', resolvedPhotoUrl.value)
+      img.onerror = (err) => console.error('❌ Imagen NO accesible:', err, 'URL:', resolvedPhotoUrl.value)
+      img.src = resolvedPhotoUrl.value
+    } else {
+      console.log('❌ No hay foto disponible')
+    }
   }
 }
 
