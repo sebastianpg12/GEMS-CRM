@@ -12,6 +12,7 @@ import TeamActivities from './pages/TeamActivities.vue'
 import AccountingView from './components/AccountingView.vue'
 import CasesView from './components/CasesView.vue'
 import ProfileView from './pages/ProfileView.vue'
+import ChatPage from './pages/ChatPage.vue'
 
 const routes = [
   {
@@ -93,6 +94,14 @@ const routes = [
     path: '/profile',
     name: 'Profile',
     component: ProfileView,
+    meta: { 
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/chat',
+    name: 'Chat',
+    component: ChatPage,
     meta: { 
       requiresAuth: true
     }

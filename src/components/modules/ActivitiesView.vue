@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="space-y-6">
     <!-- Header con controles -->
     <div class="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">

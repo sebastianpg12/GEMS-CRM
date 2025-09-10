@@ -7,6 +7,9 @@ const API_BASE_URL = 'http://localhost:4000/api'  // Match backend port
 // Export auth store
 export { useAuthStore } from './auth'
 
+// Export chat store  
+export { useChatStore } from './chatStore'
+
 // Clients Store
 export const useClientsStore = defineStore('clients', {
   state: () => ({

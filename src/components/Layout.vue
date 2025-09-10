@@ -78,6 +78,9 @@
       </main>
     </div>
     
+    <!-- Chat Widget -->
+    <ChatWidget />
+    
     <!-- Notifications Panel -->
     <div v-if="showNotifications" class="fixed inset-0 z-50">
       <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="showNotifications = false"></div>
@@ -106,6 +109,9 @@
         </div>
       </div>
     </div>
+    
+    <!-- Chat Widget -->
+    <ChatWidget />
   </div>
 </template>
 
@@ -113,6 +119,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useNotificationsStore } from '../stores'
+import ChatWidget from './ChatWidget.vue'
 import {
   HomeIcon,
   UserGroupIcon,
@@ -125,7 +132,8 @@ import {
   DocumentTextIcon,
   CogIcon,
   UsersIcon,
-  FolderIcon
+  FolderIcon,
+  ChatBubbleLeftRightIcon
 } from '@heroicons/vue/24/outline'
 
 const route = useRoute()
@@ -141,6 +149,7 @@ const navigation = [
   { name: 'Contabilidad', path: '/accounting', icon: CurrencyDollarIcon },
   { name: 'Gestión de Casos', path: '/cases', icon: FolderIcon },
   { name: 'Equipo', path: '/team', icon: DocumentTextIcon },
+  { name: 'Chat Interno', path: '/chat', icon: ChatBubbleLeftRightIcon },
 ]
 
 const pageTitle = computed(() => {
@@ -156,7 +165,8 @@ const pageDescription = computed(() => {
     '/team-activities': 'Actividades asignadas por miembro del equipo',
     '/accounting': 'Gestión financiera unificada',
     '/cases': 'Documentos, incidencias y seguimientos',
-    '/team': 'Gestión del equipo de trabajo'
+    '/team': 'Gestión del equipo de trabajo',
+    '/chat': 'Chat interno del equipo'
   }
   return descriptions[route.path] || ''
 })
