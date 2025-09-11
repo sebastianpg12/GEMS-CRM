@@ -5,6 +5,41 @@ export interface Client {
   email: string
   phone: string
   company: string
+  tags?: string[]
+  profile?: {
+    about?: string
+    address?: string
+    website?: string
+    industry?: string
+    size?: string
+    location?: string
+    socials?: {
+      linkedin?: string
+      twitter?: string
+      facebook?: string
+      instagram?: string
+    }
+  }
+  services?: Array<{
+    _id?: string
+    name: string
+    plan?: string
+    status?: 'active' | 'paused' | 'cancelled' | 'trial'
+    startDate?: string
+    endDate?: string
+    notes?: string
+  }>
+  commitments?: Array<{
+    _id?: string
+    title: string
+    description?: string
+    dueDate?: string
+    status: 'pending' | 'in_progress' | 'completed' | 'cancelled'
+    owner?: string
+  }>
+  preferences?: Array<{ _id?: string; key: string; value: string }>
+  customFields?: Array<{ _id?: string; key: string; value: any; type?: 'string' | 'number' | 'boolean' | 'date' | 'json' }>
+  notes?: Array<{ _id?: string; content: string; author?: string; pinned?: boolean; createdAt?: string }>
   createdAt?: string
   updatedAt?: string
 }
@@ -151,6 +186,25 @@ export interface TeamMember {
     }
   }
   createdAt?: string
+  updatedAt?: string
+}
+
+// Organigrama
+export interface OrgChartNode {
+  id: string
+  title: string
+  name: string
+  level: number
+  parentId: string | null
+  userId?: string | null // compat: single assignee
+  assignees?: Array<{ userId: string; name: string; email?: string }>
+  description?: string
+  status?: 'filled' | 'vacant'
+  isTeam?: boolean
+}
+
+export interface OrgChart {
+  nodes: OrgChartNode[]
   updatedAt?: string
 }
 

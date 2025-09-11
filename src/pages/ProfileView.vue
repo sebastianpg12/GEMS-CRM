@@ -8,7 +8,7 @@
           <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-purple-500/50 shadow-2xl">
             <img
               v-if="profileData?.photo"
-              :src="resolvedPhotoUrl"
+              :src="imgSrc"
               :alt="profileData.name || 'Usuario'"
               class="w-full h-full object-cover"
               @error="onImageError"
@@ -312,6 +312,13 @@ const resolvedPhotoUrl = computed(() => {
   return `${origin.replace(/\/$/, '')}/${url.replace(/^\//, '')}`
 })
 
+// Add a small cache-busting param on retry to bypass potential CDN/cold-start hiccups
+const imgBust = ref<number | null>(null)
+const imgSrc = computed(() => {
+  if (!resolvedPhotoUrl.value) return ''
+  return imgBust.value ? `${resolvedPhotoUrl.value}?v=${imgBust.value}` : resolvedPhotoUrl.value
+})
+
 const editForm = ref({
   name: '',
   email: '',
@@ -361,9 +368,15 @@ const onImageError = (event: Event) => {
   console.error('URL de imagen que falló:', img.src)
   console.error('ProfileData.photo:', profileData.value?.photo)
   toast.error('Error al cargar la imagen de perfil')
-  // Fallback inmediato a iniciales
-  if (profileData.value) {
-    profileData.value.photo = ''
+  // Intentar un reintento rápido con cache-busting una sola vez
+  if (!imgBust.value && resolvedPhotoUrl.value) {
+    imgBust.value = Date.now()
+    setTimeout(() => { imgBust.value = null }, 5000)
+  } else {
+    // Fallback a iniciales si ya reintentamos
+    if (profileData.value) {
+      profileData.value.photo = ''
+    }
   }
 }
 
@@ -372,6 +385,8 @@ const onImageLoad = (event: Event) => {
   console.log('Imagen cargada exitosamente')
   const img = event.target as HTMLImageElement
   console.log('URL de imagen cargada:', img.src)
+  // Limpiar bust si existía
+  imgBust.value = null
 }
 
 const toggleEditMode = () => {

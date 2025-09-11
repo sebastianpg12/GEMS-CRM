@@ -13,6 +13,7 @@ import AccountingView from './components/AccountingView.vue'
 import CasesView from './components/CasesView.vue'
 import ProfileView from './pages/ProfileView.vue'
 import ChatPage from './pages/ChatPage.vue'
+import ClientDetail from './pages/ClientDetail.vue'
 
 const routes = [
   {
@@ -20,6 +21,12 @@ const routes = [
     name: 'Login',
     component: Login,
     meta: { requiresGuest: true }
+  },
+  {
+    path: '/clients/:id',
+    name: 'ClientDetail',
+    component: ClientDetail,
+    meta: { requiresAuth: true, requiredPermissions: ['view-clients'] }
   },
   {
     path: '/',

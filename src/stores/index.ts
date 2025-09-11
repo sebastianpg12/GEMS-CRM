@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
-import type { Issue, Notification, Document, Minute, Setting, TeamMember } from '../types'
+import type { Issue, Notification, Document, Minute, Setting, TeamMember, OrgChart } from '../types'
 import { API_CONFIG } from '@/config/api'
 
 const API_BASE_URL = API_CONFIG.BASE_URL  // Centralized API base URL
@@ -678,6 +678,50 @@ export const useTeamStore = defineStore('team', {
         this.error = error.response?.data?.message || error.message || 'Error activating team member'
         console.error('Error activating team member:', error)
         throw error
+      } finally {
+        this.loading = false
+      }
+    }
+  }
+})
+
+// OrgChart Store
+export const useOrgChartStore = defineStore('orgchart', {
+  state: () => ({
+    chart: { nodes: [] } as OrgChart,
+    loading: false,
+    error: null as string | null
+  }),
+  actions: {
+    async fetchChart() {
+      this.loading = true
+      try {
+        const res = await axios.get(`${API_BASE_URL}/team/orgchart`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        })
+        if (res.data.success) this.chart = res.data.data
+        this.error = null
+      } catch (e: any) {
+        this.error = e.response?.data?.message || e.message
+      } finally {
+        this.loading = false
+      }
+    },
+    async saveChart(chart: OrgChart) {
+      this.loading = true
+      try {
+        const res = await axios.put(`${API_BASE_URL}/team/orgchart`, chart, {
+          headers: { 
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          }
+        })
+        if (res.data.success) this.chart = res.data.data
+        this.error = null
+        return res.data
+      } catch (e: any) {
+        this.error = e.response?.data?.message || e.message
+        throw e
       } finally {
         this.loading = false
       }

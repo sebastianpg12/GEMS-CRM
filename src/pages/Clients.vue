@@ -116,6 +116,9 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right">
                   <div class="flex items-center justify-end gap-2">
+                    <router-link :to="`/clients/${client._id}`" class="p-2 text-purple-300 hover:text-white hover:bg-purple-600/20 rounded-lg transition-colors" title="Ver detalle">
+                      <i class="fas fa-eye"></i>
+                    </router-link>
                     <PermissionGuard :permissions="['edit-clients']" :fallback="false">
                       <button
                         @click="editClient(client)"
@@ -181,6 +184,9 @@
               <p class="text-gray-300">{{ client.email }}</p>
               <p class="text-gray-400">{{ client.phone }}</p>
               <p class="text-gray-500">Registrado: {{ formatDate(client.createdAt) }}</p>
+                <router-link :to="`/clients/${client._id}`" class="inline-flex items-center gap-2 text-purple-300 hover:text-white mt-2">
+                  <i class="fas fa-eye"></i> Ver detalle
+                </router-link>
             </div>
           </div>
         </div>
