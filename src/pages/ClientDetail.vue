@@ -86,21 +86,46 @@
         <div v-else-if="activeTab === 'services'" class="space-y-4">
           <div class="flex justify-between items-center">
             <h3 class="text-white font-semibold">Servicios</h3>
-            <button @click="addService" class="px-3 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700">Agregar</button>
+          </div>
+          <!-- Inline add service -->
+          <div class="flex flex-wrap gap-2 items-center bg-gray-900/60 border border-gray-700 rounded-xl p-3">
+            <input v-model="serviceName" placeholder="Nombre del servicio" class="w-48 bg-gray-900/60 border border-gray-700 rounded px-3 py-2 text-gray-200" />
+            <input v-model="servicePlan" placeholder="Plan (opcional)" class="w-40 bg-gray-900/60 border border-gray-700 rounded px-3 py-2 text-gray-200" />
+            <select v-model="serviceStatus" class="bg-gray-900/60 border border-gray-700 rounded px-3 py-2 text-gray-200">
+              <option value="active">Activo</option>
+              <option value="paused">Pausado</option>
+              <option value="cancelled">Cancelado</option>
+              <option value="trial">Prueba</option>
+            </select>
+            <button @click="createService" class="px-3 py-2 rounded bg-purple-600 text-white hover:bg-purple-700">Agregar</button>
           </div>
           <div v-if="client.services?.length" class="grid md:grid-cols-2 gap-4">
             <div v-for="s in client.services" :key="s._id" class="bg-gray-900/60 border border-gray-700 rounded-xl p-4">
-              <div class="flex justify-between items-center">
+              <!-- view mode -->
+              <div v-if="editingServiceId !== s._id" class="flex justify-between items-center">
                 <div>
                   <p class="text-white font-medium">{{ s.name }}</p>
                   <p class="text-gray-400 text-sm">{{ s.plan }} · {{ s.status }}</p>
                 </div>
                 <div class="flex gap-2">
-                  <button @click="editService(s)" class="px-2 py-1 rounded bg-blue-600/20 text-blue-300">Editar</button>
+                  <button @click="startEditService(s)" class="px-2 py-1 rounded bg-blue-600/20 text-blue-300">Editar</button>
                   <button @click="deleteService(s._id)" class="px-2 py-1 rounded bg-red-600/20 text-red-300">Eliminar</button>
                 </div>
               </div>
-              <p v-if="s.notes" class="text-gray-300 text-sm mt-2">{{ s.notes }}</p>
+              <!-- edit mode -->
+              <div v-else class="flex flex-wrap gap-2 items-center">
+                <input v-model="editServicePlan" placeholder="Plan" class="w-40 bg-gray-900/60 border border-gray-700 rounded px-3 py-2 text-gray-200" />
+                <input v-model="editServiceNotes" placeholder="Notas" class="flex-1 bg-gray-900/60 border border-gray-700 rounded px-3 py-2 text-gray-200" />
+                <select v-model="editServiceStatus" class="bg-gray-900/60 border border-gray-700 rounded px-3 py-2 text-gray-200">
+                  <option value="active">Activo</option>
+                  <option value="paused">Pausado</option>
+                  <option value="cancelled">Cancelado</option>
+                  <option value="trial">Prueba</option>
+                </select>
+                <button @click="confirmEditService" class="px-3 py-2 rounded bg-green-600 text-white hover:bg-green-700">Guardar</button>
+                <button @click="cancelEditService" class="px-3 py-2 rounded bg-gray-700 text-gray-200 hover:bg-gray-600">Cancelar</button>
+              </div>
+              <p v-if="s.notes && editingServiceId !== s._id" class="text-gray-300 text-sm mt-2">{{ s.notes }}</p>
             </div>
           </div>
           <p v-else class="text-gray-400">No hay servicios registrados.</p>
@@ -110,21 +135,46 @@
         <div v-else-if="activeTab === 'commitments'" class="space-y-4">
           <div class="flex justify-between items-center">
             <h3 class="text-white font-semibold">Compromisos</h3>
-            <button @click="addCommitment" class="px-3 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700">Agregar</button>
+          </div>
+          <!-- Inline add commitment -->
+          <div class="flex flex-wrap gap-2 items-center bg-gray-900/60 border border-gray-700 rounded-xl p-3">
+            <input v-model="commitTitle" placeholder="Título" class="w-48 bg-gray-900/60 border border-gray-700 rounded px-3 py-2 text-gray-200" />
+            <input v-model="commitDueDate" type="date" class="bg-gray-900/60 border border-gray-700 rounded px-3 py-2 text-gray-200" />
+            <select v-model="commitStatus" class="bg-gray-900/60 border border-gray-700 rounded px-3 py-2 text-gray-200">
+              <option value="pending">Pendiente</option>
+              <option value="in_progress">En progreso</option>
+              <option value="completed">Completado</option>
+              <option value="cancelled">Cancelado</option>
+            </select>
+            <button @click="createCommitment" class="px-3 py-2 rounded bg-purple-600 text-white hover:bg-purple-700">Agregar</button>
           </div>
           <div v-if="client.commitments?.length" class="space-y-3">
             <div v-for="c in client.commitments" :key="c._id" class="bg-gray-900/60 border border-gray-700 rounded-xl p-4">
-              <div class="flex justify-between items-center">
+              <!-- view mode -->
+              <div v-if="editingCommitmentId !== c._id" class="flex justify-between items-center">
                 <div>
                   <p class="text-white font-medium">{{ c.title }}</p>
                   <p class="text-gray-400 text-sm">{{ c.status }} · {{ formatDate(c.dueDate) }}</p>
                 </div>
                 <div class="flex gap-2">
-                  <button @click="editCommitment(c)" class="px-2 py-1 rounded bg-blue-600/20 text-blue-300">Editar</button>
+                  <button @click="startEditCommitment(c)" class="px-2 py-1 rounded bg-blue-600/20 text-blue-300">Editar</button>
                   <button @click="deleteCommitment(c._id)" class="px-2 py-1 rounded bg-red-600/20 text-red-300">Eliminar</button>
                 </div>
               </div>
-              <p v-if="c.description" class="text-gray-300 text-sm mt-2">{{ c.description }}</p>
+              <!-- edit mode -->
+              <div v-else class="flex flex-wrap gap-2 items-center">
+                <input v-model="editCommitDescription" placeholder="Descripción" class="flex-1 bg-gray-900/60 border border-gray-700 rounded px-3 py-2 text-gray-200" />
+                <input v-model="editCommitDueDate" type="date" class="bg-gray-900/60 border border-gray-700 rounded px-3 py-2 text-gray-200" />
+                <select v-model="editCommitStatus" class="bg-gray-900/60 border border-gray-700 rounded px-3 py-2 text-gray-200">
+                  <option value="pending">Pendiente</option>
+                  <option value="in_progress">En progreso</option>
+                  <option value="completed">Completado</option>
+                  <option value="cancelled">Cancelado</option>
+                </select>
+                <button @click="confirmEditCommitment" class="px-3 py-2 rounded bg-green-600 text-white hover:bg-green-700">Guardar</button>
+                <button @click="cancelEditCommitment" class="px-3 py-2 rounded bg-gray-700 text-gray-200 hover:bg-gray-600">Cancelar</button>
+              </div>
+              <p v-if="c.description && editingCommitmentId !== c._id" class="text-gray-300 text-sm mt-2">{{ c.description }}</p>
             </div>
           </div>
           <p v-else class="text-gray-400">No hay compromisos registrados.</p>
@@ -138,12 +188,12 @@
             <button @click="addPreference" class="px-3 py-2 rounded bg-purple-600 text-white">Agregar</button>
           </div>
           <div class="grid md:grid-cols-2 gap-3">
-            <div v-for="p in client.preferences || []" :key="p._id" class="bg-gray-900/60 border border-gray-700 rounded-xl p-3 flex items-center justify-between">
+            <div v-for="p in (client.preferences || [])" :key="p._id || p.key" class="bg-gray-900/60 border border-gray-700 rounded-xl p-3 flex items-center justify-between">
               <div>
                 <p class="text-gray-300 text-sm">{{ p.key }}</p>
                 <p class="text-white">{{ p.value }}</p>
               </div>
-              <button @click="removePreference(p._id)" class="px-2 py-1 rounded bg-red-600/20 text-red-300">Quitar</button>
+              <button @click="removePreference(p)" class="px-2 py-1 rounded bg-red-600/20 text-red-300">Quitar</button>
             </div>
           </div>
         </div>
@@ -176,12 +226,12 @@
             <button @click="addCustomField" class="px-3 py-2 rounded bg-purple-600 text-white">Agregar</button>
           </div>
           <div class="grid md:grid-cols-2 gap-3">
-            <div v-for="f in client.customFields || []" :key="f._id" class="bg-gray-900/60 border border-gray-700 rounded-xl p-3 flex items-center justify-between">
+            <div v-for="f in (client.customFields || [])" :key="f._id || f.key" class="bg-gray-900/60 border border-gray-700 rounded-xl p-3 flex items-center justify-between">
               <div>
                 <p class="text-gray-400 text-sm">{{ f.key }}</p>
                 <p class="text-white">{{ f.value }}</p>
               </div>
-              <button @click="removeCustomField(f._id)" class="px-2 py-1 rounded bg-red-600/20 text-red-300">Quitar</button>
+              <button @click="removeCustomField(f)" class="px-2 py-1 rounded bg-red-600/20 text-red-300">Quitar</button>
             </div>
           </div>
         </div>
@@ -341,31 +391,53 @@ const deleteNote = async (noteId:string) => {
   }
 }
 
-// Services
-const addService = async () => {
-  const name = prompt('Nombre del servicio:')
+// Services (inline)
+const serviceName = ref('')
+const servicePlan = ref('')
+const serviceStatus = ref<'active' | 'paused' | 'cancelled' | 'trial'>('active')
+const editingServiceId = ref<string | null>(null)
+const editServicePlan = ref('')
+const editServiceNotes = ref('')
+const editServiceStatus = ref<'active' | 'paused' | 'cancelled' | 'trial'>('active')
+
+const createService = async () => {
+  const name = serviceName.value.trim()
   if (!name) return
   try {
     const res = await fetch(`${API_CONFIG.BASE_URL}/clients/${id}/services`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, status: 'active' })
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, plan: servicePlan.value || undefined, status: serviceStatus.value })
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const svc = await parseJsonSafe(res)
     client.services = [...(client.services || []), svc]
+    serviceName.value = ''
+    servicePlan.value = ''
+    serviceStatus.value = 'active'
   } catch (err) {
     console.error('Error agregando servicio:', err)
     alert('No se pudo agregar el servicio. Ver consola para más información.')
   }
 }
-const editService = async (s:any) => {
-  const plan = prompt('Plan:', s.plan || '')
-  const notes = prompt('Notas:', s.notes || '')
+const startEditService = (s:any) => {
+  editingServiceId.value = s._id
+  editServicePlan.value = s.plan || ''
+  editServiceNotes.value = s.notes || ''
+  editServiceStatus.value = s.status || 'active'
+}
+const cancelEditService = () => {
+  editingServiceId.value = null
+}
+const confirmEditService = async () => {
+  if (!editingServiceId.value) return
   try {
-    const res = await fetch(`${API_CONFIG.BASE_URL}/clients/${id}/services/${s._id}`, {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ plan, notes })
+    const res = await fetch(`${API_CONFIG.BASE_URL}/clients/${id}/services/${editingServiceId.value}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ plan: editServicePlan.value || undefined, notes: editServiceNotes.value || undefined, status: editServiceStatus.value })
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    const upd = await parseJsonSafe(res); Object.assign(s, upd)
+    const upd = await parseJsonSafe(res)
+    const idx = (client.services || []).findIndex((x:any)=>x._id===editingServiceId.value)
+    if (idx !== -1) client.services[idx] = upd
+    editingServiceId.value = null
   } catch (err) {
     console.error('Error editando servicio:', err)
     alert('No se pudo editar el servicio. Ver consola para más información.')
@@ -382,31 +454,61 @@ const deleteService = async (serviceId:string) => {
   }
 }
 
-// Commitments
-const addCommitment = async () => {
-  const title = prompt('Título del compromiso:')
+// Commitments (inline)
+const commitTitle = ref('')
+const commitDueDate = ref<string>('')
+const commitStatus = ref<'pending'|'in_progress'|'completed'|'cancelled'>('pending')
+const editingCommitmentId = ref<string | null>(null)
+const editCommitDescription = ref('')
+const editCommitDueDate = ref<string>('')
+const editCommitStatus = ref<'pending'|'in_progress'|'completed'|'cancelled'>('pending')
+
+const createCommitment = async () => {
+  const title = commitTitle.value.trim()
   if (!title) return
   try {
     const res = await fetch(`${API_CONFIG.BASE_URL}/clients/${id}/commitments`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title, status: 'pending' })
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+        title,
+        status: commitStatus.value,
+        dueDate: commitDueDate.value ? new Date(commitDueDate.value).toISOString() : undefined
+      })
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const item = await parseJsonSafe(res)
     client.commitments = [...(client.commitments || []), item]
+    commitTitle.value = ''
+    commitDueDate.value = ''
+    commitStatus.value = 'pending'
   } catch (err) {
     console.error('Error agregando compromiso:', err)
     alert('No se pudo agregar el compromiso. Ver consola para más información.')
   }
 }
-const editCommitment = async (c:any) => {
-  const description = prompt('Descripción:', c.description || '')
-  const status = prompt('Estado (pending,in_progress,completed,cancelled):', c.status || 'pending')
+const startEditCommitment = (c:any) => {
+  editingCommitmentId.value = c._id
+  editCommitDescription.value = c.description || ''
+  editCommitStatus.value = c.status || 'pending'
+  editCommitDueDate.value = c.dueDate ? new Date(c.dueDate).toISOString().slice(0,10) : ''
+}
+const cancelEditCommitment = () => {
+  editingCommitmentId.value = null
+}
+const confirmEditCommitment = async () => {
+  if (!editingCommitmentId.value) return
   try {
-    const res = await fetch(`${API_CONFIG.BASE_URL}/clients/${id}/commitments/${c._id}`, {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ description, status })
+    const res = await fetch(`${API_CONFIG.BASE_URL}/clients/${id}/commitments/${editingCommitmentId.value}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+        description: editCommitDescription.value || undefined,
+        status: editCommitStatus.value,
+        dueDate: editCommitDueDate.value ? new Date(editCommitDueDate.value).toISOString() : undefined
+      })
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    const upd = await parseJsonSafe(res); Object.assign(c, upd)
+    const upd = await parseJsonSafe(res)
+    const idx = (client.commitments || []).findIndex((x:any)=>x._id===editingCommitmentId.value)
+    if (idx !== -1) client.commitments[idx] = upd
+    editingCommitmentId.value = null
   } catch (err) {
     console.error('Error editando compromiso:', err)
     alert('No se pudo editar el compromiso. Ver consola para más información.')
@@ -423,29 +525,37 @@ const deleteCommitment = async (commitmentId:string) => {
   }
 }
 
-// Preferences
+// Preferences (fix persist)
 const addPreference = async () => {
   const key = newPrefKey.value.trim(); const value = newPrefValue.value.trim();
   if (!key) return
-  client.preferences = [...(client.preferences || []), { _id: crypto.randomUUID(), key, value }]
+  // update draft (source of truth for saveOverview)
+  draft.preferences = [...(draft.preferences || []), { key, value }]
+  // optimistic UI
+  client.preferences = JSON.parse(JSON.stringify(draft.preferences))
   newPrefKey.value = ''; newPrefValue.value = ''
-  await saveOverview() // persisted in profile via PATCH
+  await saveOverview()
 }
-const removePreference = async (id:string) => {
-  client.preferences = (client.preferences || []).filter((p:any)=>p._id!==id)
+const removePreference = async (pref:any) => {
+  const next = (draft.preferences || []).filter((p:any)=> (p._id && pref._id) ? p._id !== pref._id : p.key !== pref.key)
+  draft.preferences = next
+  client.preferences = JSON.parse(JSON.stringify(next))
   await saveOverview()
 }
 
-// Custom Fields
+// Custom Fields (fix persist)
 const addCustomField = async () => {
   const key = newFieldKey.value.trim(); const value = newFieldValue.value
   if (!key) return
-  client.customFields = [...(client.customFields || []), { _id: crypto.randomUUID(), key, value }]
+  draft.customFields = [...(draft.customFields || []), { key, value }]
+  client.customFields = JSON.parse(JSON.stringify(draft.customFields))
   newFieldKey.value=''; newFieldValue.value=''
   await saveOverview()
 }
-const removeCustomField = async (id:string) => {
-  client.customFields = (client.customFields || []).filter((f:any)=>f._id!==id)
+const removeCustomField = async (cf:any) => {
+  const next = (draft.customFields || []).filter((f:any)=> (f._id && cf._id) ? f._id !== cf._id : f.key !== cf.key)
+  draft.customFields = next
+  client.customFields = JSON.parse(JSON.stringify(next))
   await saveOverview()
 }
 
