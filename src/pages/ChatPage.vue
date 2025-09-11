@@ -1,467 +1,349 @@
 <template>
-  <div class="space-y-6 p-6 min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-    <!-- Header with Glassmorphism Effect -->
-    <div class="flex items-center justify-between bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl">
-      <div>
-        <h1 class="text-3xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
-          💬 Chat Interno
-        </h1>
-        <p class="text-gray-300 mt-2 text-lg">Comunícate con tu equipo en tiempo real</p>
-      </div>
-      <button
-        @click="showCreateRoom = true"
-        class="group relative bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 hover:from-purple-700 hover:via-pink-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl transition-all duration-300 font-medium flex items-center space-x-3 shadow-xl hover:shadow-purple-500/25 hover:scale-105 transform"
-      >
-        <PlusIcon class="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
-        <span>Nuevo Chat</span>
-        <div class="absolute inset-0 bg-gradient-to-r from-purple-600/0 via-white/20 to-purple-600/0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-      </button>
-    </div>
-
-    <!-- Main Chat Interface with Enhanced Styling -->
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 h-[calc(100vh-280px)]">
-      <!-- Sidebar: Chat Rooms with Glassmorphism -->
-      <div class="lg:col-span-1">
-        <div class="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl h-full flex flex-col overflow-hidden hover:border-purple-400/50 transition-all duration-300">
-          <!-- Sidebar Header with Gradient -->
-          <div class="p-6 border-b border-white/20 bg-gradient-to-r from-purple-500/10 to-pink-500/10">
-            <h2 class="text-xl font-bold text-white mb-3">💬 Conversaciones</h2>
-            <!-- Enhanced Connection Status -->
-            <div 
-              v-if="!chatStore.isConnected"
-              class="flex items-center text-yellow-400 bg-yellow-400/10 px-3 py-2 rounded-lg border border-yellow-400/20"
-            >
-              <div class="w-3 h-3 bg-yellow-400 rounded-full mr-3 animate-pulse shadow-lg shadow-yellow-400/50"></div>
-              <span class="text-sm font-medium">Conectando...</span>
-            </div>
-            <div 
-              v-else
-              class="flex items-center text-emerald-400 bg-emerald-400/10 px-3 py-2 rounded-lg border border-emerald-400/20"
-            >
-              <div class="w-3 h-3 bg-emerald-400 rounded-full mr-3 shadow-lg shadow-emerald-400/50"></div>
-              <span class="text-sm font-medium">Conectado</span>
-            </div>
-          </div>
-
-          <!-- Chat Rooms List with Enhanced Styling -->
-          <div class="flex-1 overflow-y-auto p-4 custom-scrollbar">
-            <!-- Loading State with Spinner Animation -->
-            <div v-if="chatStore.isLoading" class="flex items-center justify-center py-12">
-              <div class="relative">
-                <div class="animate-spin rounded-full h-12 w-12 border-4 border-purple-500/30 border-t-purple-500 shadow-lg"></div>
-                <div class="absolute inset-0 rounded-full border-4 border-purple-500/10 animate-pulse"></div>
-              </div>
-            </div>
-
-            <!-- Enhanced Empty State -->
-            <div v-else-if="chatStore.chatRooms.length === 0" class="text-center py-12">
-              <div class="mb-6 relative">
-                <ChatBubbleLeftRightIcon class="w-20 h-20 mx-auto text-purple-400/50 animate-pulse" />
-                <div class="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-full blur-xl"></div>
-              </div>
-              <h3 class="text-white font-bold text-lg mb-3">No hay conversaciones</h3>
-              <p class="text-gray-300 text-sm mb-6 max-w-xs mx-auto">¡Crea tu primer chat y comienza a colaborar con tu equipo!</p>
-              <button
-                @click="showCreateRoom = true"
-                class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 hover:scale-105 transform shadow-lg hover:shadow-purple-500/25"
-              >
-                ✨ Crear conversación
-              </button>
-            </div>
-
-            <!-- Enhanced Rooms List -->
-            <div v-else class="space-y-3">
-              <div
-                v-for="room in chatStore.chatRooms"
-                :key="room._id"
-                @click="selectRoom(room)"
-                class="group relative p-4 rounded-xl cursor-pointer transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1"
-                :class="currentRoom?._id === room._id 
-                  ? 'bg-gradient-to-r from-purple-600/40 to-pink-600/40 border-2 border-purple-400/60 shadow-xl shadow-purple-500/25 scale-[1.02]' 
-                  : 'bg-white/5 border border-white/10 hover:bg-white/10 hover:border-purple-400/50 hover:shadow-lg'"
-              >
-                <!-- Animated Background Glow -->
-                <div class="absolute inset-0 bg-gradient-to-r from-purple-600/0 via-purple-400/5 to-pink-600/0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                
-                <div class="relative flex items-center">
-                  <!-- Enhanced Room Icon with Animation -->
-                  <div
-                    class="relative w-12 h-12 rounded-xl flex items-center justify-center mr-4 shadow-lg transition-all duration-300 group-hover:scale-110"
-                    :class="room.type === 'direct' ? 'bg-gradient-to-br from-emerald-500 to-teal-500' 
-                           : room.type === 'team' ? 'bg-gradient-to-br from-blue-500 to-indigo-500' 
-                           : 'bg-gradient-to-br from-purple-500 to-pink-500'"
-                  >
-                    <UserIcon v-if="room.type === 'direct'" class="w-6 h-6 text-white group-hover:scale-110 transition-transform" />
-                    <UsersIcon v-else-if="room.type === 'team'" class="w-6 h-6 text-white group-hover:scale-110 transition-transform" />
-                    <UserGroupIcon v-else class="w-6 h-6 text-white group-hover:scale-110 transition-transform" />
-                    
-                    <!-- Glow Effect -->
-                    <div class="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-50 transition-opacity duration-300"
-                         :class="room.type === 'direct' ? 'bg-emerald-400 blur-lg' 
-                                : room.type === 'team' ? 'bg-blue-400 blur-lg' 
-                                : 'bg-purple-400 blur-lg'"></div>
-                  </div>
-                  
-                  <div class="flex-1 min-w-0">
-                    <div class="flex items-center justify-between mb-1">
-                      <h3 class="text-white font-semibold truncate group-hover:text-purple-200 transition-colors">
-                        {{ room.name }}
-                      </h3>
-                      <span class="text-xs text-gray-400 group-hover:text-gray-300 transition-colors">
-                        {{ formatTime(room.lastActivity) }}
-                      </span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                      <p class="text-sm text-gray-400 truncate group-hover:text-gray-300 transition-colors">
-                        👥 {{ room.participants.length }} participante{{ room.participants.length !== 1 ? 's' : '' }}
-                      </p>
-                      <!-- Enhanced Unread Badge -->
-                      <div 
-                        v-if="getUnreadCount(room._id) > 0" 
-                        class="relative bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs px-3 py-1 rounded-full font-bold shadow-lg animate-pulse"
-                      >
-                        {{ getUnreadCount(room._id) > 99 ? '99+' : getUnreadCount(room._id) }}
-                        <div class="absolute inset-0 bg-gradient-to-r from-red-400 to-pink-400 rounded-full blur opacity-50 animate-ping"></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+  <div class="h-[100dvh] max-h-[100dvh] bg-slate-950 text-white">
+    <!-- Top bar -->
+    <header class="sticky top-0 z-10 border-b border-white/10 bg-slate-900/80 backdrop-blur px-4 sm:px-6 py-4">
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <!-- Mobile: open rooms drawer -->
+          <button
+            class="lg:hidden inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 p-2"
+            @click="showRoomsMobile = true"
+            title="Conversaciones"
+          >
+            <ChatBubbleLeftRightIcon class="w-6 h-6" />
+          </button>
+          <div>
+            <h1 class="text-xl sm:text-2xl font-bold">Chat interno</h1>
+            <p class="text-xs text-gray-400 hidden sm:block">Comunícate con tu equipo en tiempo real</p>
           </div>
         </div>
+        <button
+          @click="showCreateRoom = true"
+          class="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-4 py-2 text-sm font-medium shadow"
+        >
+          <PlusIcon class="w-5 h-5" />
+          Nuevo chat
+        </button>
       </div>
+    </header>
 
-      <!-- Main Chat Area with Enhanced Glassmorphism -->
-      <div class="lg:col-span-3">
-        <div class="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl h-full flex flex-col overflow-hidden hover:border-purple-400/30 transition-all duration-300">
-          <!-- No room selected with Enhanced Animation -->
-          <div v-if="!currentRoom" class="flex-1 flex items-center justify-center bg-gradient-to-br from-purple-900/20 to-pink-900/20">
-            <div class="text-center relative">
-              <div class="relative mb-8">
-                <ChatBubbleLeftEllipsisIcon class="w-32 h-32 mx-auto text-purple-400/50 animate-bounce" style="animation-duration: 3s" />
-                <div class="absolute inset-0 bg-gradient-to-r from-purple-400/30 to-pink-400/30 rounded-full blur-2xl animate-pulse"></div>
-              </div>
-              <h3 class="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-4">
-                Selecciona una conversación
-              </h3>
-              <p class="text-gray-300 mb-8 text-lg max-w-md mx-auto">
-                Elige un chat para empezar a conversar con tu equipo y colaborar en tiempo real 
-              </p>
-              <div class="flex items-center justify-center space-x-3">
-                <div class="w-3 h-3 bg-purple-500 rounded-full animate-pulse shadow-lg shadow-purple-500/50"></div>
-                <div class="w-3 h-3 bg-pink-500 rounded-full animate-pulse shadow-lg shadow-pink-500/50" style="animation-delay: 0.3s"></div>
-                <div class="w-3 h-3 bg-purple-500 rounded-full animate-pulse shadow-lg shadow-purple-500/50" style="animation-delay: 0.6s"></div>
-              </div>
-            </div>
+    <div class="grid grid-cols-1 lg:grid-cols-[320px,1fr] h-[calc(100dvh-64px)]">
+      <!-- Sidebar (desktop) -->
+      <aside class="hidden lg:flex flex-col border-r border-white/10 bg-slate-900/40">
+        <div class="px-4 py-3 border-b border-white/10">
+          <div class="flex items-center justify-between">
+            <h2 class="font-semibold">Conversaciones</h2>
+            <div v-if="!chatStore.isConnected" class="text-xs text-yellow-300">Conectando…</div>
+            <div v-else class="text-xs text-emerald-300">Conectado</div>
+          </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-3 custom-scrollbar">
+          <div v-if="chatStore.isLoading" class="py-10 text-center text-gray-400">
+            Cargando…
           </div>
 
-          <!-- Chat Interface with Enhanced Styling -->
-          <div v-else class="flex flex-col h-full">
-            <!-- Enhanced Chat Header -->
-            <div class="p-6 border-b border-white/20 bg-gradient-to-r from-purple-600/10 via-pink-600/10 to-purple-600/10 backdrop-blur-sm">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center">
-                  <div
-                    class="relative w-14 h-14 rounded-xl flex items-center justify-center mr-5 shadow-xl transition-all duration-300 hover:scale-110"
-                    :class="currentRoom.type === 'direct' ? 'bg-gradient-to-br from-emerald-500 to-teal-500' 
-                           : currentRoom.type === 'team' ? 'bg-gradient-to-br from-blue-500 to-indigo-500' 
-                           : 'bg-gradient-to-br from-purple-500 to-pink-500'"
-                  >
-                    <UserIcon v-if="currentRoom.type === 'direct'" class="w-7 h-7 text-white" />
-                    <UsersIcon v-else-if="currentRoom.type === 'team'" class="w-7 h-7 text-white" />
-                    <UserGroupIcon v-else class="w-7 h-7 text-white" />
-                    
-                    <!-- Animated Glow -->
-                    <div class="absolute inset-0 rounded-xl opacity-50 blur-lg animate-pulse"
-                         :class="currentRoom.type === 'direct' ? 'bg-emerald-400' 
-                                : currentRoom.type === 'team' ? 'bg-blue-400' 
-                                : 'bg-purple-400'"></div>
-                  </div>
-                  <div>
-                    <h3 class="text-xl font-bold text-white mb-1 bg-gradient-to-r from-white to-gray-200 bg-clip-text">
-                      {{ currentRoom.name }}
-                    </h3>
-                    <div class="flex items-center text-gray-300">
-                      <span class="text-sm">👥 {{ currentRoom.participants.length }} participante{{ currentRoom.participants.length !== 1 ? 's' : '' }}</span>
-                      <span v-if="typingUsers.length > 0" class="text-purple-400 ml-3 text-sm font-medium animate-pulse">
-                        ✍️ {{ typingUsers.join(', ') }} escribiendo...
-                      </span>
-                    </div>
-                  </div>
-                </div>
+          <div v-else-if="chatStore.chatRooms.length === 0" class="py-10 text-center">
+            <ChatBubbleLeftEllipsisIcon class="w-12 h-12 text-purple-400/70 mx-auto mb-2" />
+            <p class="text-sm text-gray-300 mb-3">No hay conversaciones</p>
+            <button @click="showCreateRoom = true" class="text-sm rounded-md px-3 py-1.5 bg-white/10 border border-white/10 hover:bg-white/15">Crear conversación</button>
+          </div>
 
-                <!-- Enhanced Room Actions -->
-                <div class="flex items-center space-x-3">
-                  <button
-                    @click="showRoomInfo = true"
-                    class="group text-gray-400 hover:text-white transition-all duration-300 p-3 rounded-xl hover:bg-white/10 hover:scale-110 transform"
-                    title="Información del chat"
-                  >
-                    <InformationCircleIcon class="w-6 h-6 group-hover:rotate-12 transition-transform" />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Enhanced Messages Area -->
-            <div class="flex-1 overflow-y-auto p-6 space-y-6 bg-gradient-to-b from-transparent via-purple-950/10 to-slate-950/20 custom-scrollbar" ref="messagesContainer">
-              <!-- Enhanced Loading State -->
-              <div v-if="chatStore.isLoading" class="flex items-center justify-center py-16">
-                <div class="text-center">
-                  <div class="relative mb-6">
-                    <div class="animate-spin rounded-full h-16 w-16 border-4 border-purple-500/30 border-t-purple-500 mx-auto shadow-xl"></div>
-                    <div class="absolute inset-0 rounded-full border-4 border-purple-500/10 animate-ping"></div>
-                  </div>
-                  <p class="text-gray-300 text-lg font-medium">Cargando mensajes...</p>
-                </div>
-              </div>
-
-              <!-- Enhanced Empty Messages State -->
-              <div v-else-if="currentMessages.length === 0" class="flex items-center justify-center py-16">
-                <div class="text-center">
-                  <div class="relative mb-8">
-                    <ChatBubbleLeftEllipsisIcon class="w-24 h-24 mx-auto text-purple-400/50 animate-pulse" />
-                    <div class="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-full blur-2xl"></div>
-                  </div>
-                  <h3 class="text-white font-bold text-xl mb-3">Sin mensajes aún</h3>
-                  <p class="text-gray-300 text-sm">¡Sé el primero en enviar un mensaje y comenzar la conversación! 💬</p>
-                </div>
-              </div>
-
-              <!-- Enhanced Messages with Better Styling -->
-              <div v-else>
+          <ul v-else class="space-y-2">
+            <li v-for="room in chatStore.chatRooms" :key="room._id">
+              <button
+                @click="selectRoom(room)"
+                class="w-full text-left flex items-center gap-3 rounded-xl border px-3 py-3 transition-colors"
+                :class="[
+                  currentRoom?._id === room._id
+                    ? 'bg-white/10 border-purple-400/40'
+                    : 'bg-white/5 border-white/10 hover:bg-white/10'
+                ]"
+              >
                 <div
-                  v-for="message in currentMessages"
-                  :key="message._id"
-                  class="flex mb-8 animate-fadeIn"
-                  :class="isOwnMessage(message) ? 'justify-end' : 'justify-start'"
+                  class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
+                  :class="room.type === 'direct' ? 'bg-gradient-to-br from-emerald-500 to-teal-500' : room.type === 'team' ? 'bg-gradient-to-br from-blue-500 to-indigo-500' : 'bg-gradient-to-br from-purple-500 to-pink-500'"
                 >
-                  <div
-                    class="max-w-[75%] rounded-2xl shadow-2xl backdrop-blur-sm border transition-all duration-300 hover:scale-[1.02] transform"
-                    :class="isOwnMessage(message) 
-                      ? 'bg-gradient-to-br from-purple-600 via-purple-500 to-pink-600 text-white border-purple-400/30 shadow-purple-500/25' 
-                      : 'bg-white/10 border-white/20 text-white shadow-xl hover:bg-white/15'"
-                  >
-                    <!-- Enhanced Sender Info -->
-                    <div v-if="!isOwnMessage(message)" class="p-5 pb-0">
-                      <div class="flex items-center mb-4">
-                        <div class="relative w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 via-pink-500 to-purple-600 flex items-center justify-center mr-4 shadow-lg">
-                          <span class="text-white text-sm font-bold">
-                            {{ message.sender.name.charAt(0).toUpperCase() }}
-                          </span>
-                          <div class="absolute inset-0 bg-gradient-to-br from-purple-400 to-pink-400 rounded-xl opacity-0 animate-pulse"></div>
-                        </div>
-                        <div>
-                          <span class="text-white font-semibold text-sm">{{ message.sender.name }}</span>
-                          <p class="text-purple-200 text-xs">{{ message.sender.position || message.sender.role }}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="p-5" :class="!isOwnMessage(message) ? 'pt-0' : ''">
-                      <!-- Enhanced Message Content -->
-                      <div class="mb-4">
-                        <p class="break-words leading-relaxed text-base">{{ message.content }}</p>
-
-                        <!-- Enhanced Attachments -->
-                        <div v-if="message.attachments && message.attachments.length > 0" class="mt-5 space-y-3">
-                          <div
-                            v-for="attachment in message.attachments"
-                            :key="attachment.filename"
-                            class="group flex items-center p-4 rounded-xl bg-black/20 hover:bg-black/30 transition-all duration-300 border border-white/10 hover:border-white/20 hover:scale-[1.02] transform"
-                          >
-                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center mr-4 shadow-lg group-hover:scale-110 transition-transform">
-                              <DocumentIcon class="w-6 h-6 text-white" />
-                            </div>
-                            <div class="flex-1 min-w-0">
-                              <a
-                                :href="attachment.url"
-                                target="_blank"
-                                class="block hover:underline text-sm font-medium text-white group-hover:text-purple-200 transition-colors truncate"
-                              >
-                                📎 {{ attachment.originalname }}
-                              </a>
-                              <span class="text-xs text-gray-400 group-hover:text-gray-300 transition-colors">
-                                💾 {{ formatFileSize(attachment.size) }}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <!-- Enhanced Message Footer -->
-                      <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-3">
-                          <span class="text-xs text-white/70 bg-black/20 px-2 py-1 rounded-lg">
-                            🕒 {{ formatTime(message.createdAt) }}
-                          </span>
-                          <span v-if="message.edited" class="text-xs text-yellow-400 bg-yellow-400/10 px-2 py-1 rounded-lg font-medium">
-                            ✏️ editado
-                          </span>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                          <button
-                            v-if="isOwnMessage(message) && message.type === 'text'"
-                            @click="startEdit(message)"
-                            class="opacity-60 hover:opacity-100 transition-all duration-300 p-2 rounded-lg hover:bg-black/20 hover:scale-110 transform"
-                            title="Editar mensaje"
-                          >
-                            <PencilIcon class="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+                  <UserIcon v-if="room.type === 'direct'" class="w-5 h-5" />
+                  <UsersIcon v-else-if="room.type === 'team'" class="w-5 h-5" />
+                  <UserGroupIcon v-else class="w-5 h-5" />
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center justify-between gap-2">
+                    <p class="font-medium truncate">{{ room.name }}</p>
+                    <span class="text-xs text-gray-400">{{ formatTime(room.lastActivity) }}</span>
+                  </div>
+                  <div class="flex items-center justify-between gap-2">
+                    <p class="text-xs text-gray-400 truncate">👥 {{ room.participants.length }} participante{{ room.participants.length !== 1 ? 's' : '' }}</p>
+                    <span v-if="getUnreadCount(room._id) > 0" class="text-[10px] rounded-full bg-pink-600 px-2 py-0.5">{{ getUnreadCount(room._id) }}</span>
                   </div>
                 </div>
+                <button
+                  v-if="authStore.isAdmin"
+                  @click.stop="confirmDeleteRoom(room._id)"
+                  class="ml-1 p-2 rounded-md hover:bg-red-500/10 text-red-300"
+                  title="Eliminar chat"
+                >
+                  <TrashIcon class="w-4 h-4" />
+                </button>
+              </button>
+            </li>
+          </ul>
+        </div>
+      </aside>
 
-                <!-- Enhanced Typing Indicator -->
-                <div v-if="typingUsers.length > 0" class="flex justify-start mb-8 animate-fadeIn">
-                  <div class="bg-white/10 rounded-2xl p-5 max-w-[70%] border border-white/10 backdrop-blur-sm shadow-lg">
-                    <div class="flex items-center space-x-4">
-                      <div class="flex space-x-1">
-                        <div class="w-3 h-3 bg-purple-400 rounded-full animate-bounce shadow-lg shadow-purple-400/50"></div>
-                        <div class="w-3 h-3 bg-pink-400 rounded-full animate-bounce shadow-lg shadow-pink-400/50" style="animation-delay: 0.2s"></div>
-                        <div class="w-3 h-3 bg-purple-400 rounded-full animate-bounce shadow-lg shadow-purple-400/50" style="animation-delay: 0.4s"></div>
-                      </div>
-                      <span class="text-sm text-purple-300 font-medium">
-                        ✍️ {{ typingUsers.join(', ') }} escribiendo...
-                      </span>
-                    </div>
-                  </div>
+      <!-- Main panel -->
+      <section class="flex flex-col min-h-0">
+        <!-- Room header or empty state header -->
+        <div class="px-4 sm:px-6 py-3 border-b border-white/10 bg-slate-900/40">
+          <div v-if="currentRoom" class="flex items-center justify-between">
+            <div class="flex items-center gap-3 min-w-0">
+              <div
+                class="w-11 h-11 rounded-lg flex items-center justify-center shrink-0"
+                :class="currentRoom.type === 'direct' ? 'bg-gradient-to-br from-emerald-500 to-teal-500' : currentRoom.type === 'team' ? 'bg-gradient-to-br from-blue-500 to-indigo-500' : 'bg-gradient-to-br from-purple-500 to-pink-500'"
+              >
+                <UserIcon v-if="currentRoom.type === 'direct'" class="w-6 h-6" />
+                <UsersIcon v-else-if="currentRoom.type === 'team'" class="w-6 h-6" />
+                <UserGroupIcon v-else class="w-6 h-6" />
+              </div>
+              <div class="min-w-0">
+                <h3 class="font-semibold truncate">{{ currentRoom.name }}</h3>
+                <div class="text-xs text-gray-400 truncate">
+                  👥 {{ currentRoom.participants.length }} participante{{ currentRoom.participants.length !== 1 ? 's' : '' }}
+                  <span v-if="typingUsers.length > 0" class="ml-2 text-purple-300">✍️ {{ typingUsers.join(', ') }} escribiendo…</span>
                 </div>
               </div>
             </div>
+            <button class="p-2 rounded-md hover:bg-white/10" @click="showRoomInfo = true" title="Información del chat">
+              <InformationCircleIcon class="w-6 h-6" />
+            </button>
+          </div>
+          <div v-else class="flex items-center justify-between">
+            <div class="text-sm text-gray-300">Selecciona una conversación</div>
+            <button class="lg:hidden p-2 rounded-md hover:bg-white/10" @click="showRoomsMobile = true" title="Abrir conversaciones">
+              <ChatBubbleLeftRightIcon class="w-6 h-6" />
+            </button>
+          </div>
+        </div>
 
-            <!-- Enhanced Message Input -->
-            <div class="p-6 border-t border-white/20 bg-gradient-to-r from-purple-900/10 via-pink-900/10 to-purple-900/10 backdrop-blur-sm">
-              <!-- Enhanced Edit mode indicator -->
-              <div v-if="editingMessage" class="mb-4 p-4 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 border border-yellow-500/50 rounded-xl backdrop-blur-sm animate-slideIn">
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-500 to-amber-500 flex items-center justify-center mr-3 shadow-lg">
-                      <PencilIcon class="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <span class="text-yellow-300 font-semibold">✏️ Editando mensaje</span>
-                      <p class="text-xs text-yellow-300/80 mt-1">Presiona Enter para guardar o Escape para cancelar</p>
-                    </div>
+        <!-- Messages -->
+        <div
+          class="relative flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 space-y-4 custom-scrollbar"
+          ref="messagesContainer"
+          @scroll="onMessagesScroll"
+        >
+          <div v-if="!currentRoom" class="h-full grid place-items-center">
+            <div class="text-center">
+              <ChatBubbleLeftEllipsisIcon class="w-16 h-16 text-purple-400/70 mx-auto mb-3" />
+              <p class="text-gray-300">Elige un chat para empezar</p>
+            </div>
+          </div>
+
+          <div v-else>
+            <!-- Loading messages -->
+            <div v-if="chatStore.isLoading" class="py-10 text-center text-gray-400">Cargando mensajes…</div>
+
+            <!-- Empty state -->
+            <div v-else-if="currentMessages.length === 0" class="py-10 text-center text-gray-300">Sin mensajes aún</div>
+
+            <!-- Messages list -->
+            <div v-else class="space-y-4">
+              <div
+                v-for="message in currentMessages"
+                :key="message._id"
+                class="flex"
+                :class="isOwnMessage(message) ? 'justify-end' : 'justify-start'"
+              >
+                <div
+                  class="max-w-[80%] rounded-xl border px-4 py-3"
+                  :class="isOwnMessage(message) ? 'bg-purple-600/80 border-purple-400/40 text-white' : 'bg-white/5 border-white/10'"
+                >
+                  <div v-if="!isOwnMessage(message)" class="mb-1 text-xs text-purple-200 font-medium">
+                    {{ message.sender.name }}
                   </div>
-                  <button 
-                    @click="cancelEdit" 
-                    class="group text-yellow-400 hover:text-yellow-300 transition-all duration-300 p-2 rounded-xl hover:bg-yellow-500/10 hover:scale-110 transform"
-                  >
-                    <XMarkIcon class="w-5 h-5 group-hover:rotate-90 transition-transform" />
-                  </button>
+                  <div class="whitespace-pre-wrap break-words">{{ message.content }}</div>
+                  <div v-if="message.attachments && message.attachments.length" class="mt-3 space-y-2">
+                    <a
+                      v-for="a in message.attachments"
+                      :key="a.filename"
+                      :href="a.url"
+                      target="_blank"
+                      class="flex items-center gap-3 rounded-lg border border-white/10 bg-black/20 hover:bg-black/30 px-3 py-2 text-sm"
+                    >
+                      <DocumentIcon class="w-5 h-5" />
+                      <span class="truncate">{{ a.originalname }}</span>
+                      <span class="text-xs text-gray-400">{{ formatFileSize(a.size) }}</span>
+                    </a>
+                  </div>
+                  <div class="mt-2 flex items-center gap-2 text-xs text-white/70">
+                    <span :title="formatFullDateTime(message.createdAt)">🕒 {{ formatTimeShort(message.createdAt) }}</span>
+                    <span v-if="message.edited" class="text-yellow-300">· editado</span>
+                    <button
+                      v-if="isOwnMessage(message)"
+                      @click="startEdit(message)"
+                      class="ml-2 opacity-70 hover:opacity-100 p-1 rounded hover:bg-white/10"
+                      title="Editar"
+                    >
+                      <PencilIcon class="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              <!-- Enhanced Input Area -->
-              <div class="flex items-end space-x-4">
-                <div class="flex-1 relative group">
-                  <div class="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-2xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500"></div>
-                  <input
-                    ref="messageInput"
-                    v-model="newMessage"
-                    @keydown.enter.prevent="editingMessage ? saveEdit() : sendMessage()"
-                    @keydown.escape.prevent="cancelEdit"
-                    @input="handleTyping"
-                    :placeholder="editingMessage ? '✏️ Editar mensaje...' : '💬 Escribe un mensaje...'"
-                    class="relative w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white text-base placeholder-gray-400 focus:outline-none focus:border-purple-400 focus:bg-white/15 transition-all duration-300 backdrop-blur-sm shadow-lg hover:bg-white/15 hover:border-white/30"
-                  />
-                  <!-- Input glow effect -->
-                  <div class="absolute inset-0 rounded-2xl border border-purple-400/0 group-focus-within:border-purple-400/50 transition-all duration-300"></div>
+              <!-- Typing indicator -->
+              <div v-if="typingUsers.length > 0" class="text-sm text-purple-300">✍️ {{ typingUsers.join(', ') }} escribiendo…</div>
+
+              <!-- Pending optimistic -->
+              <div
+                v-for="p in (pendingMessages[currentRoom._id] || [])"
+                :key="p.id"
+                class="flex justify-end"
+              >
+                <div class="max-w-[80%] rounded-xl border px-4 py-3 bg-purple-600/60 border-purple-400/40 text-white opacity-80">
+                  <div class="whitespace-pre-wrap break-words">{{ p.content }}</div>
+                  <div class="mt-1 text-xs text-white/70">🕒 {{ formatTimeShort(p.createdAt) }} · Enviando…</div>
                 </div>
-                
-                <!-- Enhanced Send Button -->
-                <button
-                  @click="editingMessage ? saveEdit() : sendMessage()"
-                  :disabled="!newMessage.trim()"
-                  class="group relative p-4 rounded-2xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-110 disabled:hover:scale-100"
-                  :class="[
-                    editingMessage 
-                      ? 'bg-gradient-to-br from-emerald-600 via-green-600 to-emerald-600 hover:from-emerald-700 hover:via-green-700 hover:to-emerald-700 shadow-emerald-500/25' 
-                      : 'bg-gradient-to-br from-purple-600 via-pink-600 to-purple-600 hover:from-purple-700 hover:via-pink-700 hover:to-purple-700 shadow-purple-500/25',
-                    !newMessage.trim() ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-lg'
-                  ]"
-                >
-                  <!-- Button glow effect -->
-                  <div class="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  
-                  <PaperAirplaneIcon v-if="!editingMessage" class="relative w-6 h-6 text-white group-hover:translate-x-1 transition-transform duration-300" />
-                  <CheckIcon v-else class="relative w-6 h-6 text-white group-hover:scale-125 transition-transform duration-300" />
-                  
-                  <!-- Animated ripple effect -->
-                  <div class="absolute inset-0 rounded-2xl animate-ping opacity-0 group-active:opacity-20"
-                       :class="editingMessage ? 'bg-emerald-400' : 'bg-purple-400'"></div>
-                </button>
               </div>
             </div>
           </div>
+
+          <!-- Scroll edge overlays -->
+          <div v-if="!atTop" class="pointer-events-none absolute top-0 left-0 right-0 h-6 bg-gradient-to-b from-black/30 to-transparent"></div>
+          <div v-if="!atBottom" class="pointer-events-none absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-black/20 to-transparent"></div>
+
+          <!-- Scroll to bottom -->
+          <button
+            v-if="!atBottom"
+            @click="scrollToBottom"
+            class="absolute bottom-4 right-4 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 px-3 py-2 text-sm shadow"
+            title="Bajar al final"
+          >
+            <div class="flex items-center gap-2"><ArrowDownIcon class="w-5 h-5" /><span class="hidden sm:inline">Bajar</span></div>
+          </button>
+        </div>
+
+        <!-- Input -->
+        <div class="border-t border-white/10 bg-slate-900/60 px-4 sm:px-6 py-3">
+          <div v-if="editingMessage" class="mb-2 flex items-center justify-between rounded-md bg-yellow-500/10 border border-yellow-500/40 px-3 py-2 text-yellow-200">
+            <div class="text-sm">✏️ Editando mensaje — Enter para guardar, Esc para cancelar</div>
+            <button class="p-1 rounded hover:bg-yellow-500/20" @click="cancelEdit" title="Cancelar">
+              <XMarkIcon class="w-5 h-5" />
+            </button>
+          </div>
+
+          <div class="flex items-end gap-2">
+            <!-- Emoji picker teleport -->
+            <teleport to="body">
+              <div
+                v-if="showEmojiPicker"
+                :style="{ position: 'fixed', top: emojiPos.top + 'px', left: emojiPos.left + 'px', zIndex: 50 }"
+                class="rounded-md border border-white/10 bg-slate-900/95 p-2 shadow-xl flex flex-wrap gap-1 w-56"
+                data-emoji-picker
+              >
+                <button v-for="e in emojis" :key="e" class="px-1 py-1 hover:bg-white/10 rounded" @click.prevent="insertEmoji(e)">{{ e }}</button>
+              </div>
+            </teleport>
+
+            <div class="relative flex-1">
+              <input
+                ref="messageInput"
+                v-model="newMessage"
+                @keydown.enter.prevent="editingMessage ? saveEdit() : sendMessage()"
+                @keydown.escape.prevent="cancelEdit"
+                @input="handleTyping"
+                :placeholder="editingMessage ? 'Editar mensaje…' : 'Escribe un mensaje…'"
+                class="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-purple-400"
+              />
+            </div>
+            <button @click="toggleEmojiPicker" class="p-3 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10" title="Emojis">😊</button>
+            <button
+              @click="editingMessage ? saveEdit() : sendMessage()"
+              :disabled="!newMessage.trim()"
+              class="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-3 disabled:opacity-50"
+            >
+              <PaperAirplaneIcon v-if="!editingMessage" class="w-5 h-5" />
+              <CheckIcon v-else class="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Mobile drawer for rooms -->
+    <div v-if="showRoomsMobile" class="fixed inset-0 z-50 lg:hidden">
+      <div class="absolute inset-0 bg-black/60" @click="showRoomsMobile = false"></div>
+      <div class="absolute inset-y-0 left-0 w-[86%] max-w-sm bg-slate-900 border-r border-white/10 shadow-xl flex flex-col">
+        <div class="px-4 py-3 border-b border-white/10 flex items-center justify-between">
+          <h2 class="font-semibold">Conversaciones</h2>
+          <button class="p-2 rounded hover:bg-white/10" @click="showRoomsMobile = false" title="Cerrar">
+            <XMarkIcon class="w-6 h-6" />
+          </button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-3 custom-scrollbar">
+          <ul class="space-y-2">
+            <li v-for="room in chatStore.chatRooms" :key="room._id">
+              <button
+                @click="selectRoom(room); showRoomsMobile = false"
+                class="w-full text-left flex items-center gap-3 rounded-xl border px-3 py-3 bg-white/5 border-white/10 hover:bg-white/10"
+              >
+                <div
+                  class="w-10 h-10 rounded-lg flex items-center justify-center"
+                  :class="room.type === 'direct' ? 'bg-gradient-to-br from-emerald-500 to-teal-500' : room.type === 'team' ? 'bg-gradient-to-br from-blue-500 to-indigo-500' : 'bg-gradient-to-br from-purple-500 to-pink-500'"
+                >
+                  <UserIcon v-if="room.type === 'direct'" class="w-5 h-5" />
+                  <UsersIcon v-else-if="room.type === 'team'" class="w-5 h-5" />
+                  <UserGroupIcon v-else class="w-5 h-5" />
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center justify-between gap-2">
+                    <p class="font-medium truncate">{{ room.name }}</p>
+                    <span class="text-xs text-gray-400">{{ formatTime(room.lastActivity) }}</span>
+                  </div>
+                  <p class="text-xs text-gray-400 truncate">👥 {{ room.participants.length }} participante{{ room.participants.length !== 1 ? 's' : '' }}</p>
+                </div>
+              </button>
+            </li>
+          </ul>
         </div>
       </div>
     </div>
 
     <!-- Create Room Modal -->
-    <CreateRoomModal
-      v-if="showCreateRoom"
-      @close="showCreateRoom = false"
-      @created="handleRoomCreated"
-    />
+    <CreateRoomModal v-if="showCreateRoom" @close="showCreateRoom = false" @created="handleRoomCreated" />
 
     <!-- Room Info Modal -->
     <div v-if="showRoomInfo && currentRoom" class="fixed inset-0 z-50 flex items-center justify-center">
-      <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="showRoomInfo = false"></div>
-      <div class="relative bg-gradient-to-br from-dark-800/95 to-dark-900/95 backdrop-blur-xl rounded-xl border border-white/20 shadow-2xl w-full max-w-md mx-4">
-        <div class="p-6">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-white">Información del Chat</h3>
-            <button @click="showRoomInfo = false" class="text-gray-400 hover:text-white">
-              <XMarkIcon class="w-6 h-6" />
-            </button>
+      <div class="absolute inset-0 bg-black/50" @click="showRoomInfo = false"></div>
+      <div class="relative bg-slate-900 rounded-xl border border-white/10 shadow-2xl w-full max-w-md mx-4">
+        <div class="p-5">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-lg font-semibold">Información del chat</h3>
+            <button @click="showRoomInfo = false" class="p-2 rounded hover:bg-white/10"><XMarkIcon class="w-6 h-6" /></button>
           </div>
-          
-          <div class="space-y-4">
+          <div class="space-y-4 text-sm">
             <div>
-              <label class="text-sm font-medium text-gray-400">Nombre</label>
-              <p class="text-white">{{ currentRoom.name }}</p>
+              <div class="text-gray-400">Nombre</div>
+              <div class="font-medium">{{ currentRoom.name }}</div>
             </div>
-            
             <div v-if="currentRoom.description">
-              <label class="text-sm font-medium text-gray-400">Descripción</label>
-              <p class="text-white">{{ currentRoom.description }}</p>
+              <div class="text-gray-400">Descripción</div>
+              <div>{{ currentRoom.description }}</div>
             </div>
-            
             <div>
-              <label class="text-sm font-medium text-gray-400">Participantes ({{ currentRoom.participants.length }})</label>
-              <div class="mt-2 space-y-2">
-                <div
-                  v-for="participant in currentRoom.participants"
-                  :key="participant._id"
-                  class="flex items-center p-2 bg-white/5 rounded-lg"
-                >
-                  <div class="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center mr-3">
-                    <span class="text-white text-sm font-medium">
-                      {{ participant.name.charAt(0).toUpperCase() }}
-                    </span>
+              <div class="text-gray-400">Participantes ({{ currentRoom.participants.length }})</div>
+              <div class="mt-2 space-y-2 max-h-56 overflow-y-auto custom-scrollbar">
+                <div v-for="p in currentRoom.participants" :key="p._id" class="flex items-center gap-3 rounded-md bg-white/5 border border-white/10 px-3 py-2">
+                  <div class="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                    <span class="text-xs font-semibold">{{ p.name.charAt(0).toUpperCase() }}</span>
                   </div>
-                  <div>
-                    <p class="text-white text-sm">{{ participant.name }}</p>
-                    <p class="text-gray-400 text-xs">{{ participant.position || participant.role }}</p>
+                  <div class="min-w-0">
+                    <div class="font-medium truncate">{{ p.name }}</div>
+                    <div class="text-xs text-gray-400 truncate">{{ p.position || p.role }}</div>
                   </div>
                 </div>
               </div>
             </div>
-            
-            <div class="text-xs text-gray-400">
-              Creado: {{ new Date(currentRoom.createdAt).toLocaleDateString('es-ES', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              }) }}
-            </div>
+            <div class="text-xs text-gray-400">Creado: {{ new Date(currentRoom.createdAt).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) }}</div>
           </div>
         </div>
       </div>
@@ -486,7 +368,9 @@ import {
   PencilIcon,
   XMarkIcon,
   PaperAirplaneIcon,
-  CheckIcon
+  CheckIcon,
+  TrashIcon,
+  ArrowDownIcon
 } from '@heroicons/vue/24/outline';
 import type { ChatRoom, Message } from '@/services/chatService';
 
@@ -503,6 +387,36 @@ const messageInput = ref<HTMLElement | null>(null);
 const editingMessage = ref<Message | null>(null);
 const typingUsers = ref<string[]>([]);
 const typingTimeout = ref<NodeJS.Timeout | null>(null);
+const showEmojiPicker = ref(false);
+const emojiPos = ref({ top: 0, left: 0 });
+const emojis = ['😀','😂','😍','👍','🔥','✅','🙏','🚀','🎉','💡','❤️','😎','🤔','🙌','✨','🤝','📌','📣','🧠'];
+const showRoomsMobile = ref(false);
+// Optimistic pending messages per room
+const pendingMessages = ref<Record<string, { id: string; content: string; createdAt: string }[]>>({});
+// Track first-entry auto-scroll per room
+const didInitialScroll = ref<Record<string, boolean>>({});
+// Scroll position state
+const atBottom = ref(true)
+const atTop = ref(true)
+
+// Lightweight send sound using Web Audio API
+const playSendSound = () => {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = 'sine';
+    o.frequency.value = 660; // high beep
+    g.gain.value = 0.05;
+    o.connect(g);
+    g.connect(ctx.destination);
+    const now = ctx.currentTime;
+    o.start(now);
+    // quick decay
+    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.15);
+    o.stop(now + 0.16);
+  } catch {}
+};
 
 // Computed
 const currentMessages = computed(() => {
@@ -513,25 +427,45 @@ const currentMessages = computed(() => {
 // Methods
 const selectRoom = async (room: ChatRoom) => {
   if (currentRoom.value?._id === room._id) return;
-  
+
   currentRoom.value = room;
+  // Update store's currentRoom and join socket room
+  await chatStore.selectRoom(room);
+  // Ensure messages are loaded (store.selectRoom already loads if needed)
   await chatStore.loadMessages(room._id);
-  scrollToBottom();
+  // One-time auto-scroll when entering a room first time in session
+  if (!didInitialScroll.value[room._id]) {
+    didInitialScroll.value[room._id] = true;
+    scrollToBottom();
+  }
 };
 
 const sendMessage = async () => {
   if (!newMessage.value.trim() || !currentRoom.value) return;
 
   const content = newMessage.value.trim();
+  const roomId = currentRoom.value._id;
+  const tempId = `temp_${Date.now()}`;
+  const createdAt = new Date().toISOString();
   newMessage.value = '';
+
+  // Add optimistic pending bubble
+  if (!pendingMessages.value[roomId]) pendingMessages.value[roomId] = [];
+  pendingMessages.value[roomId].push({ id: tempId, content, createdAt });
+  playSendSound();
+  scrollToBottom();
 
   try {
     await chatStore.sendMessage(content);
-    scrollToBottom();
   } catch (error) {
     console.error('Error sending message:', error);
     // Restore message on error
     newMessage.value = content;
+  } finally {
+    // Remove pending bubble
+    const list = pendingMessages.value[roomId] || [];
+    pendingMessages.value[roomId] = list.filter(m => m.id !== tempId);
+    scrollToBottom();
   }
 };
 
@@ -548,11 +482,32 @@ const startEdit = (message: Message) => {
 const saveEdit = async () => {
   if (!editingMessage.value || !newMessage.value.trim()) return;
 
+  const id = editingMessage.value._id;
+  const content = newMessage.value.trim();
+
+  // Optimistic update: update local list immediately
+  const roomId = currentRoom.value?._id;
+  let previous: Message | null = null;
+  if (roomId) {
+    const list = chatStore.messages[roomId] || [];
+    const idx = list.findIndex(m => m._id === id);
+    if (idx !== -1) {
+      previous = { ...list[idx] } as Message;
+      list[idx] = { ...list[idx], content, edited: true, editedAt: new Date().toISOString() } as Message;
+    }
+  }
+
   try {
-    await chatStore.editMessage(editingMessage.value._id, newMessage.value.trim());
+    await chatStore.editMessage(id, content);
     cancelEdit();
   } catch (error) {
     console.error('Error editing message:', error);
+    // Rollback if failed
+    if (roomId && previous) {
+      const list = chatStore.messages[roomId] || [];
+      const idx = list.findIndex(m => m._id === id);
+      if (idx !== -1) list[idx] = previous;
+    }
   }
 };
 
@@ -583,13 +538,100 @@ const scrollToBottom = () => {
   nextTick(() => {
     if (messagesContainer.value) {
       messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
+      atBottom.value = true
+      atTop.value = false
     }
   });
 };
 
+const onMessagesScroll = () => {
+  const el = messagesContainer.value
+  if (!el) return
+  const threshold = 8
+  atTop.value = el.scrollTop <= threshold
+  atBottom.value = el.scrollTop + el.clientHeight >= el.scrollHeight - threshold
+}
+
 const handleRoomCreated = (room: ChatRoom) => {
   showCreateRoom.value = false;
   selectRoom(room);
+};
+
+const computeEmojiPosition = () => {
+  const input = messageInput.value as HTMLInputElement | null;
+  if (!input) return;
+  const rect = input.getBoundingClientRect();
+  const panelHeight = 220; // approx
+  const topAbove = rect.top - panelHeight - 8;
+  const topBelow = rect.bottom + 8;
+  const viewportHeight = window.innerHeight;
+  const placeAbove = topAbove >= 0;
+  const top = placeAbove ? topAbove : Math.min(topBelow, viewportHeight - panelHeight - 8);
+  let left = rect.left; // align left to input
+  const viewportWidth = window.innerWidth;
+  const panelWidth = 224; // ~w-56
+  if (left + panelWidth > viewportWidth - 8) {
+    left = Math.max(8, viewportWidth - panelWidth - 8);
+  }
+  emojiPos.value = { top, left };
+};
+
+const onGlobalClick = (ev: MouseEvent) => {
+  if (!showEmojiPicker.value) return;
+  const inputEl = messageInput.value as HTMLInputElement | null;
+  const target = ev.target as Node;
+  // Close picker if clicking outside the input or the picker
+  const pickerEl = document.elementFromPoint(emojiPos.value.left, emojiPos.value.top);
+  const clickedInsideInput = !!inputEl && inputEl.contains(target as Node);
+  const pickerContainer = document.querySelector('[data-emoji-picker]');
+  const clickedInsidePicker = !!pickerContainer && pickerContainer.contains(target as Node);
+  if (!clickedInsideInput && !clickedInsidePicker) {
+    showEmojiPicker.value = false;
+  }
+};
+
+const toggleEmojiPicker = () => {
+  showEmojiPicker.value = !showEmojiPicker.value;
+  if (showEmojiPicker.value) {
+    nextTick(() => {
+      computeEmojiPosition();
+      window.addEventListener('resize', computeEmojiPosition);
+      window.addEventListener('scroll', computeEmojiPosition, true);
+      document.addEventListener('mousedown', onGlobalClick);
+      messageInput.value?.focus();
+    });
+  } else {
+    window.removeEventListener('resize', computeEmojiPosition);
+    window.removeEventListener('scroll', computeEmojiPosition, true);
+    document.removeEventListener('mousedown', onGlobalClick);
+  }
+};
+
+const insertEmoji = (emoji: string) => {
+  const input = messageInput.value as HTMLInputElement | null;
+  if (!input) {
+    newMessage.value += emoji;
+    return;
+  }
+  const start = (input.selectionStart ?? newMessage.value.length);
+  const end = (input.selectionEnd ?? newMessage.value.length);
+  const text = newMessage.value;
+  newMessage.value = text.slice(0, start) + emoji + text.slice(end);
+  nextTick(() => {
+    const caret = start + emoji.length;
+    input.setSelectionRange(caret, caret);
+    input.focus();
+  });
+};
+
+const confirmDeleteRoom = async (roomId: string) => {
+  if (!window.confirm('¿Eliminar este chat? Esta acción no se puede deshacer.')) return;
+  try {
+    await chatStore.deleteChatRoom(roomId);
+  } catch (e) {
+    console.error('Error deleting room', e);
+    alert('No se pudo eliminar el chat.');
+  }
 };
 
 const isOwnMessage = (message: Message) => {
@@ -622,6 +664,19 @@ const formatTime = (date: string | Date) => {
   });
 };
 
+const formatTimeShort = (date: string | Date) => {
+  const d = new Date(date)
+  return d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+}
+
+const formatFullDateTime = (date: string | Date) => {
+  const d = new Date(date)
+  return d.toLocaleString('es-ES', {
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit'
+  })
+}
+
 const formatFileSize = (bytes: number) => {
   if (bytes === 0) return '0 B';
   const k = 1024;
@@ -647,6 +702,21 @@ watch(currentRoom, () => {
   }
 });
 
+// Keep pinned to bottom when messages of current room change
+watch(
+  () => chatStore.messages[currentRoom.value?._id || ''],
+  () => {
+    if (!currentRoom.value) return;
+    // Only auto-scroll if user is already near the bottom
+    const el = messagesContainer.value;
+    if (!el) return;
+    const threshold = 24;
+    const isNearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - threshold;
+    if (isNearBottom) scrollToBottom();
+  },
+  { deep: true }
+)
+
 // Lifecycle
 onMounted(async () => {
   await chatStore.initializeChat();
@@ -654,16 +724,21 @@ onMounted(async () => {
   
   // Auto-select first room if available
   if (chatStore.chatRooms.length > 0 && !currentRoom.value) {
-    selectRoom(chatStore.chatRooms[0]);
+  await selectRoom(chatStore.chatRooms[0]);
   }
+  onMessagesScroll()
 });
 
 onUnmounted(() => {
   if (typingTimeout.value) {
     clearTimeout(typingTimeout.value);
   }
+  window.removeEventListener('resize', computeEmojiPosition);
+  window.removeEventListener('scroll', computeEmojiPosition, true);
+  document.removeEventListener('mousedown', onGlobalClick);
 });
 </script>
+
 
 <style scoped>
 /* Custom Animations */
@@ -701,6 +776,7 @@ onUnmounted(() => {
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: rgba(147, 51, 234, 0.5) transparent;
+  scrollbar-gutter: stable both-edges; /* reserve gutter for harmony */
 }
 
 .custom-scrollbar::-webkit-scrollbar {

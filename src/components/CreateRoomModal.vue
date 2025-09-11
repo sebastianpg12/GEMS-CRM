@@ -3,12 +3,12 @@
     <div class="flex items-center justify-center min-h-screen px-4">
       <!-- Backdrop -->
       <div
-        class="fixed inset-0 bg-black/50 backdrop-blur-sm"
+        class="fixed inset-0 bg-transparent backdrop-blur-sm"
         @click="$emit('close')"
       ></div>
       
-      <!-- Modal -->
-      <div class="relative bg-gradient-to-br from-dark-800/95 to-dark-900/95 backdrop-blur-xl rounded-xl border border-white/20 shadow-2xl w-full max-w-md p-6">
+  <!-- Modal -->
+  <div class="relative bg-transparent backdrop-blur-md rounded-2xl border border-white/20 shadow-2xl w-full max-w-sm p-5">
         <!-- Header -->
         <div class="flex items-center justify-between mb-6">
           <h3 class="text-lg font-semibold text-white">Crear nuevo chat</h3>

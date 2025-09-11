@@ -12,6 +12,9 @@ export const useChatStore = defineStore('chat', () => {
   const typingUsers = ref<{ [roomId: string]: string[] }>({})
   const isConnected = ref(false)
   const isLoading = ref(false)
+  // Notification metadata for incoming messages
+  const lastIncomingAt = ref<number | null>(null)
+  const lastIncomingRoomId = ref<string | null>(null)
   
   // Getters
   const getCurrentMessages = computed(() => {
@@ -250,6 +253,14 @@ export const useChatStore = defineStore('chat', () => {
         new Date(b.lastActivity).getTime() - new Date(a.lastActivity).getTime()
       )
     }
+
+    // Mark new incoming for notifications if it's from another user
+    const authStore = useAuthStore()
+    const currentUserId = authStore.user?._id
+    if (message.sender._id !== currentUserId) {
+      lastIncomingAt.value = Date.now()
+      lastIncomingRoomId.value = message.chatRoom
+    }
   }
   
   const editMessage = async (messageId: string, content: string) => {
@@ -326,6 +337,8 @@ export const useChatStore = defineStore('chat', () => {
     typingUsers,
     isConnected,
     isLoading,
+  lastIncomingAt,
+  lastIncomingRoomId,
     
     // Getters
     getCurrentMessages,

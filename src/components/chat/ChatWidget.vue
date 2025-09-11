@@ -51,7 +51,7 @@
         <!-- Sidebar with Chats -->
         <div class="w-32 bg-gray-800/50 border-r border-gray-700 flex flex-col">
           <!-- Chat List -->
-          <div class="flex-1 overflow-y-auto p-2 space-y-2">
+          <div class="flex-1 overflow-y-auto p-2 space-y-2 max-h-[480px]">
             <!-- Chat General -->
             <div class="relative p-2 rounded-lg cursor-pointer transition-colors hover:bg-gray-700/50 group bg-purple-600/30 border border-purple-500/50">
               <div class="flex justify-center mb-1">
@@ -197,7 +197,8 @@
             <div class="flex items-end gap-2">
               <button
                 class="text-gray-400 hover:text-purple-400 transition-colors p-2 hover:bg-gray-700/50 rounded-lg"
-                title="Emojis (próximamente)"
+                title="Emojis"
+                @click="/* TODO: abrir picker */ void 0"
               >
                 <i class="fas fa-smile"></i>
               </button>

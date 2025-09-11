@@ -10,7 +10,7 @@
            :class="{ '-translate-x-full': !sidebarOpen && !isDesktop }">
         
         <!-- Logo -->
-        <div class="flex items-center justify-center h-16 px-4 border-b border-purple-500/20">
+        <div class="flex items-center justify-between h-16 px-4 border-b border-purple-500/20">
           <div class="flex items-center">
             <div class="w-8 h-8 mr-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center shadow-lg">
               <i class="fas fa-gem text-white text-sm"></i>
@@ -94,6 +94,32 @@
             
             <!-- Header Actions -->
             <div class="flex items-center space-x-4">
+              <!-- Chat icon in header -->
+              <div class="relative">
+                <router-link
+                  to="/chat"
+                  class="relative inline-flex items-center gap-2 px-3 py-2 rounded-lg text-purple-300 hover:text-white hover:bg-purple-600/20 transition-colors"
+                  title="Ir al chat"
+                >
+                  <i class="fas fa-comments"></i>
+                  <span
+                    v-if="chatStore.getUnreadCount > 0"
+                    class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center font-bold"
+                  >
+                    {{ chatStore.getUnreadCount > 99 ? '99+' : chatStore.getUnreadCount }}
+                  </span>
+                </router-link>
+
+                <!-- Visual popup on new incoming messages -->
+        <transition name="fade" mode="out-in">
+                  <div
+                    v-if="showChatPopup"
+          class="absolute -top-8 right-0 bg-gray-900/90 border border-purple-500/40 text-purple-200 text-xs px-2 py-1 rounded shadow-lg animate-fade-in"
+                  >
+          {{ popupText }}
+                  </div>
+                </transition>
+              </div>
               <!-- User Menu -->
               <div class="relative">
                 <button
@@ -152,19 +178,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from './stores/auth'
+import { useChatStore } from './stores/chatStore'
 import UserAvatar from './components/ui/UserAvatar.vue'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const chatStore = useChatStore()
 
 // Reactive data
 const sidebarOpen = ref(true)
 const showUserMenu = ref(false)
 const isDesktop = ref(true)
+const showChatPopup = ref(false)
+const popupText = ref('Nuevo mensaje')
 
 // Computed properties
 const availableModules = computed(() => authStore.getAvailableModules)
@@ -237,6 +267,43 @@ onMounted(async () => {
   handleResize()
   window.addEventListener('resize', handleResize)
   document.addEventListener('click', handleClickOutside)
+
+  // Initialize chat in background for unread badge
+  if (authStore.isAuthenticated) {
+    try { await chatStore.initializeChat() } catch {}
+  }
+})
+
+// Receive sound + visual popup when a new message arrives
+const playReceiveSound = () => {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = 'triangle';
+    o.frequency.value = 440; // A4
+    g.gain.value = 0.05;
+    o.connect(g);
+    g.connect(ctx.destination);
+    const now = ctx.currentTime;
+    o.start(now);
+    o.frequency.exponentialRampToValueAtTime(880, now + 0.08);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
+    o.stop(now + 0.21);
+  } catch {}
+}
+
+watch(() => chatStore.lastIncomingAt, (val) => {
+  if (!val) return
+  const roomId = chatStore.lastIncomingRoomId
+  const room = chatStore.chatRooms.find(r => r._id === roomId)
+  if (!room) return
+  // Only notify for group/team rooms (not direct)
+  if (room.type === 'direct') return
+  popupText.value = `Nuevo mensaje · ${room.name}`
+  showChatPopup.value = true
+  playReceiveSound()
+  setTimeout(() => { showChatPopup.value = false }, 1500)
 })
 </script>
 
