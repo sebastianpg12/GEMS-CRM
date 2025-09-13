@@ -1,40 +1,19 @@
 <template>
-  <div class="h-[100dvh] max-h-[100dvh] bg-slate-950 text-white">
-    <!-- Top bar -->
-    <header class="sticky top-0 z-10 border-b border-white/10 bg-slate-900/80 backdrop-blur px-4 sm:px-6 py-4">
-      <div class="flex items-center justify-between gap-3">
-        <div class="flex items-center gap-3">
-          <!-- Mobile: open rooms drawer -->
-          <button
-            class="lg:hidden inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 p-2"
-            @click="showRoomsMobile = true"
-            title="Conversaciones"
-          >
-            <ChatBubbleLeftRightIcon class="w-6 h-6" />
-          </button>
-          <div>
-            <h1 class="text-xl sm:text-2xl font-bold">Chat interno</h1>
-            <p class="text-xs text-gray-400 hidden sm:block">Comunícate con tu equipo en tiempo real</p>
-          </div>
-        </div>
-        <button
-          @click="showCreateRoom = true"
-          class="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-4 py-2 text-sm font-medium shadow"
-        >
-          <PlusIcon class="w-5 h-5" />
-          Nuevo chat
-        </button>
-      </div>
-    </header>
-
-    <div class="grid grid-cols-1 lg:grid-cols-[320px,1fr] h-[calc(100dvh-64px)]">
+  <div class="h-[100dvh] max-h-[100dvh] bg-transparent text-white">
+    <div class="h-[100dvh] p-4 sm:p-6">
+      <div class="grid grid-cols-1 lg:grid-cols-[320px,1fr] h-full rounded-2xl border border-white/15 bg-white/5 backdrop-blur-sm overflow-hidden">
       <!-- Sidebar (desktop) -->
-      <aside class="hidden lg:flex flex-col border-r border-white/10 bg-slate-900/40">
+  <aside class="hidden lg:flex flex-col border-r border-white/10 bg-white/5 backdrop-blur-sm">
         <div class="px-4 py-3 border-b border-white/10">
           <div class="flex items-center justify-between">
             <h2 class="font-semibold">Conversaciones</h2>
-            <div v-if="!chatStore.isConnected" class="text-xs text-yellow-300">Conectando…</div>
-            <div v-else class="text-xs text-emerald-300">Conectado</div>
+            <div class="flex items-center gap-2">
+              <div v-if="!chatStore.isConnected" class="text-xs text-yellow-300">Conectando…</div>
+              <div v-else class="text-xs text-emerald-300">Conectado</div>
+              <button @click="showCreateRoom = true" class="p-2 rounded-md border border-white/10 bg-white/5 hover:bg-white/10" title="Nuevo chat">
+                <PlusIcon class="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -74,8 +53,8 @@
                     <span class="text-xs text-gray-400">{{ formatTime(room.lastActivity) }}</span>
                   </div>
                   <div class="flex items-center justify-between gap-2">
-                    <p class="text-xs text-gray-400 truncate">👥 {{ room.participants.length }} participante{{ room.participants.length !== 1 ? 's' : '' }}</p>
-                    <span v-if="getUnreadCount(room._id) > 0" class="text-[10px] rounded-full bg-pink-600 px-2 py-0.5">{{ getUnreadCount(room._id) }}</span>
+                    <p class="text-xs text-gray-400 whitespace-nowrap">👥 {{ room.participants.length }} · <span :class="onlineCount(room) > 0 ? 'text-emerald-300' : 'text-gray-400'">● {{ onlineCount(room) }}</span></p>
+                    <span v-if="getUnreadCount(room._id) > 0" class="text-[10px] rounded-full bg-pink-600 px-2 py-0.5 notification-pulse">{{ getUnreadCount(room._id) }}</span>
                   </div>
                 </div>
                 <button
@@ -92,10 +71,10 @@
         </div>
       </aside>
 
-      <!-- Main panel -->
-      <section class="flex flex-col min-h-0">
+    <!-- Main panel -->
+  <section class="flex flex-col min-h-0 bg-white/0">
         <!-- Room header or empty state header -->
-        <div class="px-4 sm:px-6 py-3 border-b border-white/10 bg-slate-900/40">
+  <div class="px-4 sm:px-6 py-3 border-b border-white/10 bg-white/5 backdrop-blur-sm">
           <div v-if="currentRoom" class="flex items-center justify-between">
             <div class="flex items-center gap-3 min-w-0">
               <div
@@ -108,8 +87,9 @@
               </div>
               <div class="min-w-0">
                 <h3 class="font-semibold truncate">{{ currentRoom.name }}</h3>
-                <div class="text-xs text-gray-400 truncate">
-                  👥 {{ currentRoom.participants.length }} participante{{ currentRoom.participants.length !== 1 ? 's' : '' }}
+                <div class="text-xs text-gray-400 flex items-center gap-2">
+                  <span class="whitespace-nowrap">👥 {{ currentRoom.participants.length }}</span>
+                  <span class="whitespace-nowrap" :class="onlineCount(currentRoom) > 0 ? 'text-emerald-300' : 'text-gray-400'">● {{ onlineCount(currentRoom) }}</span>
                   <span v-if="typingUsers.length > 0" class="ml-2 text-purple-300">✍️ {{ typingUsers.join(', ') }} escribiendo…</span>
                 </div>
               </div>
@@ -126,7 +106,7 @@
           </div>
         </div>
 
-        <!-- Messages -->
+  <!-- Messages -->
         <div
           class="relative flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 space-y-4 custom-scrollbar"
           ref="messagesContainer"
@@ -148,7 +128,7 @@
 
             <!-- Messages list -->
             <div v-else class="space-y-4">
-              <div
+        <div
                 v-for="message in currentMessages"
                 :key="message._id"
                 class="flex"
@@ -156,19 +136,19 @@
               >
                 <div
                   class="max-w-[80%] rounded-xl border px-4 py-3"
-                  :class="isOwnMessage(message) ? 'bg-purple-600/80 border-purple-400/40 text-white' : 'bg-white/5 border-white/10'"
+          :class="isOwnMessage(message) ? 'bg-gradient-to-br from-purple-600 to-pink-600 border-pink-500 text-white' : 'bg-slate-800 border-slate-700 text-white'"
                 >
                   <div v-if="!isOwnMessage(message)" class="mb-1 text-xs text-purple-200 font-medium">
                     {{ message.sender.name }}
                   </div>
                   <div class="whitespace-pre-wrap break-words">{{ message.content }}</div>
-                  <div v-if="message.attachments && message.attachments.length" class="mt-3 space-y-2">
+          <div v-if="message.attachments && message.attachments.length" class="mt-3 space-y-2">
                     <a
                       v-for="a in message.attachments"
                       :key="a.filename"
                       :href="a.url"
                       target="_blank"
-                      class="flex items-center gap-3 rounded-lg border border-white/10 bg-black/20 hover:bg-black/30 px-3 py-2 text-sm"
+            class="flex items-center gap-3 rounded-lg border border-slate-600 bg-slate-900 hover:bg-slate-800 px-3 py-2 text-sm"
                     >
                       <DocumentIcon class="w-5 h-5" />
                       <span class="truncate">{{ a.originalname }}</span>
@@ -199,7 +179,7 @@
                 :key="p.id"
                 class="flex justify-end"
               >
-                <div class="max-w-[80%] rounded-xl border px-4 py-3 bg-purple-600/60 border-purple-400/40 text-white opacity-80">
+                <div class="max-w-[80%] rounded-xl border px-4 py-3 bg-purple-600 border-purple-500 text-white">
                   <div class="whitespace-pre-wrap break-words">{{ p.content }}</div>
                   <div class="mt-1 text-xs text-white/70">🕒 {{ formatTimeShort(p.createdAt) }} · Enviando…</div>
                 </div>
@@ -208,8 +188,8 @@
           </div>
 
           <!-- Scroll edge overlays -->
-          <div v-if="!atTop" class="pointer-events-none absolute top-0 left-0 right-0 h-6 bg-gradient-to-b from-black/30 to-transparent"></div>
-          <div v-if="!atBottom" class="pointer-events-none absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-black/20 to-transparent"></div>
+          <div v-if="!atTop" class="pointer-events-none absolute top-0 left-0 right-0 h-6 bg-gradient-to-b from-purple-500/15 to-transparent"></div>
+          <div v-if="!atBottom" class="pointer-events-none absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-pink-500/15 to-transparent"></div>
 
           <!-- Scroll to bottom -->
           <button
@@ -223,7 +203,7 @@
         </div>
 
         <!-- Input -->
-        <div class="border-t border-white/10 bg-slate-900/60 px-4 sm:px-6 py-3">
+  <div class="border-t border-white/10 bg-white/5 backdrop-blur-sm px-4 sm:px-6 py-3">
           <div v-if="editingMessage" class="mb-2 flex items-center justify-between rounded-md bg-yellow-500/10 border border-yellow-500/40 px-3 py-2 text-yellow-200">
             <div class="text-sm">✏️ Editando mensaje — Enter para guardar, Esc para cancelar</div>
             <button class="p-1 rounded hover:bg-yellow-500/20" @click="cancelEdit" title="Cancelar">
@@ -252,7 +232,7 @@
                 @keydown.escape.prevent="cancelEdit"
                 @input="handleTyping"
                 :placeholder="editingMessage ? 'Editar mensaje…' : 'Escribe un mensaje…'"
-                class="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-purple-400"
+                class="w-full rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm px-4 py-3 outline-none focus:border-purple-400"
               />
             </div>
             <button @click="toggleEmojiPicker" class="p-3 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10" title="Emojis">😊</button>
@@ -267,12 +247,13 @@
           </div>
         </div>
       </section>
+      </div>
     </div>
 
     <!-- Mobile drawer for rooms -->
     <div v-if="showRoomsMobile" class="fixed inset-0 z-50 lg:hidden">
-      <div class="absolute inset-0 bg-black/60" @click="showRoomsMobile = false"></div>
-      <div class="absolute inset-y-0 left-0 w-[86%] max-w-sm bg-slate-900 border-r border-white/10 shadow-xl flex flex-col">
+      <div class="absolute inset-0 bg-black/40" @click="showRoomsMobile = false"></div>
+  <div class="absolute inset-y-0 left-0 w-[86%] max-w-sm bg-white/10 backdrop-blur-md border-r border-white/10 shadow-xl flex flex-col">
         <div class="px-4 py-3 border-b border-white/10 flex items-center justify-between">
           <h2 class="font-semibold">Conversaciones</h2>
           <button class="p-2 rounded hover:bg-white/10" @click="showRoomsMobile = false" title="Cerrar">
@@ -308,6 +289,14 @@
       </div>
     </div>
 
+    <!-- Mobile FAB: create room -->
+    <button
+      class="lg:hidden fixed bottom-5 right-5 z-40 rounded-full p-4 shadow-xl bg-gradient-to-r from-purple-600 to-pink-600"
+      title="Nuevo chat"
+      @click="showCreateRoom = true"
+    >
+      <PlusIcon class="w-6 h-6" />
+    </button>
     <!-- Create Room Modal -->
     <CreateRoomModal v-if="showCreateRoom" @close="showCreateRoom = false" @created="handleRoomCreated" />
 
@@ -519,7 +508,7 @@ const cancelEdit = () => {
 const handleTyping = () => {
   if (!currentRoom.value) return;
 
-  chatStore.startTyping(currentRoom.value._id);
+  chatStore.startTyping();
 
   // Clear previous timeout
   if (typingTimeout.value) {
@@ -529,7 +518,7 @@ const handleTyping = () => {
   // Stop typing after 3 seconds of inactivity
   typingTimeout.value = setTimeout(() => {
     if (currentRoom.value) {
-      chatStore.stopTyping(currentRoom.value._id);
+      chatStore.stopTyping();
     }
   }, 3000);
 };
@@ -639,10 +628,14 @@ const isOwnMessage = (message: Message) => {
 };
 
 const getUnreadCount = (roomId: string) => {
-  const room = chatStore.chatRooms.find(r => r._id === roomId);
-  // Por ahora retornamos 0, esto se implementará cuando el store tenga el método
-  return 0;
+  return chatStore.unreadByRoom[roomId] || 0
 };
+
+const onlineCount = (room: ChatRoom | null) => {
+  if (!room) return 0
+  const online = chatStore.onlineUsers || []
+  return room.participants.filter(p => online.includes(p._id)).length
+}
 
 const formatTime = (date: string | Date) => {
   const messageDate = new Date(date);
@@ -719,12 +712,15 @@ watch(
 
 // Lifecycle
 onMounted(async () => {
-  await chatStore.initializeChat();
-  await chatStore.loadChatRooms();
-  
+  if (!chatStore.isConnected) {
+    await chatStore.initializeChat();
+  }
+  if (chatStore.chatRooms.length === 0) {
+    await chatStore.loadChatRooms();
+  }
   // Auto-select first room if available
   if (chatStore.chatRooms.length > 0 && !currentRoom.value) {
-  await selectRoom(chatStore.chatRooms[0]);
+    await selectRoom(chatStore.chatRooms[0]);
   }
   onMessagesScroll()
 });

@@ -55,7 +55,7 @@
     <!-- Main Content -->
     <div class="ml-64">
       <!-- Header -->
-      <header class="h-20 bg-gradient-to-r from-dark-800/50 to-dark-900/50 backdrop-blur-sm border-b border-white/10 flex items-center justify-between px-8">
+  <header class="h-20 bg-gradient-to-r from-dark-800/50 to-dark-900/50 backdrop-blur-sm border-b border-white/10 flex items-center justify-between px-8">
         <div>
           <h1 class="text-2xl font-bold text-white text-shadow">{{ pageTitle }}</h1>
           <p class="text-gray-400">{{ pageDescription }}</p>
@@ -63,6 +63,14 @@
         
         <!-- Notifications -->
         <div class="flex items-center space-x-4">
+          <OnlineUsersPopover />
+          <!-- Chat Unread Badge -->
+          <router-link to="/chat" class="relative p-2 text-gray-400 hover:text-white transition-colors">
+            <ChatBubbleLeftRightIcon class="w-6 h-6" />
+            <span v-if="chatUnread > 0" class="absolute -top-1 -right-1 w-5 h-5 bg-pink-600 text-white text-xs rounded-full flex items-center justify-center">
+              {{ chatUnread > 99 ? '99+' : chatUnread }}
+            </span>
+          </router-link>
           <button @click="showNotifications = !showNotifications" class="relative p-2 text-gray-400 hover:text-white transition-colors">
             <BellIcon class="w-6 h-6" />
             <span v-if="unreadCount > 0" class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
@@ -78,8 +86,9 @@
       </main>
     </div>
     
-    <!-- Chat Widget -->
-    <ChatWidget />
+  <!-- Chat Widget -->
+  <ChatWidget />
+  <NewMessageToast />
     
     <!-- Notifications Panel -->
     <div v-if="showNotifications" class="fixed inset-0 z-50">
@@ -109,9 +118,6 @@
         </div>
       </div>
     </div>
-    
-    <!-- Chat Widget -->
-    <ChatWidget />
   </div>
 </template>
 
@@ -119,7 +125,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useNotificationsStore } from '../stores'
+import { useChatStore } from '../stores/chatStore'
 import ChatWidget from './ChatWidget.vue'
+import OnlineUsersPopover from './OnlineUsersPopover.vue'
+import NewMessageToast from './NewMessageToast.vue'
 import {
   HomeIcon,
   UserGroupIcon,
@@ -138,6 +147,7 @@ import {
 
 const route = useRoute()
 const notificationsStore = useNotificationsStore()
+const chatStore = useChatStore()
 
 const showNotifications = ref(false)
 
@@ -176,6 +186,9 @@ const unreadCount = computed(() =>
   notifications.value.filter(n => n.status === 'unread').length
 )
 
+// Unread chat messages (from Pinia getter)
+const chatUnread = computed(() => chatStore.getUnreadCount)
+
 const markAsRead = async (notificationId: string) => {
   try {
     await notificationsStore.markAsRead(notificationId)
@@ -186,5 +199,7 @@ const markAsRead = async (notificationId: string) => {
 
 onMounted(() => {
   notificationsStore.fetchNotifications()
+  chatStore.initializeChat()
+  chatStore.loadChatRooms()
 })
 </script>

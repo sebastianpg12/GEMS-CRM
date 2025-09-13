@@ -143,7 +143,6 @@
             <option value="">Todos los estados</option>
             <option value="pending">Pendiente</option>
             <option value="completed">Completada</option>
-            <option value="cancelled">Cancelada</option>
           </select>
         </div>
 
@@ -194,9 +193,12 @@
     </div>
 
     <!-- Tablero Kanban -->
-    <div v-else-if="currentView === 'kanban'" class="grid grid-cols-1 xl:grid-cols-5 lg:grid-cols-3 gap-4">
+    <div
+      v-else-if="currentView === 'kanban'"
+      class="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-3 -mx-2 px-2 md:mx-0 md:px-0 md:grid md:gap-4 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4"
+    >
       <!-- Columna Pendiente -->
-      <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-yellow-500/20">
+  <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-yellow-500/20 shrink-0 min-w-[78%] sm:min-w-[65%] md:min-w-0 md:w-auto snap-start">
         <div class="flex items-center gap-3 mb-4">
           <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
             <i class="fas fa-clock text-white text-sm"></i>
@@ -219,7 +221,7 @@
           <div
             v-for="activity in pendingActivities"
             :key="activity._id"
-            class="bg-gray-900/50 rounded-lg p-4 border border-gray-700 hover:border-yellow-500/40 transition-all duration-200 group cursor-move"
+            class="bg-gray-900/50 rounded-lg p-3 md:p-4 border border-gray-700 hover:border-yellow-500/40 transition-all duration-200 group cursor-move"
             draggable="true"
             @dragstart="onDragStart($event, activity)"
             @dragend="onDragEnd"
@@ -335,7 +337,7 @@
       </div>
 
       <!-- Columna En Proceso -->
-      <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-blue-500/20">
+  <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-blue-500/20 shrink-0 min-w-[78%] sm:min-w-[65%] md:min-w-0 md:w-auto snap-start">
         <div class="flex items-center gap-3 mb-4">
           <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
             <i class="fas fa-play text-white text-sm"></i>
@@ -358,7 +360,7 @@
           <div
             v-for="activity in inProgressActivities"
             :key="activity._id"
-            class="bg-gray-900/50 rounded-lg p-4 border border-gray-700 hover:border-blue-500/40 transition-all duration-200 group cursor-move"
+            class="bg-gray-900/50 rounded-lg p-3 md:p-4 border border-gray-700 hover:border-blue-500/40 transition-all duration-200 group cursor-move"
             draggable="true"
             @dragstart="onDragStart($event, activity)"
             @dragend="onDragEnd"
@@ -474,7 +476,7 @@
       </div>
 
       <!-- Columna Completada -->
-      <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-green-500/20">
+  <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-green-500/20 shrink-0 min-w-[78%] sm:min-w-[65%] md:min-w-0 md:w-auto snap-start">
         <div class="flex items-center gap-3 mb-4">
           <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
             <i class="fas fa-check text-white text-sm"></i>
@@ -497,7 +499,7 @@
           <div
             v-for="activity in completedActivities"
             :key="activity._id"
-            class="bg-gray-900/50 rounded-lg p-4 border border-gray-700 hover:border-green-500/40 transition-all duration-200 group cursor-move"
+            class="bg-gray-900/50 rounded-lg p-3 md:p-4 border border-gray-700 hover:border-green-500/40 transition-all duration-200 group cursor-move"
             draggable="true"
             @dragstart="onDragStart($event, activity)"
             @dragend="onDragEnd"
@@ -582,117 +584,9 @@
         </div>
       </div>
 
-      <!-- Columna Cancelada -->
-      <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-red-500/20">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
-            <i class="fas fa-times text-white text-sm"></i>
-          </div>
-          <h2 class="text-xl font-bold text-white">Cancelada</h2>
-          <span class="bg-red-500/20 text-red-300 px-2 py-1 rounded-full text-xs font-medium">
-            {{ cancelledActivities.length }}
-          </span>
-        </div>
-        
-        <div 
-          :class="[
-            'space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto transition-all duration-300',
-            isDragging && draggedActivity?.status !== 'cancelled' ? 'drop-zone-highlight' : ''
-          ]"
-          @drop="onDrop($event, 'cancelled')"
-          @dragover.prevent
-          @dragenter.prevent
-        >
-          <div
-            v-for="activity in cancelledActivities"
-            :key="activity._id"
-            class="bg-gray-900/50 rounded-lg p-4 border border-gray-700 hover:border-red-500/40 transition-all duration-200 group cursor-move"
-            draggable="true"
-            @dragstart="onDragStart($event, activity)"
-            @dragend="onDragEnd"
-          >
-            <!-- Header de la tarjeta -->
-            <div class="flex items-start justify-between mb-3">
-              <div class="flex items-center gap-2 flex-1">
-                <i class="fas fa-grip-vertical text-gray-500 text-xs opacity-50 group-hover:opacity-100 transition-opacity"></i>
-                <h3 class="text-white font-semibold text-sm leading-tight flex-1">{{ activity.title }}</h3>
-                
-                <!-- Indicador de prioridad -->
-                <span 
-                  v-if="activity.priority"
-                  class="px-2.5 py-1 rounded-full text-[10px] font-semibold border inline-flex items-center gap-1"
-                  :class="getPriorityClass(activity.priority)"
-                >
-                  <i :class="getPriorityIcon(activity.priority)" class="text-[10px]"></i>
-                  {{ getPriorityLabel(activity.priority) }}
-                </span>
-              </div>
-              <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  @click="markAsPending(activity._id!)"
-                  class="p-1 text-gray-400 hover:text-yellow-400 hover:bg-yellow-500/20 rounded transition-all duration-200"
-                  title="Marcar como pendiente"
-                >
-                  <i class="fas fa-undo text-xs"></i>
-                </button>
-                <PermissionGuard :permissions="['edit-activities']" :fallback="false">
-                  <button
-                    @click="editActivity(activity)"
-                    class="p-1 text-gray-400 hover:text-purple-400 hover:bg-purple-500/20 rounded transition-all duration-200"
-                    title="Editar"
-                  >
-                    <i class="fas fa-edit text-xs"></i>
-                  </button>
-                </PermissionGuard>
-                <PermissionGuard :permissions="['delete-activities']" :fallback="false">
-                  <button
-                    @click="deleteActivity(activity._id!)"
-                    class="p-1 text-gray-400 hover:text-red-400 hover:bg-red-500/20 rounded transition-all duration-200"
-                    title="Eliminar"
-                  >
-                    <i class="fas fa-trash text-xs"></i>
-                  </button>
-                </PermissionGuard>
-              </div>
-            </div>
-
-            <!-- Cliente -->
-            <p class="text-gray-400 text-xs mb-2">{{ getClientName(activity.clientId) }}</p>
-
-            <!-- Descripción -->
-            <p class="text-gray-300 text-sm mb-3 line-clamp-2">{{ activity.description }}</p>
-
-            <!-- Asignado a -->
-            <div class="flex items-center gap-2 mb-3">
-              <AvatarInline
-                :name="getSmartAssignedName(activity)"
-                :photo="(activity.assignedTo && typeof activity.assignedTo === 'object') ? activity.assignedTo.photo : ''"
-              />
-            </div>
-
-            <!-- Fecha -->
-            <div class="flex items-center justify-between text-xs text-gray-400">
-              <div class="flex items-center gap-1">
-                <i class="fas fa-calendar"></i>
-                <span>{{ formatDate(activity.date) }}</span>
-              </div>
-              <div class="flex items-center gap-1">
-                <i class="fas fa-times-circle text-red-400"></i>
-                <span>Cancelada</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Estado vacío para canceladas -->
-          <div v-if="cancelledActivities.length === 0" class="text-center py-8">
-            <i class="fas fa-times-circle text-3xl text-gray-600 mb-2"></i>
-            <p class="text-gray-400 text-sm">No hay actividades canceladas</p>
-          </div>
-        </div>
-      </div>
 
       <!-- Columna Vencida -->
-      <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-red-600/30">
+  <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-red-600/30 shrink-0 min-w-[78%] sm:min-w-[65%] md:min-w-0 md:w-auto snap-start">
         <div class="flex items-center gap-3 mb-4">
           <div class="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
             <i class="fas fa-exclamation-triangle text-white text-sm"></i>
@@ -1145,9 +1039,7 @@ const completedActivities = computed(() =>
   filteredActivities.value.filter(a => a.status === 'completed')
 )
 
-const cancelledActivities = computed(() => 
-  filteredActivities.value.filter(a => a.status === 'cancelled')
-)
+// Columna Cancelada eliminada del tablero Kanban; las actividades con estado 'cancelled' no se muestran en esta vista
 
 const overdueActivities = computed(() => 
   filteredActivities.value.filter(a => a.status === 'overdue')
@@ -1188,7 +1080,7 @@ const updateOverdueActivities = async () => {
       activity.dueDate && 
       new Date(activity.dueDate) < today && 
       activity.status !== 'completed' && 
-      activity.status !== 'cancelled' &&
+  activity.status !== 'cancelled' &&
       activity.status !== 'overdue'
     )
 
@@ -1564,7 +1456,6 @@ const getActivityAssignmentByContext = (activityId: string): string => {
     ...pendingActivities.value,
     ...inProgressActivities.value,
     ...completedActivities.value,
-    ...cancelledActivities.value,
     ...overdueActivities.value
   ]
   
@@ -1624,7 +1515,6 @@ const allActivitiesWithAssignments = computed(() => {
     ...pendingActivities.value,
     ...inProgressActivities.value,
     ...completedActivities.value,
-    ...cancelledActivities.value,
     ...overdueActivities.value
   ]
   
@@ -1795,7 +1685,6 @@ const findActivityAssignment = (activityId: string): string => {
     ...pendingActivities.value,
     ...inProgressActivities.value, 
     ...completedActivities.value,
-    ...cancelledActivities.value,
     ...overdueActivities.value
   ]
   
@@ -1979,6 +1868,15 @@ defineExpose({
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* Ocultar barra horizontal pero mantener scroll táctil */
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 /* Personalizar scrollbar para las columnas */

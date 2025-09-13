@@ -15,6 +15,10 @@ export const useChatStore = defineStore('chat', () => {
   // Notification metadata for incoming messages
   const lastIncomingAt = ref<number | null>(null)
   const lastIncomingRoomId = ref<string | null>(null)
+  const lastIncomingMessage = ref<Message | null>(null)
+  // Presence and unread tracking
+  const onlineUsers = ref<string[]>([])
+  const unreadByRoom = ref<Record<string, number>>({})
   
   // Getters
   const getCurrentMessages = computed(() => {
@@ -27,18 +31,8 @@ export const useChatStore = defineStore('chat', () => {
     
     if (!currentUserId) return 0
     
-    let totalUnread = 0
-    
-    chatRooms.value.forEach(room => {
-      const roomMessages = messages.value[room._id] || []
-      const unread = roomMessages.filter(msg => 
-        msg.sender._id !== currentUserId && 
-        !msg.readBy.some(read => read.user === currentUserId)
-      ).length
-      totalUnread += unread
-    })
-    
-    return totalUnread
+  // Sum from unreadByRoom map for efficiency
+  return Object.values(unreadByRoom.value).reduce((a, b) => a + b, 0)
   })
   
   const getTypingInRoom = computed(() => (roomId: string) => {
@@ -65,7 +59,7 @@ export const useChatStore = defineStore('chat', () => {
         isConnected.value = false
       })
       
-      // Set up event listeners
+  // Set up event listeners
       setupSocketListeners()
       
       // Load initial data
@@ -82,6 +76,22 @@ export const useChatStore = defineStore('chat', () => {
   const setupSocketListeners = () => {
     chatService.onNewMessage((message: Message) => {
       addMessage(message)
+      // Handle notifications and unread counters
+      const authStore = useAuthStore()
+      const me = authStore.user?._id
+      const isFromMe = message.sender._id === me
+      const isInRoom = currentRoom.value?._id === message.chatRoom
+      if (!isFromMe) {
+        if (!isInRoom) {
+          // increment unread for that room
+          unreadByRoom.value[message.chatRoom] = (unreadByRoom.value[message.chatRoom] || 0) + 1
+          playReceiveSound()
+          showWebNotification(message)
+        } else {
+          // If viewing room, auto-mark as read
+          chatService.markMessageAsRead(message._id)
+        }
+      }
     })
     
     chatService.onRoomCreated((room: ChatRoom) => {
@@ -124,6 +134,10 @@ export const useChatStore = defineStore('chat', () => {
         typingUsers.value[roomId] = typingUsers.value[roomId].filter(name => name !== currentUserName)
       }
     })
+
+    chatService.onPresenceUpdate((ids: string[]) => {
+      onlineUsers.value = ids
+    })
   }
   
   const loadChatRooms = async () => {
@@ -150,11 +164,14 @@ export const useChatStore = defineStore('chat', () => {
         messages.value[roomId] = []
       }
       
-      if (page === 1) {
+  if (page === 1) {
         messages.value[roomId] = roomMessages
       } else {
         messages.value[roomId] = [...roomMessages, ...messages.value[roomId]]
       }
+
+  // Recompute unread for this room
+  computeUnreadForRoom(roomId)
     } catch (error) {
       console.error('Error loading messages:', error)
     }
@@ -212,6 +229,8 @@ export const useChatStore = defineStore('chat', () => {
       for (const message of unreadMessages) {
         await chatService.markMessageAsRead(message._id)
       }
+  // Reset counter for this room
+  unreadByRoom.value[room._id] = 0
     }
   }
   
@@ -260,6 +279,12 @@ export const useChatStore = defineStore('chat', () => {
     if (message.sender._id !== currentUserId) {
       lastIncomingAt.value = Date.now()
       lastIncomingRoomId.value = message.chatRoom
+  lastIncomingMessage.value = message
+    }
+
+    // Update unread counters lazily if message not from me and not viewing
+    if (message.sender._id !== currentUserId && currentRoom.value?._id !== message.chatRoom) {
+      unreadByRoom.value[message.chatRoom] = (unreadByRoom.value[message.chatRoom] || 0) + 1
     }
   }
   
@@ -327,6 +352,49 @@ export const useChatStore = defineStore('chat', () => {
     chatService.disconnect()
     isConnected.value = false
   }
+
+  // Helpers
+  const computeUnreadForRoom = (roomId: string) => {
+    const authStore = useAuthStore()
+    const currentUserId = authStore.user?._id
+    if (!currentUserId) return
+    const roomMessages = messages.value[roomId] || []
+    const unread = roomMessages.filter(msg => msg.sender._id !== currentUserId && !msg.readBy.some(r => r.user === currentUserId)).length
+    unreadByRoom.value[roomId] = unread
+  }
+
+  // Lightweight receive sound
+  const playReceiveSound = () => {
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = 'sine';
+      o.frequency.value = 520; // lower beep
+      g.gain.value = 0.05;
+      o.connect(g);
+      g.connect(ctx.destination);
+      const now = ctx.currentTime;
+      o.start(now);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+      o.stop(now + 0.2);
+    } catch {}
+  }
+
+  // Browser notification
+  const showWebNotification = (message: Message) => {
+    try {
+      if (document.hasFocus()) return
+      if (!('Notification' in window)) return
+      const title = 'Nuevo mensaje en chat'
+      const body = `${message.sender.name}: ${message.content}`
+      const show = () => new Notification(title, { body })
+      if (Notification.permission === 'granted') show()
+      else if (Notification.permission !== 'denied') {
+        Notification.requestPermission().then(p => { if (p === 'granted') show() })
+      }
+    } catch {}
+  }
   
   return {
     // State
@@ -339,6 +407,9 @@ export const useChatStore = defineStore('chat', () => {
     isLoading,
   lastIncomingAt,
   lastIncomingRoomId,
+  lastIncomingMessage,
+  onlineUsers,
+  unreadByRoom,
     
     // Getters
     getCurrentMessages,

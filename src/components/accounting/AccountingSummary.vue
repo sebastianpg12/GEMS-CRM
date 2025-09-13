@@ -42,6 +42,8 @@
           </div>
 
           <!-- Gastos Fijos -->
+          
+          <!-- Gastos Fijos -->
           <div class="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 rounded-xl p-4 border border-purple-500/20">
             <h4 class="text-lg font-semibold text-white mb-4">Gastos Fijos</h4>
             <div class="space-y-3">

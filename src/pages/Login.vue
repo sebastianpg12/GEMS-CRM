@@ -125,38 +125,7 @@
         </form>
 
         <!-- Demo Credentials -->
-        <div class="mt-8 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
-          <h3 class="text-sm font-medium text-gray-300 mb-3">Credenciales de prueba:</h3>
-          <div class="space-y-2 text-sm">
-            <div class="flex justify-between items-center">
-              <span class="text-gray-400">Admin:</span>
-              <button
-                @click="setDemoCredentials('admin')"
-                class="text-purple-400 hover:text-purple-300 transition-colors"
-              >
-                admin@gems.com
-              </button>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-gray-400">Manager:</span>
-              <button
-                @click="setDemoCredentials('manager')"
-                class="text-purple-400 hover:text-purple-300 transition-colors"
-              >
-                maria@gems.com
-              </button>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-gray-400">Employee:</span>
-              <button
-                @click="setDemoCredentials('employee')"
-                class="text-purple-400 hover:text-purple-300 transition-colors"
-              >
-                carlos@gems.com
-              </button>
-            </div>
-          </div>
-        </div>
+    
       </div>
     </div>
 

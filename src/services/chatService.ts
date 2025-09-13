@@ -320,6 +320,13 @@ class ChatService {
     }
   }
 
+  // Presence updates (list of online userIds)
+  onPresenceUpdate(callback: (onlineUserIds: string[]) => void) {
+    if (this.socket) {
+      this.socket.on('presence_update', callback)
+    }
+  }
+
   // Socket event emitters
   joinRoom(roomId: string) {
     if (this.socket) {

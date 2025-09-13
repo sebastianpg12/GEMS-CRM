@@ -4,7 +4,7 @@
     <router-view v-if="!authStore.isAuthenticated || $route.path === '/login'" />
     
     <!-- Show main app if authenticated -->
-    <div v-else class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+  <div v-else class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       <!-- Navigation Sidebar -->
       <div class="fixed inset-y-0 left-0 z-50 w-64 bg-gray-900/90 backdrop-blur-sm border-r border-purple-500/20 transform transition-transform duration-300 ease-in-out lg:translate-x-0" 
            :class="{ '-translate-x-full': !sidebarOpen && !isDesktop }">
@@ -109,16 +109,6 @@
                     {{ chatStore.getUnreadCount > 99 ? '99+' : chatStore.getUnreadCount }}
                   </span>
                 </router-link>
-
-                <!-- Visual popup on new incoming messages -->
-        <transition name="fade" mode="out-in">
-                  <div
-                    v-if="showChatPopup"
-          class="absolute -top-8 right-0 bg-gray-900/90 border border-purple-500/40 text-purple-200 text-xs px-2 py-1 rounded shadow-lg animate-fade-in"
-                  >
-          {{ popupText }}
-                  </div>
-                </transition>
               </div>
               <!-- User Menu -->
               <div class="relative">
@@ -171,18 +161,22 @@
         </main>
       </div>
 
-      <!-- Mobile backdrop -->
-      <div v-if="sidebarOpen" class="lg:hidden fixed inset-0 z-40 bg-black/50" @click="sidebarOpen = false"></div>
+  <!-- Mobile backdrop -->
+  <div v-if="sidebarOpen" class="lg:hidden fixed inset-0 z-40 bg-black/50" @click="sidebarOpen = false"></div>
+
+  <!-- Global toast for nuevos mensajes -->
+  <NewMessageToast />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from './stores/auth'
 import { useChatStore } from './stores/chatStore'
 import UserAvatar from './components/ui/UserAvatar.vue'
+import NewMessageToast from './components/NewMessageToast.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -193,8 +187,7 @@ const chatStore = useChatStore()
 const sidebarOpen = ref(true)
 const showUserMenu = ref(false)
 const isDesktop = ref(true)
-const showChatPopup = ref(false)
-const popupText = ref('Nuevo mensaje')
+// Removed navbar mini-popup; use NewMessageToast instead
 
 // Computed properties
 const availableModules = computed(() => authStore.getAvailableModules)
@@ -274,37 +267,7 @@ onMounted(async () => {
   }
 })
 
-// Receive sound + visual popup when a new message arrives
-const playReceiveSound = () => {
-  try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.type = 'triangle';
-    o.frequency.value = 440; // A4
-    g.gain.value = 0.05;
-    o.connect(g);
-    g.connect(ctx.destination);
-    const now = ctx.currentTime;
-    o.start(now);
-    o.frequency.exponentialRampToValueAtTime(880, now + 0.08);
-    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
-    o.stop(now + 0.21);
-  } catch {}
-}
-
-watch(() => chatStore.lastIncomingAt, (val) => {
-  if (!val) return
-  const roomId = chatStore.lastIncomingRoomId
-  const room = chatStore.chatRooms.find(r => r._id === roomId)
-  if (!room) return
-  // Only notify for group/team rooms (not direct)
-  if (room.type === 'direct') return
-  popupText.value = `Nuevo mensaje · ${room.name}`
-  showChatPopup.value = true
-  playReceiveSound()
-  setTimeout(() => { showChatPopup.value = false }, 1500)
-})
+// Removed navbar popup listener; NewMessageToast handles notifications globally
 </script>
 
 <style>
