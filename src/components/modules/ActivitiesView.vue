@@ -1,13 +1,13 @@
 ﻿<template>
   <div class="space-y-6">
     <!-- Header con controles -->
-    <div class="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
+  <div class="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
       <div>
         <h1 class="text-2xl font-bold text-white">Gestión de Actividades</h1>
         <p class="text-gray-400 mt-1">Organiza tus actividades y gestiona tu calendario</p>
       </div>
       
-      <div class="flex items-center gap-4">
+  <div class="flex items-center gap-3 flex-wrap">
         <!-- Toggle vista -->
         <div class="flex bg-gray-700 rounded-lg p-1">
           <button
@@ -110,8 +110,8 @@
     </div>
 
     <!-- Filtros -->
-    <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50">
-      <div class="flex flex-wrap gap-4 items-center">
+    <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-gray-700/50">
+      <div class="flex flex-wrap gap-3 sm:gap-4 items-center">
         <!-- Filtro por miembro del equipo -->
         <div class="flex-1 min-w-64">
           <label class="block text-sm font-medium text-gray-300 mb-2">
@@ -195,10 +195,10 @@
     <!-- Tablero Kanban -->
     <div
       v-else-if="currentView === 'kanban'"
-      class="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-3 -mx-2 px-2 md:mx-0 md:px-0 md:grid md:gap-4 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4"
+  class="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 xl:grid-cols-4"
     >
-      <!-- Columna Pendiente -->
-  <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-yellow-500/20 shrink-0 min-w-[78%] sm:min-w-[65%] md:min-w-0 md:w-auto snap-start">
+    <!-- Columna Pendiente -->
+  <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-yellow-500/20 w-full snap-start">
         <div class="flex items-center gap-3 mb-4">
           <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
             <i class="fas fa-clock text-white text-sm"></i>
@@ -211,7 +211,7 @@
         
         <div 
           :class="[
-            'space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto transition-all duration-300',
+            'space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto overflow-x-hidden pr-1 sm:pr-2 transition-all duration-300',
             isDragging && draggedActivity?.status !== 'pending' ? 'drop-zone-highlight' : ''
           ]"
           @drop="onDrop($event, 'pending')"
@@ -221,28 +221,28 @@
           <div
             v-for="activity in pendingActivities"
             :key="activity._id"
-            class="bg-gray-900/50 rounded-lg p-3 md:p-4 border border-gray-700 hover:border-yellow-500/40 transition-all duration-200 group cursor-move"
+            class="bg-gray-900/50 rounded-lg p-3 sm:p-4 border border-gray-700 hover:border-yellow-500/40 transition-all duration-200 group cursor-move overflow-hidden"
             draggable="true"
             @dragstart="onDragStart($event, activity)"
             @dragend="onDragEnd"
           >
             <!-- Header de la tarjeta -->
-            <div class="flex items-start justify-between mb-3">
-              <div class="flex items-center gap-2 flex-1">
+            <div class="flex items-start justify-between gap-2 mb-3 min-w-0">
+              <div class="flex flex-wrap items-center gap-2 flex-1 min-w-0">
                 <i class="fas fa-grip-vertical text-gray-500 text-xs opacity-50 group-hover:opacity-100 transition-opacity"></i>
-                <h3 class="text-white font-semibold text-sm leading-tight flex-1">{{ activity.title }}</h3>
+                <h3 class="text-white font-semibold text-[13px] sm:text-sm leading-tight flex-1 min-w-0 break-words whitespace-normal">{{ activity.title }}</h3>
                 
                 <!-- Indicador de prioridad -->
                 <span 
                   v-if="activity.priority"
-                  class="px-2.5 py-1 rounded-full text-[10px] font-semibold border inline-flex items-center gap-1"
+                  class="px-2.5 py-1 rounded-full text-[10px] font-semibold border inline-flex items-center gap-1 basis-full mt-1 shrink-0"
                   :class="getPriorityClass(activity.priority)"
                 >
                   <i :class="getPriorityIcon(activity.priority)" class="text-[10px]"></i>
                   {{ getPriorityLabel(activity.priority) }}
                 </span>
               </div>
-              <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                 <button
                   @click="markAsCompleted(activity._id!)"
                   class="p-1 text-gray-400 hover:text-green-400 hover:bg-green-500/20 rounded transition-all duration-200"
@@ -275,7 +275,7 @@
             <p class="text-gray-400 text-xs mb-2">{{ getClientName(activity.clientId) }}</p>
 
             <!-- Descripción -->
-            <p class="text-gray-300 text-sm mb-3 line-clamp-2">{{ activity.description }}</p>
+            <p class="text-gray-300 text-[13px] sm:text-sm mb-3 line-clamp-2">{{ activity.description }}</p>
 
             <!-- Asignado a -->
             <div class="flex items-center gap-2 mb-3">
@@ -336,8 +336,8 @@
         </div>
       </div>
 
-      <!-- Columna En Proceso -->
-  <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-blue-500/20 shrink-0 min-w-[78%] sm:min-w-[65%] md:min-w-0 md:w-auto snap-start">
+    <!-- Columna En Proceso -->
+  <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-blue-500/20 w-full snap-start">
         <div class="flex items-center gap-3 mb-4">
           <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
             <i class="fas fa-play text-white text-sm"></i>
@@ -350,7 +350,7 @@
         
         <div 
           :class="[
-            'space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto transition-all duration-300',
+            'space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto overflow-x-hidden pr-1 sm:pr-2 transition-all duration-300',
             isDragging && draggedActivity?.status !== 'in-progress' ? 'drop-zone-highlight' : ''
           ]"
           @drop="onDrop($event, 'in-progress')"
@@ -360,28 +360,28 @@
           <div
             v-for="activity in inProgressActivities"
             :key="activity._id"
-            class="bg-gray-900/50 rounded-lg p-3 md:p-4 border border-gray-700 hover:border-blue-500/40 transition-all duration-200 group cursor-move"
+            class="bg-gray-900/50 rounded-lg p-3 sm:p-4 border border-gray-700 hover:border-blue-500/40 transition-all duration-200 group cursor-move overflow-hidden"
             draggable="true"
             @dragstart="onDragStart($event, activity)"
             @dragend="onDragEnd"
           >
             <!-- Header de la tarjeta -->
-            <div class="flex items-start justify-between mb-3">
-              <div class="flex items-center gap-2 flex-1">
+            <div class="flex items-start justify-between gap-2 mb-3 min-w-0">
+              <div class="flex flex-wrap items-center gap-2 flex-1 min-w-0">
                 <i class="fas fa-grip-vertical text-gray-500 text-xs opacity-50 group-hover:opacity-100 transition-opacity"></i>
-                <h3 class="text-white font-semibold text-sm leading-tight flex-1">{{ activity.title }}</h3>
+                <h3 class="text-white font-semibold text-[13px] sm:text-sm leading-tight flex-1 min-w-0 break-words whitespace-normal">{{ activity.title }}</h3>
                 
                 <!-- Indicador de prioridad -->
                 <span 
                   v-if="activity.priority"
-                  class="px-2.5 py-1 rounded-full text-[10px] font-semibold border inline-flex items-center gap-1"
+                  class="px-2.5 py-1 rounded-full text-[10px] font-semibold border inline-flex items-center gap-1 basis-full mt-1 shrink-0"
                   :class="getPriorityClass(activity.priority)"
                 >
                   <i :class="getPriorityIcon(activity.priority)" class="text-[10px]"></i>
                   {{ getPriorityLabel(activity.priority) }}
                 </span>
               </div>
-              <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                 <button
                   @click="markAsCompleted(activity._id!)"
                   class="p-1 text-gray-400 hover:text-green-400 hover:bg-green-500/20 rounded transition-all duration-200"
@@ -414,7 +414,7 @@
             <p class="text-gray-400 text-xs mb-2">{{ getClientName(activity.clientId) }}</p>
 
             <!-- Descripción -->
-            <p class="text-gray-300 text-sm mb-3 line-clamp-2">{{ activity.description }}</p>
+            <p class="text-gray-300 text-[13px] sm:text-sm mb-3 line-clamp-2">{{ activity.description }}</p>
 
             <!-- Asignado a -->
             <div class="flex items-center gap-2 mb-3">
@@ -475,8 +475,8 @@
         </div>
       </div>
 
-      <!-- Columna Completada -->
-  <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-green-500/20 shrink-0 min-w-[78%] sm:min-w-[65%] md:min-w-0 md:w-auto snap-start">
+    <!-- Columna Completada -->
+  <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-green-500/20 w-full snap-start">
         <div class="flex items-center gap-3 mb-4">
           <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
             <i class="fas fa-check text-white text-sm"></i>
@@ -489,7 +489,7 @@
         
         <div 
           :class="[
-            'space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto transition-all duration-300',
+            'space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto overflow-x-hidden pr-1 sm:pr-2 transition-all duration-300',
             isDragging && draggedActivity?.status !== 'completed' ? 'drop-zone-highlight' : ''
           ]"
           @drop="onDrop($event, 'completed')"
@@ -499,28 +499,28 @@
           <div
             v-for="activity in completedActivities"
             :key="activity._id"
-            class="bg-gray-900/50 rounded-lg p-3 md:p-4 border border-gray-700 hover:border-green-500/40 transition-all duration-200 group cursor-move"
+            class="bg-gray-900/50 rounded-lg p-3 sm:p-4 border border-gray-700 hover:border-green-500/40 transition-all duration-200 group cursor-move overflow-hidden"
             draggable="true"
             @dragstart="onDragStart($event, activity)"
             @dragend="onDragEnd"
           >
             <!-- Header de la tarjeta -->
-            <div class="flex items-start justify-between mb-3">
-              <div class="flex items-center gap-2 flex-1">
+            <div class="flex items-start justify-between gap-2 mb-3 min-w-0">
+              <div class="flex flex-wrap items-center gap-2 flex-1 min-w-0">
                 <i class="fas fa-grip-vertical text-gray-500 text-xs opacity-50 group-hover:opacity-100 transition-opacity"></i>
-                <h3 class="text-white font-semibold text-sm leading-tight flex-1">{{ activity.title }}</h3>
+                <h3 class="text-white font-semibold text-[13px] sm:text-sm leading-tight flex-1 min-w-0 break-words whitespace-normal">{{ activity.title }}</h3>
                 
                 <!-- Indicador de prioridad -->
                 <span 
                   v-if="activity.priority"
-                  class="px-2.5 py-1 rounded-full text-[10px] font-semibold border inline-flex items-center gap-1"
+                  class="px-2.5 py-1 rounded-full text-[10px] font-semibold border inline-flex items-center gap-1 basis-full mt-1 shrink-0"
                   :class="getPriorityClass(activity.priority)"
                 >
                   <i :class="getPriorityIcon(activity.priority)" class="text-[10px]"></i>
                   {{ getPriorityLabel(activity.priority) }}
                 </span>
               </div>
-              <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                 <button
                   @click="markAsPending(activity._id!)"
                   class="p-1 text-gray-400 hover:text-yellow-400 hover:bg-yellow-500/20 rounded transition-all duration-200"
@@ -553,7 +553,7 @@
             <p class="text-gray-400 text-xs mb-2">{{ getClientName(activity.clientId) }}</p>
 
             <!-- Descripción -->
-            <p class="text-gray-300 text-sm mb-3 line-clamp-2">{{ activity.description }}</p>
+            <p class="text-gray-300 text-[13px] sm:text-sm mb-3 line-clamp-2">{{ activity.description }}</p>
 
             <!-- Asignado a -->
             <div class="flex items-center gap-2 mb-3">
@@ -585,8 +585,8 @@
       </div>
 
 
-      <!-- Columna Vencida -->
-  <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-red-600/30 shrink-0 min-w-[78%] sm:min-w-[65%] md:min-w-0 md:w-auto snap-start">
+    <!-- Columna Vencida -->
+  <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-red-600/30 w-full snap-start">
         <div class="flex items-center gap-3 mb-4">
           <div class="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
             <i class="fas fa-exclamation-triangle text-white text-sm"></i>
@@ -599,7 +599,7 @@
         
         <div 
           :class="[
-            'space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto transition-all duration-300',
+            'space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto overflow-x-hidden pr-1 sm:pr-2 transition-all duration-300',
             isDragging && draggedActivity?.status !== 'overdue' ? 'drop-zone-highlight' : ''
           ]"
           @drop="onDrop($event, 'overdue')"
@@ -609,28 +609,28 @@
           <div
             v-for="activity in overdueActivities"
             :key="activity._id"
-            class="bg-red-900/20 rounded-lg p-4 border border-red-500/40 hover:border-red-500/60 transition-all duration-200 group cursor-move"
+            class="bg-red-900/20 rounded-lg p-3 sm:p-4 border border-red-500/40 hover:border-red-500/60 transition-all duration-200 group cursor-move overflow-hidden"
             draggable="true"
             @dragstart="onDragStart($event, activity)"
             @dragend="onDragEnd"
           >
             <!-- Header de la tarjeta -->
-            <div class="flex items-start justify-between mb-3">
-              <div class="flex items-center gap-2 flex-1">
+            <div class="flex items-start justify-between gap-2 mb-3 min-w-0">
+              <div class="flex flex-wrap items-center gap-2 flex-1 min-w-0">
                 <i class="fas fa-grip-vertical text-gray-500 text-xs opacity-50 group-hover:opacity-100 transition-opacity"></i>
-                <h3 class="text-white font-semibold text-sm leading-tight flex-1">{{ activity.title }}</h3>
+                <h3 class="text-white font-semibold text-[13px] sm:text-sm leading-tight flex-1 min-w-0 break-words whitespace-normal">{{ activity.title }}</h3>
                 
                 <!-- Indicador de prioridad -->
                 <span 
                   v-if="activity.priority"
-                  class="px-2.5 py-1 rounded-full text-[10px] font-semibold border inline-flex items-center gap-1"
+                  class="px-2.5 py-1 rounded-full text-[10px] font-semibold border inline-flex items-center gap-1 basis-full mt-1 shrink-0"
                   :class="getPriorityClass(activity.priority)"
                 >
                   <i :class="getPriorityIcon(activity.priority)" class="text-[10px]"></i>
                   {{ getPriorityLabel(activity.priority) }}
                 </span>
               </div>
-              <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                 <button
                   @click="markAsInProgress(activity._id!)"
                   class="p-1 text-gray-400 hover:text-blue-400 hover:bg-blue-500/20 rounded transition-all duration-200"
@@ -670,7 +670,7 @@
             <p class="text-gray-400 text-xs mb-2">{{ getClientName(activity.clientId) }}</p>
 
             <!-- Descripción -->
-            <p class="text-gray-300 text-sm mb-3 line-clamp-2">{{ activity.description }}</p>
+            <p class="text-gray-300 text-[13px] sm:text-sm mb-3 line-clamp-2">{{ activity.description }}</p>
 
             <!-- Asignado a -->
             <div class="flex items-center gap-2 mb-3">
@@ -1863,6 +1863,10 @@ defineExpose({
 </script>
 
 <style scoped>
+.space-y-6 {
+  /* Ensure no accidental horizontal overflow from inner elements */
+  overflow-x: hidden;
+}
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;

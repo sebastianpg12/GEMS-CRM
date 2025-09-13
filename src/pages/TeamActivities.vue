@@ -102,7 +102,7 @@
             >
               <div class="flex items-start justify-between">
                 <div class="flex-1">
-                  <h5 class="text-white text-sm font-medium line-clamp-1">{{ activity.title }}</h5>
+                  <h5 class="text-white text-sm font-medium break-words whitespace-normal">{{ activity.title }}</h5>
                   <p class="text-gray-400 text-xs line-clamp-1 mt-1">{{ activity.description }}</p>
                 </div>
                 <span
