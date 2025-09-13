@@ -245,10 +245,14 @@
                 :class="n.isTeam ? 'bg-gradient-to-br from-blue-900/40 to-blue-700/20 border border-blue-500/30' : 'bg-gray-900/60 border border-gray-700'"
               >
                 <div class="flex items-start justify-between">
-                  <div>
-                    <div class="text-white font-medium">{{ n.title }}</div>
-                    <div class="text-sm" :class="n.status==='vacant' && !n.assignees?.length ? 'text-yellow-300' : 'text-gray-300'">
-                      {{ n.name }}
+                  <div class="flex items-center gap-3">
+                    <!-- Avatar del usuario asignado al nodo (si existe) -->
+                    <UserAvatar v-if="n.userId" :name="n.name" :photo="getMemberPhoto(n.userId)" size="sm" />
+                    <div>
+                      <div class="text-white font-medium">{{ n.title }}</div>
+                      <div class="text-sm" :class="n.status==='vacant' && !n.assignees?.length ? 'text-yellow-300' : 'text-gray-300'">
+                        {{ n.name }}
+                      </div>
                     </div>
                   </div>
                   <div class="text-xs text-gray-400">{{ n.id }}</div>
@@ -260,7 +264,8 @@
                 <div v-if="n.isTeam" class="mt-3">
                   <div class="text-xs text-gray-400 mb-1">Miembros</div>
                   <div class="flex flex-wrap gap-2">
-                    <span v-for="a in (n.assignees || [])" :key="a.userId" class="flex items-center gap-1 px-2 py-1 text-xs rounded-full bg-blue-500/20 text-blue-200 border border-blue-500/30">
+                    <span v-for="a in (n.assignees || [])" :key="a.userId" class="flex items-center gap-2 px-2 py-1 text-xs rounded-full bg-blue-500/20 text-blue-200 border border-blue-500/30">
+                      <UserAvatar :name="a.name" :photo="getMemberPhoto(a.userId)" size="xs" />
                       <span>{{ a.name }}</span>
                       <button v-if="authStore.isAdmin" @click="removeAssignee(n, a.userId)" class="text-blue-300 hover:text-white">×</button>
                     </span>
@@ -692,6 +697,12 @@ onMounted(async () => {
 
 // Org chart helpers
 const nodesByLevel = (level: number) => orgChart.nodes.filter(n => n.level === level)
+
+// Obtener foto de usuario por ID
+const getMemberPhoto = (userId: string) => {
+  const member = teamStore.members.find(m => m._id === userId)
+  return member?.photo || ''
+}
 const onDragStart = (n: OrgChartNode) => { dragged = n }
 const isDescendant = (nodes: OrgChartNode[], possibleAncestorId: string, possibleDescendantId: string): boolean => {
   // BFS/DFS up from descendant
