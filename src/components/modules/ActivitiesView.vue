@@ -1825,7 +1825,7 @@ const onDrop = async (event: DragEvent, newStatus: string) => {
   }
 }
 
-// Lifecycle
+// Lifecycleee
 onMounted(async () => {
   // Verificar usuario autenticado
   const token = localStorage.getItem('token')

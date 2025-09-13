@@ -125,25 +125,36 @@
                 </button>
 
                 <!-- User Dropdown -->
-                <div v-if="showUserMenu" class="absolute right-0 mt-2 w-48 bg-gray-900 border border-purple-500/20 rounded-lg shadow-xl z-50">
-                  <div class="p-2">
-                    <div class="px-3 py-2 text-gray-400 text-sm border-b border-gray-700">
+                <div
+                  v-if="showUserMenu"
+                  class="absolute right-0 top-full mt-2 w-72 sm:w-80 max-w-[calc(100vw-16px)] bg-gray-900/95 backdrop-blur-xl border border-purple-500/20 rounded-xl shadow-2xl z-50 overflow-hidden"
+                >
+                  <!-- Header: email (truncated) -->
+                  <div class="px-4 py-2 border-b border-gray-700">
+                    <span class="block text-sm text-gray-300 truncate" :title="authStore.user?.email || ''">
                       {{ authStore.user?.email }}
-                    </div>
+                    </span>
+                  </div>
+
+                  <!-- Menu items -->
+                  <div class="py-1">
                     <button 
                       @click="navigateToProfile"
-                      class="w-full text-left px-3 py-2 text-gray-300 hover:bg-gray-800 rounded mt-1 text-sm"
+                      class="w-full text-left px-4 py-2 text-gray-300 hover:bg-gray-800/60 transition-colors text-sm flex items-center"
                     >
                       <i class="fas fa-user mr-2"></i>
                       Mi Perfil
                     </button>
-                    <button class="w-full text-left px-3 py-2 text-gray-300 hover:bg-gray-800 rounded text-sm">
+                    <button
+                      class="w-full text-left px-4 py-2 text-gray-300 hover:bg-gray-800/60 transition-colors text-sm flex items-center"
+                    >
                       <i class="fas fa-cog mr-2"></i>
                       Configuración
                     </button>
+                    <div class="border-t border-gray-700 my-1"></div>
                     <button 
                       @click="handleLogout"
-                      class="w-full text-left px-3 py-2 text-red-400 hover:bg-red-900/20 rounded text-sm"
+                      class="w-full text-left px-4 py-2 text-red-400 hover:bg-red-900/20 transition-colors text-sm flex items-center"
                     >
                       <i class="fas fa-sign-out-alt mr-2"></i>
                       Cerrar Sesión

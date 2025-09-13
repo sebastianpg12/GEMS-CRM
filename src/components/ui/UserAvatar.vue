@@ -24,7 +24,7 @@
   v-else
       :class="[
         'w-full h-full flex items-center justify-center',
-        bgGradient || defaultGradient,
+        (bgGradient || finalGradient),
         textSizeClasses[size]
       ]"
     >
@@ -123,7 +123,7 @@ const statusClasses = {
   away: 'bg-yellow-500 border-gray-800'
 }
 
-// Gradiente por defecto
+// Gradiente por defecto (no se usa directamente; preferimos finalGradient)
 const defaultGradient = 'bg-gradient-to-br from-purple-600 to-pink-600'
 
 // State for image error to fallback to initials

@@ -224,6 +224,7 @@
               type="password"
               class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               placeholder="••••••••"
+              autocomplete="current-password"
               required
             />
           </div>
@@ -236,6 +237,7 @@
               type="password"
               class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               placeholder="••••••••"
+              autocomplete="new-password"
               required
             />
           </div>
@@ -248,6 +250,7 @@
               type="password"
               class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               placeholder="••••••••"
+              autocomplete="new-password"
               required
             />
           </div>
@@ -283,6 +286,7 @@ import { useAuthStore } from '@/stores/auth'
 import { userService } from '@/services/userService'
 import { toast } from 'vue3-toastify'
 import { API_CONFIG } from '@/config/api'
+import { getFullPhotoUrl } from '@/utils/photoUtils'
 
 const authStore = useAuthStore()
 
@@ -302,14 +306,10 @@ const profileData = ref({
   updatedAt: ''
 })
 
-// URL absoluta para la foto en entorno local/prod
+// URL absoluta para la foto en entorno local/prod (centralizada)
 const resolvedPhotoUrl = computed(() => {
   const url = profileData.value?.photo || ''
-  if (!url) return ''
-  if (/^https?:\/\//i.test(url)) return url
-  // Use centralized API base URL, never fallback to localhost in production
-  let origin = String(API_CONFIG.BASE_URL).replace(/\/?api\/?$/i, '')
-  return `${origin.replace(/\/$/, '')}/${url.replace(/^\//, '')}`
+  return getFullPhotoUrl(url)
 })
 
 // Add a small cache-busting param on retry to bypass potential CDN/cold-start hiccups
