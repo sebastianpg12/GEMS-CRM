@@ -1,27 +1,7 @@
 <template>
   <div class="space-y-6">
     <!-- Header with User Role Info -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-      <div>
-        <h1 class="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-          Dashboard
-        </h1>
-        <p class="text-gray-400 mt-2">
-          Bienvenido, {{ authStore.user?.name }}
-          <span class="ml-2 px-2 py-1 bg-purple-600/20 rounded-full text-xs">
-            {{ getRoleDisplayName(authStore.user?.role) }}
-          </span>
-        </p>
-      </div>
-      
-      <!-- Role-based visibility badge -->
-      <div class="flex items-center space-x-2 text-sm">
-        <i class="fas fa-shield-alt text-purple-400"></i>
-        <span class="text-gray-400">
-          Acceso: {{ authStore.user?.department }}
-        </span>
-      </div>
-    </div>
+  <!-- ...existing code... -->
 
     <!-- Stats Cards - Role-based visibility -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">

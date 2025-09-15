@@ -1,21 +1,13 @@
 <template>
   <div class="space-y-6">
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-      <div>
-        <h1 class="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-          Gestión de Casos
-        </h1>
-        <p class="text-gray-400 mt-2">Documentos, Incidencias y Seguimientos unificados</p>
-      </div>
-      <button
-        @click="showCreateForm = true"
-        class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 flex items-center gap-2 font-medium transform hover:scale-105 shadow-lg shadow-purple-500/25"
-      >
-        <i class="fas fa-plus"></i>
-        <span>Nuevo Caso</span>
-      </button>
-    </div>
+    <button
+      @click="showCreateForm = true"
+      class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 flex items-center gap-2 font-medium transform hover:scale-105 shadow-lg shadow-purple-500/25"
+    >
+      <i class="fas fa-plus"></i>
+      <span>Nuevo Caso</span>
+    </button>
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">

@@ -5,15 +5,7 @@
       <!-- Header -->
       <div class="mb-8">
         <div class="flex items-center justify-between">
-          <div>
-            <h1 class="text-3xl font-bold text-white mb-2">
-              <i class="fas fa-users-cog mr-3 text-purple-400"></i>
-              Actividades por Equipo
-            </h1>
-            <p class="text-gray-400">
-              Gestiona y visualiza las actividades asignadas a cada miembro del equipo
-            </p>
-          </div>
+          <!-- ...existing code... -->
           
           <div class="flex items-center gap-4">
             <!-- Vista seleccionada -->

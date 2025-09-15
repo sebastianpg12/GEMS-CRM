@@ -2,10 +2,7 @@
   <div class="space-y-6">
     <!-- Header con controles -->
   <div class="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
-      <div>
-        <h1 class="text-2xl font-bold text-white">Gestión de Actividades</h1>
-        <p class="text-gray-400 mt-1">Organiza tus actividades y gestiona tu calendario</p>
-      </div>
+  <!-- ...existing code... -->
       
   <div class="flex items-center gap-3 flex-wrap">
         <!-- Toggle vista -->

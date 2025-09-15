@@ -1,14 +1,7 @@
 <template>
   <div class="p-6">
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-      <div>
-        <h1 class="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-          Contabilidad
-        </h1>
-        <p class="text-gray-400 mt-2">Gestiona transacciones y gastos fijos</p>
-      </div>
-    </div>
+  <!-- ...existing code... -->
 
     <!-- Tabs -->
     <div class="bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-lg p-6 mb-6 border border-purple-500/20">

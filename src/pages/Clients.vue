@@ -1,14 +1,24 @@
 <template>
   <div class="space-y-6">
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-      <div>
-        <h1 class="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-          Gestión de Clientes
-        </h1>
-        <p class="text-gray-400 mt-2">{{ clients.length }} clientes registrados</p>
+    <!-- Tabs for Clientes and Prospectos -->
+    <div class="mb-6">
+      <div class="flex gap-2">
+        <button
+          :class="[activeTab === 'clientes' ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' : 'bg-gray-800 text-gray-300', 'px-6 py-2 rounded-lg font-medium transition-colors']"
+          @click="activeTab = 'clientes'"
+        >Clientes</button>
+        <button
+          :class="[activeTab === 'prospectos' ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' : 'bg-gray-800 text-gray-300', 'px-6 py-2 rounded-lg font-medium transition-colors']"
+          @click="activeTab = 'prospectos'"
+        >Prospectos</button>
       </div>
-      
+    </div>
+    <div v-if="activeTab === 'prospectos'">
+      <ProspectAIForm />
+    </div>
+  <div v-else>
+    <!-- Header: Botón alineado a la derecha -->
+    <div class="flex justify-end mb-4">
       <PermissionGuard :permissions="['create-clients']" :fallback="false">
         <button 
           @click="showModal = true; editingClient = null; resetForm()" 
@@ -368,9 +378,13 @@
       </div>
     </div>
   </div>
+  </div>
 </template>
 
 <script setup lang="ts">
+// ...existing code...
+import ProspectAIForm from '../components/ProspectAIForm.vue'
+const activeTab = ref('clientes')
 import { ref, computed, onMounted } from 'vue'
 import { useClientStore } from '../stores/clientStore'
 import type { Client, ClientForm } from '../types'

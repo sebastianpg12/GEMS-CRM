@@ -9,7 +9,7 @@
           <img 
             src="../assets/logo.webp" 
             alt="GEMS Logo" 
-            class="w-10 h-10 mr-3 rounded-lg shadow-lg"
+            class="w-12 h-12 mr-3 rounded-lg shadow-lg"
             style="box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);"
           />
           <div class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
@@ -41,9 +41,11 @@
       <!-- User Profile -->
       <div class="px-4 py-4 border-t border-white/10">
         <div class="flex items-center">
-          <div class="w-8 h-8 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full flex items-center justify-center">
-            <span class="text-white text-sm font-medium">U</span>
-          </div>
+          <img 
+            src="../assets/logo.webp" 
+            alt="GEMS Logo" 
+            class="w-8 h-8 rounded-full shadow-lg" 
+          />
           <div class="ml-3">
             <p class="text-sm font-medium text-white">Usuario</p>
             <p class="text-xs text-gray-400">Admin</p>

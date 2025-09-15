@@ -12,9 +12,12 @@
         <!-- Logo -->
         <div class="flex items-center justify-between h-16 px-4 border-b border-purple-500/20">
           <div class="flex items-center">
-            <div class="w-8 h-8 mr-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center shadow-lg">
-              <i class="fas fa-gem text-white text-sm"></i>
-            </div>
+            <img 
+              :src="logoGems" 
+              alt="GEMS Logo" 
+              class="w-8 h-8 mr-3 rounded-lg shadow-lg" 
+              style="box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);" 
+            />
             <h1 class="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
               GEMS CRM
             </h1>
@@ -182,6 +185,7 @@
 </template>
 
 <script setup lang="ts">
+import logoGems from '@/assets/logo.webp'
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from './stores/auth'

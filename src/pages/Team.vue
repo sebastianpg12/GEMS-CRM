@@ -1,27 +1,18 @@
 <template>
   <div class="space-y-6">
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-      <div>
-        <h1 class="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-          Gestión de Equipo
-        </h1>
-        <p class="text-gray-400 mt-2">Administra los usuarios y miembros del equipo</p>
-      </div>
-      
-      <!-- Create Button - Only for Admin/Manager -->
-      <PermissionGuard :permissions="['create-team']" :fallback="false">
-        <button
-          @click="showCreateModal = true"
-          class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 
-                 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 
-                 transition-all duration-200 transform hover:scale-105"
-        >
-          <UserPlusIcon class="w-5 h-5 mr-2" />
-          Agregar Miembro
-        </button>
-      </PermissionGuard>
-    </div>
+    <!-- Create Button - Only for Admin/Manager -->
+    <PermissionGuard :permissions="['create-team']" :fallback="false">
+      <button
+        @click="showCreateModal = true"
+        class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 
+               text-white rounded-lg hover:from-purple-700 hover:to-pink-700 
+               transition-all duration-200 transform hover:scale-105"
+      >
+        <UserPlusIcon class="w-5 h-5 mr-2" />
+        Agregar Miembro
+      </button>
+    </PermissionGuard>
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
