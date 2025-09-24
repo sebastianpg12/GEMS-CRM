@@ -26,14 +26,14 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:4000',
+        target: 'https://gems-crm-backend.onrender.com',
         changeOrigin: true,
-        secure: false
+        secure: true
       },
       '/uploads': {
-        target: 'http://localhost:4000',
+        target: 'https://gems-crm-backend.onrender.com',
         changeOrigin: true,
-        secure: false
+        secure: true
       }
     }
   }
