@@ -1,8 +1,8 @@
 // Configuración automática de API según el ambiente
 const getBaseURL = (): string => {
   // Usar variables de ambiente si están disponibles
-  const devURL = import.meta.env.VITE_API_BASE_URL_DEV || 'https://gems-crm-backend.onrender.com/api'
-  const prodURL = import.meta.env.VITE_API_BASE_URL_PROD || 'https://gems-crm-backend.onrender.com/api'
+  const devURL = import.meta.env.VITE_API_BASE_URL_DEV || 'https://gems-crm-backend.fly.dev/api'
+  const prodURL = import.meta.env.VITE_API_BASE_URL_PROD || 'https://gems-crm-backend.fly.dev/api'
   
   // En desarrollo (localhost o modo dev)
   if (import.meta.env.DEV || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
