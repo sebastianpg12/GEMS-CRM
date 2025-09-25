@@ -4,7 +4,7 @@
   <!-- ...existing code... -->
 
     <!-- Stats Cards - Role-based visibility -->
-    <div class="w-full flex justify-center items-center py-2">
+    <div class="w-full flex justify-center items-center py-2 mb-6">
       <div class="flex flex-row flex-wrap justify-center items-center gap-2 sm:gap-4 w-full max-w-3xl px-2">
         <!-- Clientes -->
         <PermissionGuard :permissions="['view-clients']" :fallback="false">
@@ -60,115 +60,40 @@
     </div>
     </div>
     
-    <!-- Recent Activity & Quick Actions -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      
-      <!-- Payments Due - Only for Admin/Manager -->
-      <PermissionGuard :permissions="['view-activities']" :fallback="false">
-        <div class="bg-gradient-to-br from-green-800/20 to-green-900/10 rounded-2xl p-6 border border-green-500/20 mb-6">
-          <h3 class="text-xl font-bold text-green-400 mb-4">
-            <ClipboardDocumentListIcon class="w-6 h-6 inline-block mr-2 text-green-400" />
-            Mis Actividades
-          </h3>
-          <div v-if="myActivities.length > 0" class="space-y-2 max-h-96 overflow-y-auto">
-              <router-link
-                v-for="activity in myActivities"
-                :key="activity._id"
-                to="/activities"
-                class="flex items-center justify-between p-4 bg-gray-700/30 rounded-xl hover:bg-green-700/40 transition-all duration-200 border border-gray-600/20 cursor-pointer"
-              >
-                <div>
-                  <p class="text-white font-medium">{{ activity.title }}</p>
-                  <p class="text-gray-400 text-sm">{{ formatDate(activity.dueDate || activity.date) }}</p>
-                </div>
-                <span class="px-3 py-1 text-xs rounded-full font-medium bg-green-500/20 text-green-400">
-                  {{ activity.status }}
-                </span>
-              </router-link>
-          </div>
-          <div v-else class="text-gray-400">No tienes actividades asignadas.</div>
-        </div>
-      </PermissionGuard>
-      
-      <!-- Role-specific information for viewers -->
-      <div 
-        v-if="authStore.userRole === 'viewer'" 
-        class="bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-purple-500/20"
-      >
-        <div class="text-center">
-          <div class="w-16 h-16 mx-auto mb-4 bg-purple-600/20 rounded-full flex items-center justify-center">
-            <i class="fas fa-eye text-2xl text-purple-400"></i>
-          </div>
-          <h3 class="text-xl font-bold text-white mb-2">Acceso Limitado</h3>
-          <p class="text-gray-400">
-            Como visualizador, tienes acceso de solo lectura a clientes y actividades.
-          </p>
+    <!-- ...existing code... -->
+      <!-- Recent Activity & Quick Actions Redesigned -->
+    <div class="flex justify-center items-center w-full py-6">
+      <div v-if="availableQuickActions.length > 0" class="bg-gray-900/60 backdrop-blur-md rounded-2xl shadow-xl p-4 border border-purple-500/30 flex flex-col items-center justify-center max-w-md w-full mx-auto">
+        <h3 class="text-lg font-semibold text-white mb-4 text-center tracking-wide">Acciones Rápidas</h3>
+        <div class="flex flex-col gap-3 items-center w-full">
+          <router-link
+            v-for="action in availableQuickActions"
+            :key="action.name"
+            :to="action.to"
+            :class="`
+              flex flex-row items-center justify-start px-4 py-2 w-full min-h-[44px]
+              bg-gradient-to-r ${action.colors} rounded-lg shadow-sm
+              transition-all duration-200 group hover:scale-[1.03] hover:shadow-lg hover:border-purple-400/40
+              border border-transparent
+            `"
+          >
+            <component :is="action.icon" :class="`w-6 h-6 ${action.iconColor} mr-2 transition-colors duration-200 group-hover:text-white`" />
+            <span class="text-white text-[15px] font-medium tracking-tight group-hover:text-purple-100">{{ action.name }}</span>
+          </router-link>
         </div>
       </div>
     </div>
     
-    <!-- Quick Actions - Role-based -->
-    <div v-if="availableQuickActions.length > 0" class="bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-purple-500/20">
-      <h3 class="text-xl font-bold text-white mb-6">Acciones Rápidas</h3>
-      <div class="flex flex-wrap gap-4 justify-center md:justify-start">
-        <router-link
-          v-for="action in availableQuickActions"
-          :key="action.name"
-          :to="action.to"
-          :class="`flex flex-col items-center p-4 bg-gradient-to-br ${action.colors} rounded-xl transition-all duration-300 text-center group transform hover:scale-105 min-w-[140px]`"
-        >
-          <component :is="action.icon" :class="`w-8 h-8 ${action.iconColor} mb-2`" />
-          <span class="text-white text-sm font-medium">{{ action.name }}</span>
-        </router-link>
-      </div>
-    </div>
+    <!-- ...existing code... -->
 
     <!-- Department-specific sections -->
-    <div v-if="showDepartmentSections" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Marketing Section -->
-      <PermissionGuard :permissions="['view-marketing']" :fallback="false">
-        <div class="bg-gradient-to-br from-pink-800/20 to-pink-900/10 rounded-2xl p-6 border border-pink-500/20">
-          <h3 class="text-xl font-bold text-pink-400 mb-4">
-            <i class="fas fa-bullhorn mr-2"></i>
-            Sección Marketing
-          </h3>
-          <p class="text-gray-300 mb-4">Herramientas específicas para el departamento de Marketing</p>
-          <div class="space-y-2">
-            <div class="text-sm text-gray-400">• Campañas publicitarias</div>
-            <div class="text-sm text-gray-400">• Análisis de mercado</div>
-            <div class="text-sm text-gray-400">• Métricas de engagement</div>
-          </div>
-        </div>
-      </PermissionGuard>
-      
-      <!-- Sales Section -->
-      <PermissionGuard :permissions="['view-sales']" :fallback="false">
-        <div class="bg-gradient-to-br from-emerald-800/20 to-emerald-900/10 rounded-2xl p-6 border border-emerald-500/20">
-          <h3 class="text-xl font-bold text-emerald-400 mb-4">
-            <i class="fas fa-chart-line mr-2"></i>
-            Sección Ventas
-          </h3>
-          <p class="text-gray-300 mb-4">Herramientas específicas para el departamento de Ventas</p>
-          <div class="space-y-2">
-            <div class="text-sm text-gray-400">• Pipeline de ventas</div>
-            <div class="text-sm text-gray-400">• Seguimiento de leads</div>
-            <div class="text-sm text-gray-400">• Comisiones y metas</div>
-          </div>
-        </div>
-      </PermissionGuard>
-    </div>
+    <!-- ...existing code... -->
 </template>
 
-<script setup lang="ts">
-// Actividades propias del usuario autenticado
-import type { Activity } from '../types'
-const myActivities = ref<Activity[]>([]);
 
-onMounted(async () => {
-  await activitiesStore.fetchMyPendingActivities();
-  myActivities.value = activitiesStore.activities;
-});
+<script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import type { Activity } from '../types'
 import { useAuthStore } from '../stores/auth'
 import { 
   useClientsStore, 
@@ -196,6 +121,48 @@ const activitiesStore = useActivitiesStore()
 const paymentsStore = usePaymentsStore()
 const issuesStore = useIssuesStore()
 const teamStore = useTeamStore()
+
+const myActivities = ref<Activity[]>([]);
+
+onMounted(async () => {
+  try {
+    const promises: Promise<any>[] = [];
+    if (authStore.canViewClients) {
+      promises.push(clientsStore.fetchClients());
+    }
+    if (authStore.canViewActivities && authStore.user?._id) {
+      console.log('[Dashboard] Fetching activities for user:', authStore.user?._id);
+      await activitiesStore.fetchActivities();
+      console.log('[Dashboard] activitiesStore.activities:', activitiesStore.activities);
+      const userId = authStore.user?._id;
+      const filtered = activitiesStore.activities
+        .filter((a: Activity) => {
+          if (!userId) return false;
+          if (!(a.status === 'pending' || a.status === 'overdue' || a.status === 'in-progress')) return false;
+          if (!a.assignedTo) return false;
+          if (typeof a.assignedTo === 'string') {
+            return a.assignedTo === userId;
+          } else if (typeof a.assignedTo === 'object' && '._id' in a.assignedTo) {
+            return a.assignedTo._id === userId;
+          }
+          return false;
+        })
+        .sort((a: Activity, b: Activity) => {
+          if (a.status === 'overdue' && b.status !== 'overdue') return -1;
+          if (a.status !== 'overdue' && b.status === 'overdue') return 1;
+          return new Date(a.dueDate || a.date).getTime() - new Date(b.dueDate || b.date).getTime();
+        });
+      console.log('[Dashboard] Filtered activities:', filtered);
+      myActivities.value = filtered;
+    }
+    if (authStore.canViewAccounting) {
+      promises.push(paymentsStore.fetchPayments());
+    }
+    await Promise.all(promises);
+  } catch (error) {
+    console.error('Error loading dashboard data:', error);
+  }
+});
 
 const stats = computed(() => ({
   clients: clientsStore.clients.length,
@@ -325,6 +292,7 @@ onMounted(async () => {
     }
     
     if (authStore.canViewActivities) {
+      console.log('[Dashboard] Fetching all activities (secondary onMounted)');
       promises.push(activitiesStore.fetchActivities())
     }
     

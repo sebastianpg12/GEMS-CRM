@@ -20,10 +20,11 @@ export const useActivitiesStore = defineStore('activities', {
     fetchActivities(filters) {
       this.loading = true;
       let url = `${API_BASE_URL}/activities`;
-      if (filters && (filters.assignedTo || filters.status)) {
+      if (filters && filters.assignedTo) {
+        url = `${API_BASE_URL}/activities/assigned/${filters.assignedTo}`;
+      } else if (filters && filters.status) {
         const params = new URLSearchParams();
-        if (filters.assignedTo) params.append('assignedTo', filters.assignedTo);
-        if (filters.status) params.append('status', filters.status);
+        params.append('status', filters.status);
         url += `?${params.toString()}`;
       }
       return axios.get(url)

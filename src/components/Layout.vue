@@ -57,14 +57,34 @@
     <!-- Main Content -->
     <div class="ml-64">
       <!-- Header -->
-  <header class="h-20 bg-gradient-to-r from-dark-800/50 to-dark-900/50 backdrop-blur-sm border-b border-white/10 flex items-center justify-between px-8">
-        <div>
-          <h1 class="text-2xl font-bold text-white text-shadow">{{ pageTitle }}</h1>
-          <p class="text-gray-400">{{ pageDescription }}</p>
+      <header class="min-h-[64px] bg-gradient-to-r from-dark-800/50 to-dark-900/50 backdrop-blur-sm border-b border-white/10 flex flex-wrap items-center px-3 sm:px-8 justify-between relative z-30 gap-2 sm:gap-0">
+        <div class="flex items-center flex-1 min-w-0">
+          <!-- Menu Button (hamburger icon) -->
+          <button
+            class="flex-shrink-0 mr-2 sm:mr-4 p-2 rounded-lg bg-dark-900/70 hover:bg-dark-800/80 focus:outline-none z-30"
+            @click="$emit('toggleSidebar')"
+            aria-label="Abrir menú"
+            style="min-width:40px; min-height:40px;"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-7 h-7 text-white">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <!-- Logo -->
+          <img 
+            src="../assets/logo.webp" 
+            alt="GEMS Logo" 
+            class="w-10 h-10 mr-2 sm:mr-4 rounded-lg shadow-lg z-20 flex-shrink-0"
+            style="box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);"
+          />
+          <!-- Título y descripción -->
+          <div class="flex flex-col justify-center min-w-0 ml-2 sm:ml-4">
+            <h1 class="text-base sm:text-xl font-bold text-white text-shadow whitespace-nowrap truncate">{{ pageTitle }}</h1>
+            <p class="text-gray-400 text-[11px] sm:text-xs truncate">{{ pageDescription }}</p>
+          </div>
         </div>
-        
         <!-- Notifications -->
-        <div class="flex items-center space-x-4">
+        <div class="flex items-center space-x-2 sm:space-x-4 flex-shrink-0 mt-2 sm:mt-0">
           <OnlineUsersPopover />
           <!-- Chat Unread Badge -->
           <router-link to="/chat" class="relative p-2 text-gray-400 hover:text-white transition-colors">
