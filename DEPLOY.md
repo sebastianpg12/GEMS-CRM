@@ -58,19 +58,19 @@ RewriteRule ^(?!.*\.).*$ /index.html [L]
 
 ### Variables de Entorno (Solo en Workflow)
 Las variables se configuran directamente en el workflow:
-- `VITE_API_BASE_URL_PROD`: https://gems-crm-backend.onrender.com/api
+- `VITE_API_BASE_URL_PROD`: https://gems-crm-backend.fly.dev/api
 - `VITE_APP_NAME`: GEMS CRM
 - `VITE_DEBUG_MODE`: false
 
 ### Detección Automática de API
 - **Desarrollo**: localhost → `http://localhost:4000/api`
-- **Producción**: Cualquier dominio → `https://gems-crm-backend.onrender.com/api`
+- **Producción**: Cualquier dominio → `https://gems-crm-backend.fly.dev/api`
 
 ## 🌐 URLs
 
 - **GitHub Pages**: https://sebastianpg12.github.io/GEMS-CRM/
 - **Dominio Personalizado**: https://crmgemsinterno.gemsinnovations.com/
-- **Backend**: https://gems-crm-backend.onrender.com/api
+- **Backend**: https://gems-crm-backend.fly.dev/api
 
 ## 🛠️ Troubleshooting
 

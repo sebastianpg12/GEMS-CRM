@@ -240,7 +240,7 @@ function select(conv: Conversation) { selectedId.value = conv._id; emit('select'
 
 onMounted(async () => {
   try {
-  const res = await fetch('https://gems-crm-backend.fly.dev/api/prospects')
+  const res = await fetch('https://gems-crm-backend.onrender.com/api/prospects')
     if (!res.ok) throw new Error('Network response not ok')
     const data = await res.json()
     conversations.value = Array.isArray(data) ? data : []
@@ -313,7 +313,7 @@ function select(conv: Conversation) { selectedId.value = conv._id; emit('select'
 
 onMounted(async () => {
   try {
-    const res = await fetch('https://gems-crm-backend.onrender.com/api/prospects')
+  const res = await fetch('https://gems-crm-backend.fly.dev/api/prospects')
     if (!res.ok) throw new Error('Network response not ok')
     const data = await res.json()
     conversations.value = Array.isArray(data) ? data : []
@@ -403,7 +403,7 @@ function select(conv: Conversation) {
 
 onMounted(async () => {
   try {
-    const res = await fetch('https://gems-crm-backend.onrender.com/api/prospects')
+  const res = await fetch('https://gems-crm-backend.fly.dev/api/prospects')
     if (!res.ok) throw new Error('Network response not ok')
     const data = await res.json()
     conversations.value = Array.isArray(data) ? data : []
@@ -568,7 +568,7 @@ function select(conv: Conversation) {
 
 onMounted(async () => {
   try {
-    const res = await fetch('https://gems-crm-backend.onrender.com/api/prospects')
+  const res = await fetch('https://gems-crm-backend.fly.dev/api/prospects')
     if (!res.ok) throw new Error('Network response not ok')
     const data = await res.json()
     conversations.value = Array.isArray(data) ? data : []

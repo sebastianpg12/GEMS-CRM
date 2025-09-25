@@ -57,12 +57,12 @@ Sistema completo de gestión empresarial (Customer Relationship Management) desa
    
    El sistema utiliza **configuración automática de ambiente**:
    - **Desarrollo**: Detecta automáticamente localhost y usa `http://localhost:4000/api`
-   - **Producción**: Usa automáticamente `https://gems-crm-backend.fly.dev/api`
+   - **Producción**: Usa automáticamente `https://gems-crm-backend.onrender.com/api`
    
    Variables disponibles en `.env`:
    ```env
    VITE_API_BASE_URL_DEV=http://localhost:4000/api
-   VITE_API_BASE_URL_PROD=https://gems-crm-backend.fly.dev/api
+   VITE_API_BASE_URL_PROD=https://gems-crm-backend.onrender.com/api
    VITE_APP_NAME=GEMS CRM
    VITE_APP_VERSION=1.0.0
    ```
@@ -158,14 +158,14 @@ const getBaseURL = (): string => {
     return 'http://localhost:4000/api'
   }
   // Producción: cualquier otro dominio
-   return 'https://gems-crm-backend.fly.dev/api'
+      return 'https://gems-crm-backend.onrender.com/api'
 }
 ```
 
 **Variables disponibles** (archivo `.env`):
 ```env
 VITE_API_BASE_URL_DEV=http://localhost:4000/api
- VITE_API_BASE_URL_PROD=https://gems-crm-backend.fly.dev/api
+ VITE_API_BASE_URL_PROD=https://gems-crm-backend.onrender.com/api
 VITE_APP_NAME=GEMS CRM
 VITE_APP_VERSION=1.0.0
 VITE_API_TIMEOUT=10000
@@ -195,7 +195,7 @@ El sistema está optimizado para:
 ### Configuración Automática
 El sistema **detecta automáticamente el ambiente**:
 - ✅ **Desarrollo**: `localhost` → API local (`http://localhost:4000/api`)
-   - ✅ **Producción**: Cualquier dominio → API de producción (`https://gems-crm-backend.fly.dev/api`)
+      - ✅ **Producción**: Cualquier dominio → API de producción (`https://gems-crm-backend.onrender.com/api`)
 
 ### Build de Producción
 ```bash
@@ -207,7 +207,7 @@ Para servicios como **Netlify**, **Vercel**, **GitHub Pages**:
 
 1. **Configurar variables de entorno** en el panel del servicio:
    ```env
-   VITE_API_BASE_URL_PROD=https://gems-crm-backend.fly.dev/api
+   VITE_API_BASE_URL_PROD=https://gems-crm-backend.onrender.com/api
    VITE_APP_NAME=GEMS CRM
    VITE_DEBUG_MODE=false
    ```

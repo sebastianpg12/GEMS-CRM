@@ -26,12 +26,12 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-  target: 'https://gems-crm-backend.fly.dev',
+  target: 'https://gems-crm-backend.onrender.com',
         changeOrigin: true,
         secure: true
       },
       '/uploads': {
-  target: 'https://gems-crm-backend.fly.dev',
+  target: 'https://gems-crm-backend.onrender.com',
         changeOrigin: true,
         secure: true
       }

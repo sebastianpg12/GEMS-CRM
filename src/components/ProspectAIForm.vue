@@ -139,7 +139,7 @@ async function analyzeProspect() {
     }
 
     // Guardar en backend
-  const saveRes = await fetch('https://gems-crm-backend.fly.dev/api/prospects', {
+  const saveRes = await fetch('https://gems-crm-backend.onrender.com/api/prospects', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

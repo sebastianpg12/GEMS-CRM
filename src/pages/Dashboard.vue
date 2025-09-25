@@ -4,154 +4,89 @@
   <!-- ...existing code... -->
 
     <!-- Stats Cards - Role-based visibility -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-      <!-- Clientes Card - Everyone can see -->
-      <PermissionGuard :permissions="['view-clients']" :fallback="false">
-        <div class="bg-gradient-to-br from-blue-500/20 to-blue-600/10 rounded-2xl p-6 border border-blue-500/20">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-blue-400 text-sm font-medium">Total Clientes</p>
-              <p class="text-2xl font-bold text-white">{{ stats.clients }}</p>
-            </div>
-            <div class="p-3 bg-blue-500/20 rounded-full">
-              <UserGroupIcon class="w-6 h-6 text-blue-400" />
+    <div class="w-full flex justify-center items-center py-2">
+      <div class="flex flex-row flex-wrap justify-center items-center gap-2 sm:gap-4 w-full max-w-3xl px-2">
+        <!-- Clientes -->
+        <PermissionGuard :permissions="['view-clients']" :fallback="false">
+          <div class="bg-gradient-to-br from-blue-500/20 to-blue-600/10 rounded-lg px-3 py-2 border border-blue-500/20 min-w-[100px] flex flex-col justify-between items-center">
+            <p class="text-blue-400 text-[13px] font-medium leading-tight">Total Clientes</p>
+            <div class="flex items-center justify-between w-full mt-1">
+              <span class="text-xl font-bold text-white leading-none">{{ stats.clients }}</span>
+              <UserGroupIcon class="w-4 h-4 text-blue-400 ml-2" />
             </div>
           </div>
-        </div>
-      </PermissionGuard>
-      
-      <!-- Actividades Card - Everyone can see -->
-      <PermissionGuard :permissions="['view-activities']" :fallback="false">
-        <div class="bg-gradient-to-br from-green-500/20 to-green-600/10 rounded-2xl p-6 border border-green-500/20">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-green-400 text-sm font-medium">Actividades</p>
-              <p class="text-2xl font-bold text-white">{{ stats.activities }}</p>
-            </div>
-            <div class="p-3 bg-green-500/20 rounded-full">
-              <ClipboardDocumentListIcon class="w-6 h-6 text-green-400" />
+        </PermissionGuard>
+        <!-- Actividades -->
+        <PermissionGuard :permissions="['view-activities']" :fallback="false">
+          <div class="bg-gradient-to-br from-green-500/20 to-green-600/10 rounded-lg px-3 py-2 border border-green-500/20 min-w-[100px] flex flex-col justify-between items-center">
+            <p class="text-green-400 text-[13px] font-medium leading-tight">Actividades</p>
+            <div class="flex items-center justify-between w-full mt-1">
+              <span class="text-xl font-bold text-white leading-none">{{ stats.activities }}</span>
+              <ClipboardDocumentListIcon class="w-4 h-4 text-green-400 ml-2" />
             </div>
           </div>
-        </div>
-      </PermissionGuard>
-      
-      <!-- Ingresos Card - Only Admin/Manager -->
-      <PermissionGuard :permissions="['view-accounting']" :fallback="false">
-        <div class="bg-gradient-to-br from-purple-500/20 to-purple-600/10 rounded-2xl p-6 border border-purple-500/20">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-purple-400 text-sm font-medium">Ingresos Totales</p>
-              <p class="text-2xl font-bold text-white">${{ formattedRevenue }}</p>
-            </div>
-            <div class="p-3 bg-purple-500/20 rounded-full">
-              <CurrencyDollarIcon class="w-6 h-6 text-purple-400" />
+        </PermissionGuard>
+        <!-- Ingresos -->
+        <PermissionGuard :permissions="['view-accounting']" :fallback="false">
+          <div class="bg-gradient-to-br from-purple-500/20 to-purple-600/10 rounded-lg px-3 py-2 border border-purple-500/20 min-w-[100px] flex flex-col justify-between items-center">
+            <p class="text-purple-400 text-[13px] font-medium leading-tight">Ingresos Totales</p>
+            <div class="flex items-center justify-between w-full mt-1">
+              <span class="text-xl font-bold text-white leading-none">${{ formattedRevenue }}</span>
+              <CurrencyDollarIcon class="w-4 h-4 text-purple-400 ml-2" />
             </div>
           </div>
-        </div>
-      </PermissionGuard>
-      
-      <!-- Issues Card - Admin/Manager/Employee -->
-      <PermissionGuard :permissions="['view-cases']" :fallback="false">
-        <div class="bg-gradient-to-br from-red-500/20 to-red-600/10 rounded-2xl p-6 border border-red-500/20">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-red-400 text-sm font-medium">Issues Abiertos</p>
-              <p class="text-2xl font-bold text-white">{{ stats.openIssues }}</p>
-            </div>
-            <div class="p-3 bg-red-500/20 rounded-full">
-              <ExclamationTriangleIcon class="w-6 h-6 text-red-400" />
+        </PermissionGuard>
+        <!-- Issues -->
+        <PermissionGuard :permissions="['view-cases']" :fallback="false">
+          <div class="bg-gradient-to-br from-red-500/20 to-red-600/10 rounded-lg px-3 py-2 border border-red-500/20 min-w-[100px] flex flex-col justify-between items-center">
+            <p class="text-red-400 text-[13px] font-medium leading-tight">Issues Abiertos</p>
+            <div class="flex items-center justify-between w-full mt-1">
+              <span class="text-xl font-bold text-white leading-none">{{ stats.openIssues }}</span>
+              <ExclamationTriangleIcon class="w-4 h-4 text-red-400 ml-2" />
             </div>
           </div>
-        </div>
-      </PermissionGuard>
-
-      <!-- Team Members Card - Only Admin/Manager -->
-      <PermissionGuard :permissions="['view-team']" :fallback="false">
-        <div class="bg-gradient-to-br from-indigo-500/20 to-indigo-600/10 rounded-2xl p-6 border border-indigo-500/20">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-indigo-400 text-sm font-medium">Miembros Equipo</p>
-              <p class="text-2xl font-bold text-white">{{ stats.teamMembers }}</p>
-            </div>
-            <div class="p-3 bg-indigo-500/20 rounded-full">
-              <UsersIcon class="w-6 h-6 text-indigo-400" />
+        </PermissionGuard>
+        <!-- Equipo -->
+        <PermissionGuard :permissions="['view-team']" :fallback="false">
+          <div class="bg-gradient-to-br from-indigo-500/20 to-indigo-600/10 rounded-lg px-3 py-2 border border-indigo-500/20 min-w-[100px] flex flex-col justify-between items-center">
+            <p class="text-indigo-400 text-[13px] font-medium leading-tight">Miembros Equipo</p>
+            <div class="flex items-center justify-between w-full mt-1">
+              <span class="text-xl font-bold text-white leading-none">{{ stats.teamMembers }}</span>
+              <UsersIcon class="w-4 h-4 text-indigo-400 ml-2" />
             </div>
           </div>
-        </div>
-      </PermissionGuard>
+        </PermissionGuard>
+      </div>
+    </div>
     </div>
     
     <!-- Recent Activity & Quick Actions -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Recent Activities -->
-      <div class="bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-purple-500/20">
-        <div class="flex items-center justify-between mb-6">
-          <h3 class="text-xl font-bold text-white">Actividades Recientes</h3>
-          <router-link 
-            v-if="authStore.canViewActivities"
-            to="/activities" 
-            class="text-purple-400 hover:text-purple-300 text-sm font-medium"
-          >
-            Ver todas
-          </router-link>
-        </div>
-        
-        <div class="space-y-4">
-          <div v-if="recentActivities.length === 0" class="text-center text-gray-400 py-8">
-            <ClipboardDocumentListIcon class="mx-auto h-12 w-12 text-gray-500 mb-4" />
-            <p>No hay actividades recientes</p>
-          </div>
-          <div 
-            v-for="activity in recentActivities.slice(0, 5)" 
-            :key="activity._id"
-            class="flex items-center justify-between p-4 bg-gray-700/30 rounded-xl hover:bg-gray-700/50 transition-all duration-200 border border-gray-600/20"
-          >
-            <div class="flex-1">
-              <p class="text-white font-medium">{{ activity.title }}</p>
-              <p class="text-gray-400 text-sm">{{ formatDate(activity.date) }}</p>
-            </div>
-            <span 
-              class="px-3 py-1 text-xs rounded-full font-medium"
-              :class="getStatusClass(activity.status)"
-            >
-              {{ activity.status }}
-            </span>
-          </div>
-        </div>
-      </div>
       
       <!-- Payments Due - Only for Admin/Manager -->
-      <PermissionGuard :permissions="['view-accounting']" :fallback="false">
-        <div class="bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-purple-500/20">
-          <div class="flex items-center justify-between mb-6">
-            <h3 class="text-xl font-bold text-white">Pagos Pendientes</h3>
-            <router-link to="/accounting" class="text-purple-400 hover:text-purple-300 text-sm font-medium">
-              Ver todos
-            </router-link>
-          </div>
-          
-          <div class="space-y-4">
-            <div v-if="pendingPayments.length === 0" class="text-center text-gray-400 py-8">
-              <CurrencyDollarIcon class="mx-auto h-12 w-12 text-gray-500 mb-4" />
-              <p>No hay pagos pendientes</p>
-            </div>
-            <div 
-              v-for="payment in pendingPayments.slice(0, 5)" 
-              :key="payment._id"
-              class="flex items-center justify-between p-4 bg-gray-700/30 rounded-xl hover:bg-gray-700/50 transition-all duration-200 border border-gray-600/20"
-            >
-              <div>
-                <p class="text-white font-medium">${{ payment.amount.toLocaleString() }}</p>
-                <p class="text-gray-400 text-sm">Vence: {{ formatDate(payment.dueDate) }}</p>
-              </div>
-              <span 
-                class="px-3 py-1 text-xs rounded-full font-medium"
-                :class="getPaymentStatusClass(payment.status)"
+      <PermissionGuard :permissions="['view-activities']" :fallback="false">
+        <div class="bg-gradient-to-br from-green-800/20 to-green-900/10 rounded-2xl p-6 border border-green-500/20 mb-6">
+          <h3 class="text-xl font-bold text-green-400 mb-4">
+            <ClipboardDocumentListIcon class="w-6 h-6 inline-block mr-2 text-green-400" />
+            Mis Actividades
+          </h3>
+          <div v-if="myActivities.length > 0" class="space-y-2 max-h-96 overflow-y-auto">
+              <router-link
+                v-for="activity in myActivities"
+                :key="activity._id"
+                to="/activities"
+                class="flex items-center justify-between p-4 bg-gray-700/30 rounded-xl hover:bg-green-700/40 transition-all duration-200 border border-gray-600/20 cursor-pointer"
               >
-                {{ payment.status }}
-              </span>
-            </div>
+                <div>
+                  <p class="text-white font-medium">{{ activity.title }}</p>
+                  <p class="text-gray-400 text-sm">{{ formatDate(activity.dueDate || activity.date) }}</p>
+                </div>
+                <span class="px-3 py-1 text-xs rounded-full font-medium bg-green-500/20 text-green-400">
+                  {{ activity.status }}
+                </span>
+              </router-link>
           </div>
+          <div v-else class="text-gray-400">No tienes actividades asignadas.</div>
         </div>
       </PermissionGuard>
       
@@ -222,10 +157,17 @@
         </div>
       </PermissionGuard>
     </div>
-  </div>
 </template>
 
 <script setup lang="ts">
+// Actividades propias del usuario autenticado
+import type { Activity } from '../types'
+const myActivities = ref<Activity[]>([]);
+
+onMounted(async () => {
+  await activitiesStore.fetchMyPendingActivities();
+  myActivities.value = activitiesStore.activities;
+});
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { 
