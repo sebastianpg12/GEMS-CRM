@@ -51,24 +51,15 @@
             </select>
           </div>
 
-          <!-- Asignar a -->
+          <!-- Asignar a (componente reutilizable) -->
           <div>
             <label class="block text-sm font-medium text-gray-300 mb-2">
               Asignar a
             </label>
-            <select
+            <AssignedUsersSelector
               v-model="form.assignedTo"
-              @change="console.log('🔄 Assignment changed to:', form.assignedTo)"
-              class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            >
-              <option value="">Sin asignar</option>
-              <option v-for="member in props.teamMembers" :key="member._id" :value="member._id">
-                {{ member.name }} - {{ member.role }}
-              </option>
-            </select>
-            <div v-if="form.assignedTo" class="text-xs text-gray-400 mt-1">
-              Asignado a: {{ props.teamMembers.find(m => m._id === form.assignedTo)?.name }}
-            </div>
+              :teamMembers="props.teamMembers"
+            />
           </div>
 
           <!-- Prioridad -->
@@ -157,6 +148,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
+import AssignedUsersSelector from '../AssignedUsersSelector.vue'
 import { activityService } from '../../services/activityService'
 import type { ActivityData } from '../../services/activityService'
 import type { TeamMember, Client } from '../../types'
@@ -186,13 +178,14 @@ const form = reactive({
   title: '',
   description: '',
   clientId: '',
-  assignedTo: '',
-  priority: 'medium' as const,
-  status: 'pending' as const,
+  assignedTo: [] as string[],
+  priority: 'medium' as 'low' | 'medium' | 'high' | 'urgent',
+  status: 'pending' as 'pending' | 'completed' | 'cancelled' | 'in-progress' | 'overdue',
   dueDate: '',
   estimatedTime: '',
   date: ''
 })
+// ...eliminado: helpers de selección múltiple, ahora en AssignedUsersSelector
 
 // Poblar el formulario si estamos editando
 const populateForm = () => {
@@ -200,7 +193,9 @@ const populateForm = () => {
     form.title = props.activity.title
     form.description = props.activity.description || ''
     form.clientId = props.activity.clientId
-    form.assignedTo = props.activity.assignedTo || ''
+    form.assignedTo = Array.isArray(props.activity.assignedTo)
+      ? props.activity.assignedTo
+      : props.activity.assignedTo ? [props.activity.assignedTo] : []
     form.priority = props.activity.priority || 'medium'
     form.status = props.activity.status
     form.dueDate = props.activity.dueDate ? formatDateTimeLocal(props.activity.dueDate) : ''
@@ -223,7 +218,7 @@ const handleSubmit = async () => {
       title: form.title,
       description: form.description,
       clientId: form.clientId,
-      assignedTo: form.assignedTo || undefined,
+      assignedTo: (form.assignedTo || []).filter(id => typeof id === 'string' && id),
       priority: form.priority,
       status: form.status,
       dueDate: form.dueDate || undefined,

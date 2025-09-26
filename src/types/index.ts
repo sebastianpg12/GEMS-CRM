@@ -51,7 +51,7 @@ export interface Activity {
   date: string
   status: 'pending' | 'in-progress' | 'completed' | 'cancelled' | 'overdue'
   clientId: string
-  assignedTo?: string | TeamMember // Puede ser solo el ID o el objeto completo
+  assignedTo?: string[]
   assignedToUser?: TeamMember // Datos del usuario asignado (populated)
   priority?: 'low' | 'medium' | 'high' | 'urgent'
   dueDate?: string

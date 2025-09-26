@@ -7,7 +7,7 @@ export interface ActivityData {
   date: string
   status: 'pending' | 'in-progress' | 'completed' | 'cancelled' | 'overdue'
   clientId: string
-  assignedTo?: string
+  assignedTo?: string[]
   assignedToUser?: {
     _id: string
     name: string

@@ -274,20 +274,31 @@
             <!-- Descripción -->
             <p class="text-gray-300 text-[13px] sm:text-sm mb-3 line-clamp-2">{{ activity.description }}</p>
 
-            <!-- Asignado a -->
-            <div class="flex items-center gap-2 mb-3">
-              <AvatarInline
-                :name="getSmartAssignedName(activity)"
-                :photo="(activity.assignedTo && typeof activity.assignedTo === 'object') ? activity.assignedTo.photo : ''"
-              />
-              <button
-                v-if="!activity.assignedTo"
-                @click="showAssignModal(activity)"
-                class="ml-auto text-xs text-purple-400 hover:text-purple-300 transition-colors"
-                title="Asignar actividad"
-              >
-                <i class="fas fa-user-plus"></i>
-              </button>
+            <!-- Asignados -->
+            <div class="flex items-center gap-2 mb-3 flex-wrap">
+              <template v-if="Array.isArray(activity.assignedTo) && activity.assignedTo.length">
+                <div v-for="user in activity.assignedTo" :key="user._id || user" class="flex items-center gap-1">
+                  <AvatarInline
+                    :name="user.name || getSmartAssignedName(user)"
+                    :photo="user.photo || ''"
+                  />
+                  <span class="text-xs text-white">{{ user.name || getSmartAssignedName(user) }}</span>
+                </div>
+              </template>
+              <template v-else>
+                <AvatarInline
+                  :name="getSmartAssignedName(activity)"
+                  :photo="(activity.assignedTo && typeof activity.assignedTo === 'object') ? activity.assignedTo.photo : ''"
+                />
+                <button
+                  v-if="!activity.assignedTo"
+                  @click="showAssignModal(activity)"
+                  class="ml-auto text-xs text-purple-400 hover:text-purple-300 transition-colors"
+                  title="Asignar actividad"
+                >
+                  <i class="fas fa-user-plus"></i>
+                </button>
+              </template>
             </div>
 
             <!-- Fecha y tiempo estimado -->

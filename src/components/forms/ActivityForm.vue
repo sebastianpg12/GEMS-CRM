@@ -40,33 +40,14 @@
           No hay clientes disponibles. Crea un cliente primero.
         </p>
       </div>
-    </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Selección múltiple de asignados (componente reutilizable) -->
       <div>
-        <label class="block text-sm font-medium text-gray-300 mb-2">
-          Fecha y Hora *
-        </label>
-        <input
-          v-model="form.date"
-          type="datetime-local"
-          required
-          class="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+        <label class="block text-sm font-medium text-gray-300 mb-2">Asignados *</label>
+        <AssignedUsersSelector
+          v-model="form.assignedTo"
+          :teamMembers="users"
         />
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-gray-300 mb-2">
-          Estado
-        </label>
-        <select
-          v-model="form.status"
-          class="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-        >
-          <option value="pending">Pendiente</option>
-          <option value="completed">Completada</option>
-          <option value="cancelled">Cancelada</option>
-        </select>
       </div>
     </div>
 
@@ -115,14 +96,39 @@
         </span>
       </button>
     </div>
+    <!-- Selección múltiple de asignados -->
+    <div>
+      <label class="block text-sm font-medium text-gray-300 mb-2">
+        Asignados *
+      </label>
+      <select
+        v-model="form.assignedTo"
+        multiple
+        required
+        class="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+      >
+        <option v-for="user in users" :key="user._id" :value="user._id">
+          {{ user.name }} ({{ user.email }})
+        </option>
+      </select>
+      <p v-if="users.length === 0" class="text-yellow-400 text-sm mt-1">
+        No hay usuarios disponibles para asignar.
+      </p>
+    </div>
   </form>
 </template>
 
 <script setup lang="ts">
+import AssignedUsersSelector from '../AssignedUsersSelector.vue'
+// import eliminado: computed
+// ...eliminado: helpers de chips y búsqueda, ahora en AssignedUsersSelector
 import { ref, reactive, onMounted, watch } from 'vue'
 import { activityService, type ActivityData } from '../../services/activityService'
 import { clientService, type ClientData } from '../../services/clientService'
+import { teamService } from '../../services/teamService'
+import type { TeamMember } from '../../types'
 
+const users = ref<TeamMember[]>([])
 // Props
 const props = defineProps<{
   activity?: ActivityData | null
@@ -130,6 +136,7 @@ const props = defineProps<{
 
 // Emits
 const emit = defineEmits(['save', 'cancel'])
+        assignedTo: []
 
 // Reactive data
 const loading = ref(false)
@@ -142,12 +149,20 @@ const form = reactive<Partial<ActivityData>>({
   description: '',
   date: '',
   status: 'pending',
-  clientId: ''
+  clientId: '',
+  assignedTo: [] as string[]
 })
 
 // Computed
 const mode = ref<'create' | 'edit'>('create')
 
+const loadUsers = async () => {
+  try {
+    users.value = await teamService.getActiveMembers()
+  } catch (err) {
+    console.error('Error loading users:', err)
+  }
+}
 // Methods
 const loadClients = async () => {
   try {
@@ -172,18 +187,23 @@ const handleSubmit = async () => {
       return
     }
 
+            assignedTo: Array.isArray(form.assignedTo) ? form.assignedTo : [form.assignedTo]
     // Validar que la fecha sea válida
     if (!form.date) {
       error.value = 'Debes seleccionar una fecha y hora'
       return
     }
 
+    const assignedToClean = Array.isArray(form.assignedTo)
+      ? form.assignedTo.filter(id => typeof id === 'string' && id)
+      : typeof form.assignedTo === 'string' && form.assignedTo ? [form.assignedTo] : [];
     const activityData = {
       title: form.title!,
       description: form.description!,
       date: new Date(form.date!).toISOString(),
       status: form.status || 'pending',
-      clientId: form.clientId!
+      clientId: form.clientId!,
+      assignedTo: assignedToClean
     }
 
     if (mode.value === 'create') {
@@ -205,8 +225,9 @@ const resetForm = () => {
     title: '',
     description: '',
     date: '',
-    status: 'pending',
-    clientId: ''
+  status: 'pending',
+  clientId: '',
+  assignedTo: []
   })
 }
 
@@ -214,13 +235,15 @@ const loadForm = () => {
   if (props.activity) {
     mode.value = 'edit'
     Object.assign(form, {
-      title: props.activity.title || '',
-      description: props.activity.description || '',
-      date: props.activity.date ? new Date(props.activity.date).toISOString().slice(0, 16) : '',
-      status: props.activity.status || 'pending',
-      clientId: typeof props.activity.clientId === 'string' ? props.activity.clientId : props.activity.clientId?._id || ''
+      title: props.activity?.title || '',
+      description: props.activity?.description || '',
+      date: props.activity?.date ? new Date(props.activity.date).toISOString().slice(0, 16) : '',
+      status: props.activity?.status || 'pending',
+      clientId: typeof props.activity?.clientId === 'string' ? props.activity?.clientId : (props.activity?.clientId && typeof props.activity.clientId === 'object' ? (props.activity.clientId as any)._id : ''),
+  assignedTo: props.activity && Array.isArray(props.activity.assignedTo) ? props.activity.assignedTo : props.activity && props.activity.assignedTo ? [props.activity.assignedTo] : []
     })
   } else {
+    loadUsers()
     mode.value = 'create'
     resetForm()
     // Set default date to now + 1 hour
