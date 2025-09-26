@@ -1,99 +1,154 @@
 <template>
-  <div class="space-y-6">
-    <!-- Header with User Role Info -->
-  <!-- ...existing code... -->
-
-    <!-- Stats Cards - Role-based visibility -->
-    <div class="w-full flex justify-center items-center py-2 mb-6">
-      <div class="flex flex-row flex-wrap justify-center items-center gap-2 sm:gap-4 w-full max-w-3xl px-2">
-        <!-- Clientes -->
-        <PermissionGuard :permissions="['view-clients']" :fallback="false">
-          <div class="bg-gradient-to-br from-blue-500/20 to-blue-600/10 rounded-lg px-3 py-2 border border-blue-500/20 min-w-[100px] flex flex-col justify-between items-center">
-            <p class="text-blue-400 text-[13px] font-medium leading-tight">Total Clientes</p>
-            <div class="flex items-center justify-between w-full mt-1">
-              <span class="text-xl font-bold text-white leading-none">{{ stats.clients }}</span>
-              <UserGroupIcon class="w-4 h-4 text-blue-400 ml-2" />
-            </div>
-          </div>
-        </PermissionGuard>
-        <!-- Actividades -->
-        <PermissionGuard :permissions="['view-activities']" :fallback="false">
-          <div class="bg-gradient-to-br from-green-500/20 to-green-600/10 rounded-lg px-3 py-2 border border-green-500/20 min-w-[100px] flex flex-col justify-between items-center">
-            <p class="text-green-400 text-[13px] font-medium leading-tight">Actividades</p>
-            <div class="flex items-center justify-between w-full mt-1">
-              <span class="text-xl font-bold text-white leading-none">{{ stats.activities }}</span>
-              <ClipboardDocumentListIcon class="w-4 h-4 text-green-400 ml-2" />
-            </div>
-          </div>
-        </PermissionGuard>
-        <!-- Ingresos -->
-        <PermissionGuard :permissions="['view-accounting']" :fallback="false">
-          <div class="bg-gradient-to-br from-purple-500/20 to-purple-600/10 rounded-lg px-3 py-2 border border-purple-500/20 min-w-[100px] flex flex-col justify-between items-center">
-            <p class="text-purple-400 text-[13px] font-medium leading-tight">Ingresos Totales</p>
-            <div class="flex items-center justify-between w-full mt-1">
-              <span class="text-xl font-bold text-white leading-none">${{ formattedRevenue }}</span>
-              <CurrencyDollarIcon class="w-4 h-4 text-purple-400 ml-2" />
-            </div>
-          </div>
-        </PermissionGuard>
-        <!-- Issues -->
-        <PermissionGuard :permissions="['view-cases']" :fallback="false">
-          <div class="bg-gradient-to-br from-red-500/20 to-red-600/10 rounded-lg px-3 py-2 border border-red-500/20 min-w-[100px] flex flex-col justify-between items-center">
-            <p class="text-red-400 text-[13px] font-medium leading-tight">Issues Abiertos</p>
-            <div class="flex items-center justify-between w-full mt-1">
-              <span class="text-xl font-bold text-white leading-none">{{ stats.openIssues }}</span>
-              <ExclamationTriangleIcon class="w-4 h-4 text-red-400 ml-2" />
-            </div>
-          </div>
-        </PermissionGuard>
-        <!-- Equipo -->
-        <PermissionGuard :permissions="['view-team']" :fallback="false">
-          <div class="bg-gradient-to-br from-indigo-500/20 to-indigo-600/10 rounded-lg px-3 py-2 border border-indigo-500/20 min-w-[100px] flex flex-col justify-between items-center">
-            <p class="text-indigo-400 text-[13px] font-medium leading-tight">Miembros Equipo</p>
-            <div class="flex items-center justify-between w-full mt-1">
-              <span class="text-xl font-bold text-white leading-none">{{ stats.teamMembers }}</span>
-              <UsersIcon class="w-4 h-4 text-indigo-400 ml-2" />
-            </div>
-          </div>
-        </PermissionGuard>
+  <div class="space-y-6 relative min-h-screen">
+    <!-- Animated Background -->
+    <div class="fixed inset-0 -z-10 overflow-hidden">
+      <div class="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900"></div>
+      <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl animate-pulse"></div>
+      <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl animate-pulse animation-delay-3000"></div>
+      <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-indigo-500/3 rounded-full blur-2xl animate-pulse animation-delay-6000"></div>
+      
+      <!-- Subtle grid pattern -->
+      <div class="absolute inset-0 opacity-[0.02]" style="background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 1px, transparent 0); background-size: 20px 20px;"></div>
+    </div>
+    <!-- Welcome Section -->
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-900/40 via-blue-900/30 to-indigo-900/40 backdrop-blur-xl border border-purple-500/20 p-4 lg:p-6 shadow-2xl">
+      <!-- Animated background pattern -->
+      <div class="absolute inset-0 opacity-10">
+        <div class="absolute top-0 left-0 w-32 h-32 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
+        <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse animation-delay-2000"></div>
+        <div class="absolute bottom-0 left-1/2 w-32 h-32 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse animation-delay-4000"></div>
       </div>
-    </div>
-    </div>
-    
-    <!-- ...existing code... -->
-      <!-- Recent Activity & Quick Actions Redesigned -->
-    <div class="flex justify-center items-center w-full py-6">
-      <div v-if="availableQuickActions.length > 0" class="bg-gray-900/60 backdrop-blur-md rounded-2xl shadow-xl p-4 border border-purple-500/30 flex flex-col items-center justify-center max-w-md w-full mx-auto">
-        <h3 class="text-lg font-semibold text-white mb-4 text-center tracking-wide">Acciones Rápidas</h3>
-        <div class="flex flex-col gap-3 items-center w-full">
-          <router-link
-            v-for="action in availableQuickActions"
-            :key="action.name"
-            :to="action.to"
-            :class="`
-              flex flex-row items-center justify-start px-4 py-2 w-full min-h-[44px]
-              bg-gradient-to-r ${action.colors} rounded-lg shadow-sm
-              transition-all duration-200 group hover:scale-[1.03] hover:shadow-lg hover:border-purple-400/40
-              border border-transparent
-            `"
-          >
-            <component :is="action.icon" :class="`w-6 h-6 ${action.iconColor} mr-2 transition-colors duration-200 group-hover:text-white`" />
-            <span class="text-white text-[15px] font-medium tracking-tight group-hover:text-purple-100">{{ action.name }}</span>
-          </router-link>
+      
+      <div class="relative z-10">
+        <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+          <div class="flex-1">
+            <h1 class="text-2xl md:text-3xl font-bold bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-transparent mb-1 animate-fade-in">
+              ¡Hola, {{ authStore.user?.name?.split(' ')[0] || 'Usuario' }}! 👋
+            </h1>
+            <p class="text-gray-300 text-sm animate-fade-in animation-delay-300">
+              {{ getWelcomeMessage() }}
+            </p>
+          </div>
+          
+          <!-- Stats Grid inside welcome panel -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 lg:gap-4 min-w-0">
+            <!-- Clientes -->
+            <PermissionGuard :permissions="['view-clients']" :fallback="false">
+              <div class="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20 animate-fade-in animation-delay-600 hover:bg-white/15 transition-colors duration-300">
+                <div class="flex items-center justify-between mb-1">
+                  <UserGroupIcon class="w-4 h-4 text-blue-400" />
+                  <div class="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse"></div>
+                </div>
+                <div class="text-lg font-bold text-white leading-tight">{{ stats.clients }}</div>
+                <div class="text-xs text-gray-300">Clientes</div>
+              </div>
+            </PermissionGuard>
+            <!-- Actividades -->
+            <PermissionGuard :permissions="['view-activities']" :fallback="false">
+              <div class="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20 animate-fade-in animation-delay-800 hover:bg-white/15 transition-colors duration-300">
+                <div class="flex items-center justify-between mb-1">
+                  <ClipboardDocumentListIcon class="w-4 h-4 text-green-400" />
+                  <div class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
+                </div>
+                <div class="text-lg font-bold text-white leading-tight">{{ stats.activities }}</div>
+                <div class="text-xs text-gray-300">Actividades</div>
+              </div>
+            </PermissionGuard>
+            <!-- Ingresos -->
+            <PermissionGuard :permissions="['view-accounting']" :fallback="false">
+              <div class="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20 animate-fade-in animation-delay-1000 hover:bg-white/15 transition-colors duration-300">
+                <div class="flex items-center justify-between mb-1">
+                  <CurrencyDollarIcon class="w-4 h-4 text-purple-400" />
+                  <div class="w-1.5 h-1.5 bg-purple-400 rounded-full animate-pulse"></div>
+                </div>
+                <div class="text-lg font-bold text-white leading-tight">${{ formattedRevenue }}</div>
+                <div class="text-xs text-gray-300">Ingresos</div>
+              </div>
+            </PermissionGuard>
+            <!-- Issues -->
+            <PermissionGuard :permissions="['view-cases']" :fallback="false">
+              <div class="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20 animate-fade-in animation-delay-1200 hover:bg-white/15 transition-colors duration-300">
+                <div class="flex items-center justify-between mb-1">
+                  <ExclamationTriangleIcon class="w-4 h-4 text-red-400" />
+                  <div class="w-1.5 h-1.5 bg-red-400 rounded-full animate-pulse"></div>
+                </div>
+                <div class="text-lg font-bold text-white leading-tight">{{ stats.openIssues }}</div>
+                <div class="text-xs text-gray-300">Issues</div>
+              </div>
+            </PermissionGuard>
+            <!-- Equipo -->
+            <PermissionGuard :permissions="['view-team']" :fallback="false">
+              <div class="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20 animate-fade-in animation-delay-1400 hover:bg-white/15 transition-colors duration-300">
+                <div class="flex items-center justify-between mb-1">
+                  <UsersIcon class="w-4 h-4 text-indigo-400" />
+                  <div class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-pulse"></div>
+                </div>
+                <div class="text-lg font-bold text-white leading-tight">{{ stats.teamMembers }}</div>
+                <div class="text-xs text-gray-300">Equipo</div>
+              </div>
+            </PermissionGuard>
+          </div>
         </div>
       </div>
     </div>
-    
-    <!-- ...existing code... -->
+
+    <!-- Quick Actions & AI Insights Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+      <!-- Quick Actions - Left Side -->
+      <div class="lg:col-span-1">
+        <div v-if="availableQuickActions.length > 0" class="bg-gray-900/40 backdrop-blur-xl rounded-2xl shadow-2xl p-4 border border-purple-500/20 animate-fade-in animation-delay-1600">
+          <h3 class="text-lg font-semibold text-white mb-3 flex items-center">
+            <i class="fas fa-bolt text-purple-400 mr-2"></i>
+            Acciones Rápidas
+          </h3>
+          <div class="grid grid-cols-1 gap-2">
+            <router-link
+              v-for="(action, index) in availableQuickActions.slice(0, 4)"
+              :key="action.name"
+              :to="action.to"
+              :class="`
+                group relative overflow-hidden
+                flex items-center gap-3 p-3 min-h-[50px]
+                bg-gradient-to-r ${action.colors} rounded-lg shadow-lg
+                transition-all duration-300 hover:scale-102 hover:shadow-xl hover:shadow-purple-500/25
+                border border-transparent hover:border-purple-400/40
+                animate-fade-in
+              `"
+              :style="{ animationDelay: `${1600 + index * 100}ms` }"
+            >
+              <!-- Icon -->
+              <div class="relative z-10">
+                <component :is="action.icon" :class="`w-4 h-4 ${action.iconColor} group-hover:scale-110 transition-transform duration-300`" />
+              </div>
+
+              <!-- Text -->
+              <span class="relative z-10 text-white text-sm font-medium tracking-tight group-hover:text-purple-100 transition-colors duration-300 truncate">
+                {{ action.name }}
+              </span>
+            </router-link>
+          </div>
+        </div>
+
+        <!-- Motivational Widget - Below Quick Actions -->
+        <div class="mt-6">
+          <MotivationalWidget />
+        </div>
+      </div>
+
+      <!-- AI Insights Widget - Right Side -->
+      <div class="lg:col-span-2">
+        <AIInsightsWidget />
+      </div>
+    </div>
 
     <!-- Department-specific sections -->
     <!-- ...existing code... -->
+  </div>
 </template>
 
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import type { Activity } from '../types'
+import { computed, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { 
   useClientsStore, 
@@ -103,6 +158,8 @@ import {
   useTeamStore 
 } from '../stores'
 import PermissionGuard from '../components/PermissionGuard.vue'
+import AIInsightsWidget from '../components/AIInsightsWidget.vue'
+import MotivationalWidget from '../components/MotivationalWidget.vue'
 import {
   UserGroupIcon,
   ClipboardDocumentListIcon,
@@ -122,48 +179,6 @@ const paymentsStore = usePaymentsStore()
 const issuesStore = useIssuesStore()
 const teamStore = useTeamStore()
 
-const myActivities = ref<Activity[]>([]);
-
-onMounted(async () => {
-  try {
-    const promises: Promise<any>[] = [];
-    if (authStore.canViewClients) {
-      promises.push(clientsStore.fetchClients());
-    }
-    if (authStore.canViewActivities && authStore.user?._id) {
-      console.log('[Dashboard] Fetching activities for user:', authStore.user?._id);
-      await activitiesStore.fetchActivities();
-      console.log('[Dashboard] activitiesStore.activities:', activitiesStore.activities);
-      const userId = authStore.user?._id;
-      const filtered = activitiesStore.activities
-        .filter((a: Activity) => {
-          if (!userId) return false;
-          if (!(a.status === 'pending' || a.status === 'overdue' || a.status === 'in-progress')) return false;
-          if (!a.assignedTo) return false;
-          if (typeof a.assignedTo === 'string') {
-            return a.assignedTo === userId;
-          } else if (typeof a.assignedTo === 'object' && '._id' in a.assignedTo) {
-            return a.assignedTo._id === userId;
-          }
-          return false;
-        })
-        .sort((a: Activity, b: Activity) => {
-          if (a.status === 'overdue' && b.status !== 'overdue') return -1;
-          if (a.status !== 'overdue' && b.status === 'overdue') return 1;
-          return new Date(a.dueDate || a.date).getTime() - new Date(b.dueDate || b.date).getTime();
-        });
-      console.log('[Dashboard] Filtered activities:', filtered);
-      myActivities.value = filtered;
-    }
-    if (authStore.canViewAccounting) {
-      promises.push(paymentsStore.fetchPayments());
-    }
-    await Promise.all(promises);
-  } catch (error) {
-    console.error('Error loading dashboard data:', error);
-  }
-});
-
 const stats = computed(() => ({
   clients: clientsStore.clients.length,
   activities: activitiesStore.activities.length,
@@ -173,20 +188,6 @@ const stats = computed(() => ({
 
 const formattedRevenue = computed(() => {
   return paymentsStore.totalRevenue.toLocaleString()
-})
-
-const recentActivities = computed(() => 
-  [...activitiesStore.activities]
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-)
-
-const pendingPayments = computed(() => 
-  paymentsStore.pendingPayments
-    .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
-)
-
-const showDepartmentSections = computed(() => {
-  return authStore.canViewMarketingSection || authStore.canViewSalesSection
 })
 
 // Computed property for available quick actions
@@ -246,40 +247,11 @@ const availableQuickActions = computed(() => {
   return actions
 })
 
-const getRoleDisplayName = (role?: string) => {
-  const roleNames: Record<string, string> = {
-    admin: 'Administrador',
-    manager: 'Gerente',
-    employee: 'Empleado',
-    viewer: 'Visualizador'
-  }
-  return roleNames[role || ''] || role
-}
-
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString('es-ES', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  })
-}
-
-const getStatusClass = (status: string) => {
-  const classes: Record<string, string> = {
-    pending: 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30',
-    completed: 'bg-green-500/20 text-green-400 border border-green-500/30',
-    cancelled: 'bg-red-500/20 text-red-400 border border-red-500/30',
-  }
-  return classes[status] || 'bg-gray-500/20 text-gray-400 border border-gray-500/30'
-}
-
-const getPaymentStatusClass = (status: string) => {
-  const classes: Record<string, string> = {
-    pending: 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30',
-    paid: 'bg-green-500/20 text-green-400 border border-green-500/30',
-    overdue: 'bg-red-500/20 text-red-400 border border-red-500/30',
-  }
-  return classes[status] || 'bg-gray-500/20 text-gray-400 border border-gray-500/30'
+const getWelcomeMessage = () => {
+  const hour = new Date().getHours()
+  if (hour < 12) return '¡Buenos días! Comencemos con energía este día.'
+  if (hour < 18) return '¡Buenas tardes! ¿Qué actividades tienes planeadas?'
+  return '¡Buenas noches! Revisemos el progreso del día.'
 }
 
 onMounted(async () => {
@@ -315,3 +287,40 @@ onMounted(async () => {
   }
 })
 </script>
+
+<style scoped>
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out forwards;
+}
+
+.animation-delay-300 {
+  animation-delay: 0.3s;
+}
+
+.animation-delay-600 {
+  animation-delay: 0.6s;
+}
+
+.animation-delay-900 {
+  animation-delay: 0.9s;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+</style>

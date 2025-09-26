@@ -6,7 +6,7 @@
     <!-- Show main app if authenticated -->
   <div v-else class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       <!-- Navigation Sidebar -->
-      <div class="fixed inset-y-0 left-0 z-50 w-64 bg-gray-900/90 backdrop-blur-sm border-r border-purple-500/20 transform transition-transform duration-300 ease-in-out lg:translate-x-0" 
+      <div class="fixed inset-y-0 left-0 z-50 w-56 sm:w-64 bg-gray-900/90 backdrop-blur-sm border-r border-purple-500/20 transform transition-transform duration-300 ease-in-out lg:translate-x-0" 
            :class="{ '-translate-x-full': !sidebarOpen && !isDesktop }">
         
         <!-- Logo -->
@@ -62,13 +62,12 @@
         </nav>
 
         <!-- Logout Button -->
-        <div class="p-4 border-t border-purple-500/20">
+        <div class="absolute bottom-0 left-0 right-0 p-2 border-t border-purple-500/20 flex justify-center">
           <button
             @click="handleLogout"
-            class="w-full flex items-center px-4 py-3 text-gray-300 hover:bg-red-600/20 hover:text-red-400 rounded-lg transition-all duration-200"
+            class="w-10 h-10 flex items-center justify-center text-gray-300 hover:bg-red-600/20 hover:text-red-400 rounded-lg transition-all duration-200"
           >
-            <i class="fas fa-sign-out-alt w-5 h-5 mr-3"></i>
-            
+            <i class="fas fa-sign-out-alt w-4 h-4"></i>
           </button>
         </div>
       </div>
