@@ -9,7 +9,7 @@
         </span>
       </h3>
       <button
-        @click="generateInsights"
+        @click="generateInsights(false)"
         :disabled="loading"
         class="p-2 bg-purple-500/20 hover:bg-purple-500/30 rounded-lg transition-colors duration-200 disabled:opacity-50"
         :title="loading ? 'Generando insights...' : 'Actualizar insights'"
@@ -80,7 +80,7 @@
       <p class="text-gray-400 mb-2">Error al generar insights</p>
       <p class="text-red-400 text-sm">{{ error }}</p>
       <button
-        @click="generateInsights"
+        @click="generateInsights(false)"
         class="mt-4 px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 rounded-lg text-purple-400 transition-colors duration-200"
       >
         Reintentar
@@ -120,8 +120,23 @@ const loading = ref(false)
 const insights = ref<InsightsData | null>(null)
 const error = ref('')
 
-// API Key (misma que en ProspectAIForm)
-const API_KEY = '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'
+// Datos por defecto para mostrar inmediatamente
+const defaultInsights: InsightsData = {
+  summary: 'Tu negocio está en constante evolución, transformando oportunidades en resultados tangibles.',
+  recommendations: [
+    'Optimiza el seguimiento de actividades pendientes para aumentar la productividad del equipo',
+    'Implementa estrategias de retención basadas en el análisis de clientes recurrentes',
+    'Explora oportunidades de cross-selling con tus clientes más valiosos'
+  ],
+  trends: [
+    'Crecimiento sostenido en la adquisición de nuevos clientes',
+    'Mejora en la resolución eficiente de casos e incidencias',
+    'Tendencia positiva en la colaboración y comunicación del equipo'
+  ]
+}
+
+// API Key desde variables de entorno
+const API_KEY = import.meta.env.VITE_OPENAI_API_KEY
 
 // Cache key for localStorage
 const CACHE_KEY = 'crm_ai_insights_cache'
@@ -158,19 +173,26 @@ const setCachedInsights = (data: InsightsData): void => {
   }
 }
 
-const generateInsights = async () => {
-  loading.value = true
+const generateInsights = async (background = false) => {
+  if (!background) {
+    loading.value = true
+  }
   error.value = ''
   
   // Check cache first
   const cached = getCachedInsights()
   if (cached) {
     insights.value = cached
-    loading.value = false
+    if (!background) {
+      loading.value = false
+    }
     return
   }
   
-  insights.value = null
+  // Solo limpiar insights si no es background (click manual)
+  if (!background) {
+    insights.value = null
+  }
 
   try {
     // Preparar datos para el análisis con más detalle
@@ -206,22 +228,20 @@ const generateInsights = async () => {
       }
     }
 
-    // Crear prompt más específico y creativo para GPT-3.5-turbo
-    const prompt = `Como analista de negocio creativo y experto en CRM, analiza estos datos y genera insights accionables y creativos:
+    // Crear prompt más conciso para respuesta más rápida
+    const prompt = `Analiza estos datos CRM y genera insights:
 
-DATOS ACTUALES DEL CRM:
-• ${data.clients.total} clientes totales (${data.clients.recent} nuevos esta semana)
-• ${data.activities.total} actividades (${data.activities.pending} pendientes, ${data.activities.completed} completadas, ${data.activities.overdue} vencidas, ${data.activities.inProgress} en progreso)
-• Ingresos totales: $${data.payments.totalRevenue.toLocaleString()}
-• ${data.issues.total} casos (${data.issues.open} abiertos, ${data.issues.closed} cerrados)
-• Equipo: ${data.team.active} miembros activos de ${data.team.total} totales
+DATOS:
+• ${data.clients.total} clientes (${data.clients.recent} nuevos esta semana)
+• ${data.activities.total} actividades (${data.activities.pending} pendientes, ${data.activities.completed} completadas)
+• Ingresos: $${data.payments.totalRevenue.toLocaleString()}
+• ${data.issues.total} casos (${data.issues.open} abiertos)
+• Equipo: ${data.team.active}/${data.team.total} activos
 
-GENERA UNA ANÁLISIS CREATIVO que incluya:
-1. Un resumen ejecutivo creativo (máximo 2 líneas) con una metáfora o analogía
-2. 3-4 recomendaciones específicas, medibles y creativas para mejorar el rendimiento
-3. 2-3 tendencias o insights únicos que destaquen patrones interesantes
-
-Usa un tono profesional pero creativo, enfócate en oportunidades de crecimiento y sé específico con números cuando sea relevante.`
+Proporciona:
+1. Resumen creativo (1-2 líneas)
+2. 3 recomendaciones específicas
+3. 2-3 tendencias clave`
 
     // Llamada a OpenAI API usando GPT-3.5-turbo (más económico)
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -242,8 +262,8 @@ Usa un tono profesional pero creativo, enfócate en oportunidades de crecimiento
             content: prompt
           }
         ],
-        max_tokens: 500,
-        temperature: 0.8 // Más creativo que el anterior
+        max_tokens: 400, // Reducido para respuesta más rápida
+        temperature: 0.6 // Menos creativo pero más rápido
       })
     })
 
@@ -257,51 +277,37 @@ Usa un tono profesional pero creativo, enfócate en oportunidades de crecimiento
       throw new Error('Respuesta inválida de la IA')
     }
 
-    // Parsear la respuesta de la IA de manera más inteligente
+    // Parsear respuesta de manera más simple y rápida
     const aiResponse = result.choices[0].message.content
-
-    // Extraer secciones usando patrones más flexibles
-    const sections = aiResponse.split('\n\n').filter((s: string) => s.trim().length > 20)
+    const lines = aiResponse.split('\n').filter((line: string) => line.trim().length > 10)
     
     let summary = ''
     let recommendations: string[] = []
     let trends: string[] = []
+    let currentSection = ''
 
-    sections.forEach((section: string) => {
-      const lowerSection = section.toLowerCase()
-      if (lowerSection.includes('resumen') || lowerSection.includes('ejecutivo') || sections.indexOf(section) === 0) {
-        summary = section.replace(/^(resumen ejecutivo|resumen|análisis)[:.]?\s*/i, '').trim()
-      } else if (lowerSection.includes('recomendacion') || lowerSection.includes('sugerencia')) {
-        const recs = section.split('\n').filter((line: string) =>
-          line.trim().match(/^[-•*\d+.\s]*[a-zA-Z]/) && line.trim().length > 15
-        ).map((line: string) => line.replace(/^[-•*\d+.\s]*/, '').trim())
-        recommendations = recs.slice(0, 4)
-      } else if (lowerSection.includes('tendencia') || lowerSection.includes('insight') || lowerSection.includes('patrón')) {
-        const trnds = section.split('\n').filter((line: string) =>
-          line.trim().match(/^[-•*\d+.\s]*[a-zA-Z]/) && line.trim().length > 15
-        ).map((line: string) => line.replace(/^[-•*\d+.\s]*/, '').trim())
-        trends = trnds.slice(0, 3)
+    lines.forEach((line: string) => {
+      const trimmed = line.trim()
+      if (trimmed.match(/^(1\.|resumen|summary)/i)) {
+        currentSection = 'summary'
+        summary = trimmed.replace(/^(1\.|resumen|summary)[:.]?\s*/i, '')
+      } else if (trimmed.match(/^(2\.|recomendaciones?|recommendations?)/i)) {
+        currentSection = 'recommendations'
+      } else if (trimmed.match(/^(3\.|tendencias?|trends?|insights?)/i)) {
+        currentSection = 'trends'
+      } else if (currentSection === 'recommendations' && trimmed.match(/^[-•*\d+.\s]*[a-zA-Z]/)) {
+        recommendations.push(trimmed.replace(/^[-•*\d+.\s]*/, ''))
+      } else if (currentSection === 'trends' && trimmed.match(/^[-•*\d+.\s]*[a-zA-Z]/)) {
+        trends.push(trimmed.replace(/^[-•*\d+.\s]*/, ''))
+      } else if (currentSection === 'summary' && !summary.includes(trimmed.substring(0, 50))) {
+        summary += ' ' + trimmed
       }
     })
 
-    // Fallback si no se parsearon bien las secciones
-    if (!summary && sections.length > 0) {
-      summary = sections[0].substring(0, 200) // Limitar longitud
-      recommendations = sections.slice(1, 4).filter((s: string) => s.length > 20).slice(0, 4)
-      trends = sections.slice(4, 6).filter((s: string) => s.length > 20).slice(0, 3)
-    }
-
     const finalInsights = {
-      summary: summary || 'Tu negocio está en movimiento constante, como un río que fluye hacia el éxito.',
-      recommendations: recommendations.length > 0 ? recommendations : [
-        'Considera automatizar el seguimiento de actividades pendientes para mejorar la eficiencia',
-        'Implementa un sistema de recordatorios inteligentes para actividades próximas a vencer',
-        'Analiza los patrones de tus clientes más valiosos para replicar estrategias exitosas'
-      ],
-      trends: trends.length > 0 ? trends : [
-        'El crecimiento de nuevos clientes indica una expansión saludable del mercado',
-        'La tasa de completación de actividades muestra un equipo productivo y organizado'
-      ]
+      summary: summary || 'Tu negocio muestra un rendimiento sólido con oportunidades de crecimiento.',
+      recommendations: recommendations.slice(0, 3),
+      trends: trends.slice(0, 3)
     }
 
     insights.value = finalInsights
@@ -311,16 +317,25 @@ Usa un tono profesional pero creativo, enfócate en oportunidades de crecimiento
     error.value = err.message || 'Error al generar insights'
     console.error('Error generating insights:', err)
   } finally {
-    loading.value = false
+    if (!background) {
+      loading.value = false
+    }
   }
 }
 
 // Generar insights automáticamente al montar el componente
 onMounted(() => {
-  // Pequeño delay para asegurar que los stores estén cargados
-  setTimeout(() => {
-    generateInsights()
-  }, 2000)
+  // Revisar cache inmediatamente
+  const cached = getCachedInsights()
+  if (cached) {
+    insights.value = cached
+  } else {
+    // Mostrar datos por defecto si no hay cache
+    insights.value = defaultInsights
+  }
+  
+  // Generar insights reales en background inmediatamente
+  generateInsights(true) // true indica que es background
 })
 </script>
 

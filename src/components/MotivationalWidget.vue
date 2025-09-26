@@ -17,10 +17,31 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 
-const currentQuote = ref('El éxito es la suma de pequeños esfuerzos repetidos día tras día.')
-const currentAuthor = ref('Robert Collier')
+const quotes = [
+  { text: 'El éxito es la suma de pequeños esfuerzos repetidos día tras día.', author: 'Robert Collier' },
+  { text: 'La innovación distingue al líder del seguidor.', author: 'Steve Jobs' },
+  { text: 'El único modo de hacer un gran trabajo es amar lo que haces.', author: 'Steve Jobs' },
+  { text: 'La calidad nunca es un accidente; siempre es el resultado de un esfuerzo inteligente.', author: 'John Ruskin' },
+  { text: 'El futuro pertenece a quienes creen en la belleza de sus sueños.', author: 'Eleanor Roosevelt' },
+  { text: 'No esperes a que las oportunidades lleguen, búscalas.', author: 'Anónimo' },
+  { text: 'La excelencia es un hábito, no un acto.', author: 'Aristóteles' },
+  { text: 'El cambio es la ley de la vida. Aquellos que solo miran al pasado o al presente perderán el futuro.', author: 'John F. Kennedy' }
+]
+
+const currentQuote = ref(quotes[0].text)
+const currentAuthor = ref(quotes[0].author)
+
+// Rotar frases cada cierto tiempo
+onMounted(() => {
+  let index = 0
+  setInterval(() => {
+    index = (index + 1) % quotes.length
+    currentQuote.value = quotes[index].text
+    currentAuthor.value = quotes[index].author
+  }, 30000) // Cambiar cada 30 segundos
+})
 </script>
 
 <style scoped>
