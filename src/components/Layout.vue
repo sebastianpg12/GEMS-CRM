@@ -19,37 +19,67 @@
       </div>
       
       <!-- Navigation -->
-      <nav class="flex-1 px-4 py-6 space-y-2">
-        <router-link
-          v-for="item in navigation"
-          :key="item.name"
-          :to="item.path"
-          class="nav-item"
-          :class="{ 'active': $route.path === item.path }"
-        >
-          <img 
-            v-if="item.icon === 'logo'"
-            src="../assets/logo.webp" 
-            alt="GEMS Logo" 
-            class="w-5 h-5 mr-3 rounded"
-          />
-          <component v-else :is="item.icon" class="w-5 h-5 mr-3" />
-          <span>{{ item.name }}</span>
-        </router-link>
+      <nav class="flex-1 px-4 py-6 space-y-2 flex flex-col justify-between h-full">
+        <div>
+          <router-link
+            v-for="item in navigation"
+            :key="item.name"
+            :to="item.path"
+            class="nav-item"
+            :class="{ 'active': $route.path === item.path }"
+          >
+            <img 
+              v-if="item.icon === 'logo'"
+              src="../assets/logo.webp" 
+              alt="GEMS Logo" 
+              class="w-5 h-5 mr-3 rounded"
+            />
+            <component v-else :is="item.icon" class="w-5 h-5 mr-3" />
+            <span>{{ item.name }}</span>
+          </router-link>
+        </div>
+        <!-- Minimal logout icon at bottom with tooltip -->
+        <div class="flex justify-center mt-8 mb-2">
+          <button
+            @click="$emit('logout')"
+            class="p-2 rounded-lg hover:bg-dark-800/60 transition-colors group"
+            aria-label="Cerrar sesión"
+            style="position:relative;"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-7 h-7 text-gray-300 hover:text-red-400">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1" />
+            </svg>
+            <span class="absolute left-1/2 top-full mt-2 -translate-x-1/2 px-2 py-1 bg-black/80 text-xs text-white rounded opacity-0 pointer-events-none group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-200" style="white-space:nowrap;">Cerrar sesión</span>
+          </button>
+        </div>
       </nav>
       
       <!-- User Profile -->
       <div class="px-4 py-4 border-t border-white/10">
-        <div class="flex items-center">
-          <img 
-            src="../assets/logo.webp" 
-            alt="GEMS Logo" 
-            class="w-8 h-8 rounded-full shadow-lg" 
-          />
-          <div class="ml-3">
-            <p class="text-sm font-medium text-white">Usuario</p>
-            <p class="text-xs text-gray-400">Admin</p>
+        <div class="flex flex-col items-center gap-2">
+          <div class="flex items-center">
+            <img 
+              src="../assets/logo.webp" 
+              alt="GEMS Logo" 
+              class="w-8 h-8 rounded-full shadow-lg" 
+            />
+            <div class="ml-3">
+              <p class="text-sm font-medium text-white">Usuario</p>
+              <p class="text-xs text-gray-400">Admin</p>
+            </div>
           </div>
+          <!-- Minimal logout icon centered with tooltip -->
+          <button
+            @click="$emit('logout')"
+            class="p-2 rounded-lg hover:bg-dark-800/60 transition-colors mt-4 group"
+            aria-label="Cerrar sesión"
+            style="position:relative;"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-7 h-7 text-gray-300 hover:text-red-400">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1" />
+            </svg>
+            <span class="absolute left-1/2 top-full mt-2 -translate-x-1/2 px-2 py-1 bg-black/80 text-xs text-white rounded opacity-0 pointer-events-none group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-200" style="white-space:nowrap;">Cerrar sesión</span>
+          </button>
         </div>
       </div>
     </div>

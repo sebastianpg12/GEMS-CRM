@@ -61,14 +61,16 @@
           </div>
         </nav>
 
-        <!-- Logout Button -->
-        <div class="p-4 border-t border-purple-500/20">
+        <!-- Minimal Logout Button absolutely at bottom -->
+        <div class="absolute left-0 bottom-0 w-full pb-6 flex justify-center z-40">
           <button
             @click="handleLogout"
-            class="w-full flex items-center px-4 py-3 text-gray-300 hover:bg-red-600/20 hover:text-red-400 rounded-lg transition-all duration-200"
+            class="p-2 rounded-lg hover:bg-red-600/20 transition-colors group"
+            aria-label="Cerrar sesión"
+            style="position:relative;"
           >
-            <i class="fas fa-sign-out-alt w-5 h-5 mr-3"></i>
-            Cerrar Sesión
+            <span class="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 px-2 py-1 bg-black/80 text-xs text-white rounded opacity-0 pointer-events-none group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-200" style="white-space:nowrap;">Cerrar sesión</span>
+            <i class="fas fa-sign-out-alt w-6 h-6 text-gray-300 group-hover:text-red-400"></i>
           </button>
         </div>
       </div>
@@ -157,10 +159,12 @@
                     <div class="border-t border-gray-700 my-1"></div>
                     <button 
                       @click="handleLogout"
-                      class="w-full text-left px-4 py-2 text-red-400 hover:bg-red-900/20 transition-colors text-sm flex items-center"
+                      class="p-2 rounded-lg hover:bg-red-900/20 transition-colors group flex items-center justify-center mx-auto"
+                      aria-label="Cerrar sesión"
+                      style="position:relative;"
                     >
-                      <i class="fas fa-sign-out-alt mr-2"></i>
-                      Cerrar Sesión
+                      <i class="fas fa-sign-out-alt w-5 h-5 text-red-400"></i>
+                      <span class="absolute left-1/2 top-full mt-2 -translate-x-1/2 px-2 py-1 bg-black/80 text-xs text-white rounded opacity-0 pointer-events-none group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-200" style="white-space:nowrap;">Cerrar sesión</span>
                     </button>
                   </div>
                 </div>
