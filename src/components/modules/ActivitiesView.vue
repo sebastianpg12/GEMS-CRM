@@ -279,16 +279,17 @@
               <template v-if="Array.isArray(activity.assignedTo) && activity.assignedTo.length">
                 <div v-for="user in activity.assignedTo" :key="user._id || user" class="flex items-center gap-1">
                   <AvatarInline
-                    :name="user.name || getSmartAssignedName(user)"
-                    :photo="user.photo || ''"
+                    :name="getUserInfo(user).name"
+                    :photo="getUserInfo(user).photo"
+                    :avatar="getUserInfo(user).avatar"
                   />
-                  <span class="text-xs text-white">{{ user.name || getSmartAssignedName(user) }}</span>
                 </div>
               </template>
               <template v-else>
                 <AvatarInline
                   :name="getSmartAssignedName(activity)"
                   :photo="(activity.assignedTo && typeof activity.assignedTo === 'object') ? activity.assignedTo.photo : ''"
+                  :avatar="(activity.assignedTo && typeof activity.assignedTo === 'object') ? activity.assignedTo.avatar : ''"
                 />
                 <button
                   v-if="!activity.assignedTo"
@@ -426,18 +427,30 @@
 
             <!-- Asignado a -->
             <div class="flex items-center gap-2 mb-3">
-              <AvatarInline
-                :name="getSmartAssignedName(activity)"
-                :photo="(activity.assignedTo && typeof activity.assignedTo === 'object') ? activity.assignedTo.photo : ''"
-              />
-              <button
-                v-if="!activity.assignedTo"
-                @click="showAssignModal(activity)"
-                class="ml-auto text-xs text-purple-400 hover:text-purple-300 transition-colors"
-                title="Asignar actividad"
-              >
-                <i class="fas fa-user-plus"></i>
-              </button>
+              <template v-if="Array.isArray(activity.assignedTo) && activity.assignedTo.length > 0">
+                <div v-for="user in activity.assignedTo" :key="user._id || user" class="flex items-center gap-1">
+                  <AvatarInline
+                    :name="user.name || getSmartAssignedName(user)"
+                    :photo="user.photo || ''"
+                    :avatar="user.avatar || ''"
+                  />
+                </div>
+              </template>
+              <template v-else>
+                <AvatarInline
+                  :name="getSmartAssignedName(activity)"
+                  :photo="''"
+                  :avatar="''"
+                />
+                <button
+                  v-if="!Array.isArray(activity.assignedTo) || activity.assignedTo.length === 0"
+                  @click="showAssignModal(activity)"
+                  class="ml-auto text-xs text-purple-400 hover:text-purple-300 transition-colors"
+                  title="Asignar actividad"
+                >
+                  <i class="fas fa-user-plus"></i>
+                </button>
+              </template>
             </div>
 
             <!-- Fecha y tiempo estimado -->
@@ -565,10 +578,20 @@
 
             <!-- Asignado a -->
             <div class="flex items-center gap-2 mb-3">
-              <AvatarInline
-                :name="getSmartAssignedName(activity)"
-                :photo="(activity.assignedTo && typeof activity.assignedTo === 'object') ? activity.assignedTo.photo : ''"
-              />
+              <template v-if="Array.isArray(activity.assignedTo) && activity.assignedTo.length > 0">
+                <div v-for="user in activity.assignedTo" :key="user._id || user" class="flex items-center gap-1">
+                  <AvatarInline
+                    :name="user.name || getSmartAssignedName(user)"
+                    :photo="user.photo || ''"
+                  />
+                </div>
+              </template>
+              <template v-else>
+                <AvatarInline
+                  :name="getSmartAssignedName(activity)"
+                  :photo="''"
+                />
+              </template>
             </div>
 
             <!-- Fecha -->
@@ -682,10 +705,20 @@
 
             <!-- Asignado a -->
             <div class="flex items-center gap-2 mb-3">
-              <AvatarInline
-                :name="getSmartAssignedName(activity)"
-                :photo="(activity.assignedTo && typeof activity.assignedTo === 'object') ? activity.assignedTo.photo : ''"
-              />
+              <template v-if="Array.isArray(activity.assignedTo) && activity.assignedTo.length > 0">
+                <div v-for="user in activity.assignedTo" :key="user._id || user" class="flex items-center gap-1">
+                  <AvatarInline
+                    :name="user.name || getSmartAssignedName(user)"
+                    :photo="user.photo || ''"
+                  />
+                </div>
+              </template>
+              <template v-else>
+                <AvatarInline
+                  :name="getSmartAssignedName(activity)"
+                  :photo="''"
+                />
+              </template>
             </div>
 
             <!-- Fecha y tiempo estimado -->
@@ -1053,29 +1086,41 @@ const overdueActivities = computed(() =>
   filteredActivities.value.filter(a => a.status === 'overdue')
 )
 
+// Función helper para obtener información completa del usuario
+const getUserInfo = (user: any) => {
+  if (!user) return { name: 'Sin asignar', photo: '', avatar: '' }
+  
+  // Si es un objeto usuario completo
+  if (typeof user === 'object' && user.name) {
+    return {
+      name: user.name,
+      photo: user.photo || '',
+      avatar: user.avatar || ''
+    }
+  }
+  
+  // Si es un string ID, buscar en teamMembers
+  if (typeof user === 'string') {
+    const member = teamMembers.value.find(m => m._id === user)
+    return {
+      name: member?.name || 'Sin asignar',
+      photo: member?.photo || '',
+      avatar: member?.avatar || ''
+    }
+  }
+  
+  return { name: 'Sin asignar', photo: '', avatar: '' }
+}
+
 // Methods
 const loadActivities = async () => {
   loading.value = true
-  error.value = null
-  
   try {
-    const filters: any = {}
-    if (selectedTeamMember.value && selectedTeamMember.value !== 'unassigned') {
-      filters.assignedTo = selectedTeamMember.value
-    }
-    if (selectedStatus.value) {
-      filters.status = selectedStatus.value
-    }
-
-    activities.value = Object.keys(filters).length > 0 
-      ? await activityService.getWithFilters(filters)
-      : await activityService.getAll()
-    
-    // Actualizar automáticamente las actividades vencidas
-    await updateOverdueActivities()
+    activities.value = await activityService.getAll()
+    console.log('✅ Activities loaded:', activities.value.length)
   } catch (err) {
+    console.error('❌ Error loading activities:', err)
     error.value = err instanceof Error ? err.message : 'Error desconocido'
-    showError('Error al cargar actividades', error.value)
   } finally {
     loading.value = false
   }

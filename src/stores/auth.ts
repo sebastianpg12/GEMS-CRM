@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authService } from '../services/authService'
-import { getFullPhotoUrl } from '@/utils/photoUtils'
 
 export interface User {
   _id: string
@@ -10,7 +9,7 @@ export interface User {
   role: 'admin' | 'manager' | 'employee' | 'viewer'
   department: string
   position: string
-  photo?: string
+  avatar?: string
   permissions?: {
     dashboard: boolean
     clients: {
@@ -69,11 +68,17 @@ export const useAuthStore = defineStore('auth', () => {
   const isManager = computed(() => user.value?.role === 'manager' || user.value?.role === 'admin')
   
   // Helper function to safely access permissions
-  const getUserPermission = (module: string, action: string) => {
-    return user.value?.permissions?.[module]?.[action] || false
+  const getUserPermission = (module: keyof NonNullable<User['permissions']>, action: string) => {
+    const permissions = user.value?.permissions
+    if (!permissions) return false
+    
+    const modulePerms = permissions[module]
+    if (!modulePerms || typeof modulePerms === 'boolean') return false
+    
+    return (modulePerms as any)[action] || false
   }
   
-  const getUserModulePermission = (module: string) => {
+  const getUserModulePermission = (module: keyof NonNullable<User['permissions']>) => {
     return user.value?.permissions?.[module] || false
   }
 
@@ -146,19 +151,10 @@ export const useAuthStore = defineStore('auth', () => {
       
       if (response.success && response.user && response.token) {
         user.value = response.user
-        // Normalize photo URL to absolute to avoid localhost origin
-        if (user.value.photo) {
-          user.value.photo = getFullPhotoUrl(user.value.photo)
-        }
         token.value = response.token
         localStorage.setItem('token', response.token)
-        // Persist normalized user
+        // Persist user
         localStorage.setItem('user', JSON.stringify(user.value))
-        // Preload photo to warm caches and avoid first-error flicker
-        if (user.value.photo) {
-          const img = new Image()
-          img.src = user.value.photo
-        }
         
         console.log('✅ Login successful!')
         console.log('👤 User:', response.user?.name, '- Role:', response.user?.role)
@@ -210,14 +206,6 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       token.value = storedToken
       user.value = JSON.parse(storedUser)
-      if (user.value?.photo) {
-        user.value.photo = getFullPhotoUrl(user.value.photo)
-      }
-      // Optional preload
-      if (user.value?.photo) {
-        const img = new Image()
-        img.src = user.value.photo
-      }
       
       console.log('✅ Auth restored from localStorage')
       console.log('👤 User:', user.value?.name, '- Role:', user.value?.role)
@@ -297,9 +285,9 @@ export const useAuthStore = defineStore('auth', () => {
   })
 
   // Helper functions for updating user data
-  const updateUserPhoto = (photo: string) => {
+  const updateUserAvatar = (avatar: string) => {
     if (user.value) {
-      user.value.photo = getFullPhotoUrl(photo)
+      user.value.avatar = avatar
       localStorage.setItem('user', JSON.stringify(user.value))
     }
   }
@@ -355,7 +343,8 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     logout,
     checkAuth,
-    updateUserPhoto,
+    updateProfile,
+    updateUserAvatar,
     updateUserProfile,
     getAvailableModules,
   }

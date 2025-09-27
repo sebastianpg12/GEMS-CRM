@@ -9,7 +9,21 @@
       >
         <option value="month">Este Mes</option>
         <option value="quarter">Este Trimestre</option>
-        <option value="year">Este Año</option>
+  if (clientStats.value && clientStats.value.growth) {
+    // Procesar datos reales del backend
+    const mo  if (clientStats.value && clientStats.value.growth) {
+    // Procesar datos reales del backend
+    const monthlyData = clientStats.value.growth.sort((a: any, b: any) => a._id.month - b._id.month)
+    if (monthlyData.length > 0) {
+      const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+      labels = monthlyData.map((item: any) => monthNames[item._id.month - 1] || `Mes ${item._id.month}`)
+      data = monthlyData.map((item: any) => item.newClients)
+    }a = clientStats.value.growth.sort((a, b) => a._id.month - b._id.month)
+    if (monthlyData.length > 0) {
+      const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+      labels = monthlyData.map(item => monthNames[item._id.month - 1] || `Mes ${item._id.month}`)
+      data = monthlyData.map(item => item.newClients)
+    }<option value="year">Este Año</option>
       </select>
       <button 
         @click="refreshData"
@@ -120,41 +134,145 @@
       </div>
     </div>
 
+    <!-- Additional Reports Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" v-if="activityStats || clientStats">
+      <!-- Activity Resolution Time -->
+      <div class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-lg shadow-md border border-gray-700/50" v-if="activityStats?.resolutionTime">
+        <h3 class="text-lg font-semibold text-white mb-4">Tiempo de Resolución</h3>
+        <div class="space-y-4">
+          <div class="flex justify-between items-center">
+            <span class="text-gray-300">Promedio:</span>
+            <span class="text-blue-400 font-semibold">{{ Math.round(activityStats.resolutionTime.avgResolutionTime) }} días</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-gray-300">Mínimo:</span>
+            <span class="text-green-400 font-semibold">{{ Math.round(activityStats.resolutionTime.minResolutionTime) }} días</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-gray-300">Máximo:</span>
+            <span class="text-red-400 font-semibold">{{ Math.round(activityStats.resolutionTime.maxResolutionTime) }} días</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Active Clients -->
+      <div class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-lg shadow-md border border-gray-700/50" v-if="clientStats?.topActive">
+        <h3 class="text-lg font-semibold text-white mb-4">Clientes Más Activos</h3>
+        <div class="space-y-3">
+          <div v-for="client in clientStats.topActive.slice(0, 5)" :key="client._id" class="flex justify-between items-center">
+            <div>
+              <p class="text-white font-medium">{{ client.clientName }}</p>
+              <p class="text-gray-400 text-sm">{{ client.totalActivities }} actividades</p>
+            </div>
+            <div class="text-right">
+              <p class="text-green-400 font-semibold">{{ Math.round(client.completionRate * 100) }}%</p>
+              <p class="text-gray-400 text-xs">completadas</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Team Workload -->
+      <div class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-lg shadow-md border border-gray-700/50" v-if="teamPerformance?.currentWorkload">
+        <h3 class="text-lg font-semibold text-white mb-4">Carga de Trabajo Actual</h3>
+        <div class="space-y-3">
+          <div v-for="member in teamPerformance.currentWorkload.slice(0, 5)" :key="member._id" class="flex justify-between items-center">
+            <div>
+              <p class="text-white font-medium">{{ member.teamMember?.nombre || `Miembro ${member._id}` }}</p>
+            </div>
+            <div class="text-right">
+              <span class="px-2 py-1 rounded-full text-xs font-semibold"
+                    :class="member.activeWorkload > 10 ? 'bg-red-500/20 text-red-400' : 
+                           member.activeWorkload > 5 ? 'bg-yellow-500/20 text-yellow-400' : 
+                           'bg-green-500/20 text-green-400'">
+                {{ member.activeWorkload }} tareas
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Monthly Comparison -->
+      <div class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-lg shadow-md border border-gray-700/50" v-if="executiveSummary">
+        <h3 class="text-lg font-semibold text-white mb-4">Comparación Mensual</h3>
+        <div class="space-y-4">
+          <div class="flex justify-between items-center">
+            <span class="text-gray-300">Nuevos Clientes:</span>
+            <div class="text-right">
+              <span class="text-white font-semibold">{{ executiveSummary.kpis.newClientsThisMonth }}</span>
+              <span class="text-xs ml-2" :class="executiveSummary.growth.clients >= 0 ? 'text-green-400' : 'text-red-400'">
+                {{ executiveSummary.growth.clients >= 0 ? '+' : '' }}{{ executiveSummary.growth.clients.toFixed(1) }}%
+              </span>
+            </div>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-gray-300">Actividades Completadas:</span>
+            <div class="text-right">
+              <span class="text-white font-semibold">{{ executiveSummary.kpis.completedThisMonth }}</span>
+              <span class="text-xs ml-2" :class="executiveSummary.growth.activities >= 0 ? 'text-green-400' : 'text-red-400'">
+                {{ executiveSummary.growth.activities >= 0 ? '+' : '' }}{{ executiveSummary.growth.activities.toFixed(1) }}%
+              </span>
+            </div>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-gray-300">Ingresos:</span>
+            <div class="text-right">
+              <span class="text-white font-semibold">${{ formatCurrency(executiveSummary.kpis.revenueThisMonth) }}</span>
+              <span class="text-xs ml-2" :class="executiveSummary.growth.revenue >= 0 ? 'text-green-400' : 'text-red-400'">
+                {{ executiveSummary.growth.revenue >= 0 ? '+' : '' }}{{ executiveSummary.growth.revenue.toFixed(1) }}%
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Executive Summary -->
     <div class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-lg shadow-md border border-gray-700/50" v-if="executiveSummary">
       <h3 class="text-lg font-semibold text-white mb-4">Resumen Ejecutivo</h3>
       
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <div class="text-center p-4 bg-gray-700/50 rounded-lg border border-gray-600/50">
-          <p class="text-sm text-gray-300">ROI Promedio</p>
-          <p class="text-2xl font-bold text-green-400">{{ executiveSummary.averageROI }}%</p>
+          <p class="text-sm text-gray-300">Total Clientes</p>
+          <p class="text-2xl font-bold text-green-400">{{ executiveSummary.kpis.totalClients }}</p>
         </div>
         
         <div class="text-center p-4 bg-gray-700/50 rounded-lg border border-gray-600/50">
-          <p class="text-sm text-gray-300">Tiempo Promedio de Caso</p>
-          <p class="text-2xl font-bold text-blue-400">{{ executiveSummary.averageCaseDuration }} días</p>
+          <p class="text-sm text-gray-300">Ingresos del Año</p>
+          <p class="text-2xl font-bold text-blue-400">${{ formatCurrency(executiveSummary.kpis.revenueThisYear) }}</p>
         </div>
         
         <div class="text-center p-4 bg-gray-700/50 rounded-lg border border-gray-600/50">
-          <p class="text-sm text-gray-300">Satisfacción del Cliente</p>
-          <p class="text-2xl font-bold text-purple-400">{{ executiveSummary.clientSatisfactionScore }}/10</p>
+          <p class="text-sm text-gray-300">Actividades Totales</p>
+          <p class="text-2xl font-bold text-purple-400">{{ executiveSummary.kpis.totalActivities }}</p>
         </div>
       </div>
 
-      <div class="mt-6" v-if="executiveSummary.recommendations?.length">
-        <h4 class="text-md font-semibold text-white mb-3">Recomendaciones</h4>
-        <ul class="space-y-2">
-          <li 
-            v-for="(recommendation, index) in executiveSummary.recommendations" 
-            :key="index"
-            class="flex items-start space-x-2"
-          >
-            <svg class="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-gray-300">{{ recommendation }}</span>
-          </li>
-        </ul>
+      <div class="space-y-4">
+        <h4 class="text-md font-semibold text-white">Comparativas de Crecimiento</h4>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="p-3 bg-gray-700/30 rounded-lg">
+            <p class="text-sm text-gray-300">Clientes (Mes vs Mes anterior)</p>
+            <p class="text-lg font-semibold" :class="executiveSummary.growth.clients >= 0 ? 'text-green-400' : 'text-red-400'">
+              {{ executiveSummary.growth.clients >= 0 ? '+' : '' }}{{ executiveSummary.growth.clients.toFixed(1) }}%
+            </p>
+            <p class="text-xs text-gray-400">{{ executiveSummary.kpis.newClientsThisMonth }} vs {{ executiveSummary.kpis.newClientsLastMonth }}</p>
+          </div>
+          <div class="p-3 bg-gray-700/30 rounded-lg">
+            <p class="text-sm text-gray-300">Actividades (Mes vs Mes anterior)</p>
+            <p class="text-lg font-semibold" :class="executiveSummary.growth.activities >= 0 ? 'text-green-400' : 'text-red-400'">
+              {{ executiveSummary.growth.activities >= 0 ? '+' : '' }}{{ executiveSummary.growth.activities.toFixed(1) }}%
+            </p>
+            <p class="text-xs text-gray-400">{{ executiveSummary.kpis.completedThisMonth }} vs {{ executiveSummary.kpis.completedLastMonth }}</p>
+          </div>
+          <div class="p-3 bg-gray-700/30 rounded-lg">
+            <p class="text-sm text-gray-300">Ingresos (Mes vs Mes anterior)</p>
+            <p class="text-lg font-semibold" :class="executiveSummary.growth.revenue >= 0 ? 'text-green-400' : 'text-red-400'">
+              {{ executiveSummary.growth.revenue >= 0 ? '+' : '' }}{{ executiveSummary.growth.revenue.toFixed(1) }}%
+            </p>
+            <p class="text-xs text-gray-400">${{ formatCurrency(executiveSummary.kpis.revenueThisMonth) }} vs ${{ formatCurrency(executiveSummary.kpis.revenueLastMonth) }}</p>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -206,6 +324,16 @@ const activityStats = ref<ActivityStats | null>(null)
 const clientStats = ref<ClientStats | null>(null)
 const teamPerformance = ref<TeamPerformance | null>(null)
 const executiveSummary = ref<ExecutiveSummary | null>(null)
+
+// Loading states for individual sections
+const loadingStates = ref({
+  dashboard: false,
+  financial: false,
+  activities: false,
+  clients: false,
+  team: false,
+  executive: false
+})
 
 // Chart refs
 const revenueChart = ref<HTMLCanvasElement>()
@@ -292,7 +420,7 @@ const loadData = async () => {
     
   } catch (error) {
     console.error('Error loading reports:', error)
-    showError(`Error al cargar los reportes: ${error.message}`)
+    showError(`Error al cargar los reportes: ${error instanceof Error ? error.message : 'Error desconocido'}`)
     
     // Crear gráficas básicas incluso si hay errores
     await nextTick()
@@ -495,13 +623,13 @@ const createClientGrowthChart = () => {
   let labels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun']
   let data = [1, 2, 1, 3, 2, 1]
 
-  if (clientStats.value && clientStats.value.monthlyGrowth) {
+  if (clientStats.value && clientStats.value.growth) {
     // Procesar datos reales del backend si existen
-    const monthlyData = clientStats.value.monthlyGrowth.sort((a, b) => a.month - b.month)
+    const monthlyData = clientStats.value.growth.sort((a: any, b: any) => a._id.month - b._id.month)
     if (monthlyData.length > 0) {
       const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
-      labels = monthlyData.map(item => monthNames[item.month - 1] || `Mes ${item.month}`)
-      data = monthlyData.map(item => item.newClients)
+      labels = monthlyData.map((item: any) => monthNames[item._id.month - 1] || `Mes ${item._id.month}`)
+      data = monthlyData.map((item: any) => item.newClients)
     }
   } else if (dashboardStats.value?.monthly?.newClients) {
     // Usar datos del dashboard como fallback
@@ -568,10 +696,10 @@ const createTeamChart = () => {
   let labels = ['Equipo A', 'Equipo B', 'Equipo C']
   let data = [15, 22, 18]
 
-  if (teamPerformance.value && teamPerformance.value.members && teamPerformance.value.members.length > 0) {
+  if (teamPerformance.value && teamPerformance.value.performance && teamPerformance.value.performance.length > 0) {
     // Procesar datos reales del backend
-    labels = teamPerformance.value.members.map(member => member.name)
-    data = teamPerformance.value.members.map(member => member.completedActivities)
+    labels = teamPerformance.value.performance.map(member => member.teamMember?.nombre || `Miembro ${member._id}`)
+    data = teamPerformance.value.performance.map(member => member.completedActivities)
   } else if (dashboardStats.value?.totals?.teamMembers) {
     // Crear datos básicos basados en el número de miembros del equipo
     const teamCount = dashboardStats.value.totals.teamMembers

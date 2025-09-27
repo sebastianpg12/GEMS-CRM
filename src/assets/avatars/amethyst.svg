@@ -1,0 +1,30 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="amethystGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#DDA0DD;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#9932CC;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4B0082;stop-opacity:1" />
+    </linearGradient>
+    <filter id="amethystShine" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="64" cy="64" r="60" fill="url(#amethystGradient)" stroke="#fff" stroke-width="3"/>
+
+  <!-- Amethyst gem (hexagonal) -->
+  <polygon points="64,25 82,35 92,55 82,85 64,95 46,85 36,55 46,35" fill="#8A2BE2" stroke="#fff" stroke-width="2" filter="url(#amethystShine)"/>
+
+  <!-- Inner shine -->
+  <polygon points="64,35 76,43 84,58 76,78 64,86 52,78 44,58 52,43" fill="#fff" opacity="0.3"/>
+
+  <!-- Sparkles -->
+  <circle cx="55" cy="40" r="2" fill="#fff" opacity="0.8"/>
+  <circle cx="75" cy="50" r="1.5" fill="#fff" opacity="0.7"/>
+  <circle cx="60" cy="80" r="1" fill="#fff" opacity="0.9"/>
+</svg>

@@ -10,9 +10,17 @@
     :title="name"
     @click="handleClick"
   >
+    <!-- Avatar de gema -->
+    <img
+      v-if="resolvedAvatar"
+      :src="resolvedAvatar.path"
+      :alt="resolvedAvatar.name"
+      class="w-full h-full object-cover"
+    >
+    
     <!-- Imagen -->
     <img
-      v-if="resolvedPhoto"
+      v-else-if="resolvedPhoto"
       :src="resolvedPhoto"
       :alt="name"
       class="w-full h-full object-cover"
@@ -21,7 +29,7 @@
     
     <!-- Iniciales como fallback -->
     <div
-  v-else
+      v-else
       :class="[
         'w-full h-full flex items-center justify-center',
         (bgGradient || finalGradient),
@@ -54,10 +62,12 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { getFullPhotoUrl } from '@/utils/photoUtils'
+import { getAvatarById, getDefaultAvatar } from '@/utils/avatarConfig'
 
 interface Props {
   name: string
   photo?: string
+  avatar?: string
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl'
   bordered?: boolean
   clickable?: boolean
@@ -146,6 +156,11 @@ const initials = computed(() => {
 const resolvedPhoto = computed(() => {
   if (!props.photo || imgError.value) return ''
   return getFullPhotoUrl(props.photo)
+})
+
+const resolvedAvatar = computed(() => {
+  if (!props.avatar) return null
+  return getAvatarById(props.avatar) || getDefaultAvatar()
 })
 
 // Methods
