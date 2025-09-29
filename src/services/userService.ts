@@ -3,7 +3,7 @@ interface UserProfileData {
   email: string
   phone?: string
   department?: string
-  photo?: string
+  avatar?: string
   role?: string
   createdAt?: string
   updatedAt?: string
@@ -14,6 +14,7 @@ interface UpdateProfileData {
   email: string
   phone?: string | null
   department?: string | null
+  avatar?: string
 }
 
 interface UpdatePasswordData {

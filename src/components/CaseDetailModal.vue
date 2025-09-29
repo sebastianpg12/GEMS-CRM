@@ -170,7 +170,7 @@
                 </div>
                 <div class="flex space-x-2">
                   <a
-                    :href="archivo.url"
+                    :href="getFileUrl(archivo.url)"
                     target="_blank"
                     class="text-purple-400 hover:text-purple-300 transition-colors"
                     title="Descargar"
@@ -430,6 +430,7 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import { casesService, type Case } from '../services/casesService'
+import { API_CONFIG } from '../config/api'
 
 // Props
 const props = defineProps<{
@@ -541,6 +542,24 @@ const changeStatus = async (newStatus: Case['estado']) => {
   } catch (error) {
     console.error('Error changing status:', error)
   }
+}
+
+// Función para obtener la URL completa del archivo
+const getFileUrl = (fileUrl: string): string => {
+  // Si la URL ya es absoluta, devolverla tal cual
+  if (fileUrl.startsWith('http://') || fileUrl.startsWith('https://')) {
+    return fileUrl
+  }
+  
+  // Si es una URL relativa que comienza con /uploads, construir la URL completa
+  if (fileUrl.startsWith('/uploads')) {
+    // Remover la /api del final de BASE_URL si existe, y agregar la ruta del archivo
+    const baseUrl = API_CONFIG.BASE_URL.replace('/api', '')
+    return `${baseUrl}${fileUrl}`
+  }
+  
+  // Para otros casos, devolver la URL relativa (aunque no debería pasar)
+  return fileUrl
 }
 
 // Formatters

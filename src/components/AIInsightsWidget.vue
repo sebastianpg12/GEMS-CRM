@@ -44,32 +44,42 @@
         </div>
       </div>
 
-      <div v-if="insights.recommendations && insights.recommendations.length > 0" class="bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-lg p-4 border border-green-500/20">
+      <div class="bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-lg p-4 border border-green-500/20">
         <div class="flex items-start gap-3">
           <i class="fas fa-bullseye text-green-400 mt-1"></i>
           <div>
             <h4 class="text-white font-medium mb-2">Recomendaciones Innovadoras</h4>
-            <ul class="space-y-1">
-              <li v-for="rec in insights.recommendations" :key="rec" class="text-gray-300 text-sm flex items-start">
-                <span class="text-green-400 mr-2">•</span>
-                {{ rec }}
-              </li>
-            </ul>
+            <div v-if="insights.recommendations && insights.recommendations.length > 0">
+              <ul class="space-y-1">
+                <li v-for="rec in insights.recommendations" :key="rec" class="text-gray-300 text-sm flex items-start">
+                  <span class="text-green-400 mr-2">•</span>
+                  {{ rec }}
+                </li>
+              </ul>
+            </div>
+            <div v-else class="text-gray-400 text-sm italic">
+              Generando recomendaciones personalizadas...
+            </div>
           </div>
         </div>
       </div>
 
-      <div v-if="insights.trends && insights.trends.length > 0" class="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-lg p-4 border border-blue-500/20">
+      <div class="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-lg p-4 border border-blue-500/20">
         <div class="flex items-start gap-3">
           <i class="fas fa-chart-line text-blue-400 mt-1"></i>
           <div>
-            <h4 class="text-white font-medium mb-2">Tendencias & Insights</h4>
-            <ul class="space-y-1">
-              <li v-for="trend in insights.trends" :key="trend" class="text-gray-300 text-sm flex items-start">
-                <span class="text-blue-400 mr-2">📈</span>
-                {{ trend }}
-              </li>
-            </ul>
+            <h4 class="text-white font-medium mb-2">Tendencias Clave</h4>
+            <div v-if="insights.trends && insights.trends.length > 0">
+              <ul class="space-y-1">
+                <li v-for="trend in insights.trends" :key="trend" class="text-gray-300 text-sm flex items-start">
+                  <span class="text-blue-400 mr-2">📈</span>
+                  {{ trend }}
+                </li>
+              </ul>
+            </div>
+            <div v-else class="text-gray-400 text-sm italic">
+              Analizando patrones de uso del sistema...
+            </div>
           </div>
         </div>
       </div>
@@ -179,6 +189,16 @@ const generateInsights = async (background = false) => {
   }
   error.value = ''
   
+  // Verificar API key
+  if (!API_KEY) {
+    error.value = 'API key de OpenAI no configurada'
+    console.error('OpenAI API key not found in environment variables')
+    if (!background) {
+      loading.value = false
+    }
+    return
+  }
+  
   // Check cache first
   const cached = getCachedInsights()
   if (cached) {
@@ -277,10 +297,12 @@ Proporciona:
       throw new Error('Respuesta inválida de la IA')
     }
 
-    // Parsear respuesta de manera más simple y rápida
+    // Parsear respuesta de manera más robusta
     const aiResponse = result.choices[0].message.content
-    const lines = aiResponse.split('\n').filter((line: string) => line.trim().length > 10)
-    
+    console.log('Respuesta de IA:', aiResponse)
+
+    const lines = aiResponse.split('\n').filter((line: string) => line.trim().length > 0)
+
     let summary = ''
     let recommendations: string[] = []
     let trends: string[] = []
@@ -288,28 +310,74 @@ Proporciona:
 
     lines.forEach((line: string) => {
       const trimmed = line.trim()
-      if (trimmed.match(/^(1\.|resumen|summary)/i)) {
+
+      // Detectar secciones por patrones comunes
+      if (trimmed.match(/^(1\.|resumen|summary|visión|overview)/i)) {
         currentSection = 'summary'
-        summary = trimmed.replace(/^(1\.|resumen|summary)[:.]?\s*/i, '')
-      } else if (trimmed.match(/^(2\.|recomendaciones?|recommendations?)/i)) {
+        summary = trimmed.replace(/^(1\.|resumen|summary|visión|overview)[:.]?\s*/i, '')
+      } else if (trimmed.match(/^(2\.|recomendaciones?|recommendations?|sugerencias|suggestions)/i)) {
         currentSection = 'recommendations'
-      } else if (trimmed.match(/^(3\.|tendencias?|trends?|insights?)/i)) {
+      } else if (trimmed.match(/^(3\.|tendencias?|trends?|insights?|patrones)/i)) {
         currentSection = 'trends'
       } else if (currentSection === 'recommendations' && trimmed.match(/^[-•*\d+.\s]*[a-zA-Z]/)) {
-        recommendations.push(trimmed.replace(/^[-•*\d+.\s]*/, ''))
+        // Extraer texto después de viñetas o números
+        const cleanText = trimmed.replace(/^[-•*\d+.\s]*/, '').trim()
+        if (cleanText.length > 10) { // Solo agregar si es significativo
+          recommendations.push(cleanText)
+        }
       } else if (currentSection === 'trends' && trimmed.match(/^[-•*\d+.\s]*[a-zA-Z]/)) {
-        trends.push(trimmed.replace(/^[-•*\d+.\s]*/, ''))
-      } else if (currentSection === 'summary' && !summary.includes(trimmed.substring(0, 50))) {
-        summary += ' ' + trimmed
+        const cleanText = trimmed.replace(/^[-•*\d+.\s]*/, '').trim()
+        if (cleanText.length > 10) {
+          trends.push(cleanText)
+        }
+      } else if (currentSection === 'summary' && trimmed.length > 10) {
+        // Continuar agregando al resumen si no es una nueva sección
+        if (!trimmed.match(/^\d+\./) && !trimmed.match(/^(recomendaciones?|tendencias?)/i)) {
+          summary += (summary ? ' ' : '') + trimmed
+        }
       }
     })
 
-    const finalInsights = {
-      summary: summary || 'Tu negocio muestra un rendimiento sólido con oportunidades de crecimiento.',
-      recommendations: recommendations.slice(0, 3),
-      trends: trends.slice(0, 3)
+    // Si no se encontraron secciones estructuradas, intentar extraer de texto libre
+    if (recommendations.length === 0 || trends.length === 0) {
+      const fullText = aiResponse.toLowerCase()
+
+      // Buscar recomendaciones en el texto
+      if (recommendations.length === 0) {
+        const recMatches = aiResponse.match(/(?:recomendaciones?|sugerencias?)[^:]*:([\s\S]*?)(?=\n(?:tendencias?|trends?|insights?)|$)/i)
+        if (recMatches) {
+          const recText = recMatches[1]
+          const recLines = recText.split('\n').filter(l => l.trim().match(/^[-•*\d+.\s]*[a-zA-Z]/))
+          recommendations = recLines.map(l => l.replace(/^[-•*\d+.\s]*/, '').trim()).filter(l => l.length > 10).slice(0, 3)
+        }
+      }
+
+      // Buscar tendencias en el texto
+      if (trends.length === 0) {
+        const trendMatches = aiResponse.match(/(?:tendencias?|trends?|insights?)[^:]*:([\s\S]*?)$/i)
+        if (trendMatches) {
+          const trendText = trendMatches[1]
+          const trendLines = trendText.split('\n').filter(l => l.trim().match(/^[-•*\d+.\s]*[a-zA-Z]/))
+          trends = trendLines.map(l => l.replace(/^[-•*\d+.\s]*/, '').trim()).filter(l => l.length > 10).slice(0, 3)
+        }
+      }
     }
 
+    const finalInsights = {
+      summary: summary || 'Tu negocio muestra un rendimiento sólido con oportunidades de crecimiento.',
+      recommendations: recommendations.length > 0 ? recommendations : [
+        'Optimiza el seguimiento de actividades pendientes',
+        'Implementa estrategias de retención de clientes',
+        'Explora oportunidades de cross-selling'
+      ],
+      trends: trends.length > 0 ? trends : [
+        'Crecimiento en adquisición de nuevos clientes',
+        'Mejora en resolución de casos',
+        'Tendencia positiva en colaboración del equipo'
+      ]
+    }
+
+    console.log('Insights finales:', finalInsights)
     insights.value = finalInsights
     setCachedInsights(finalInsights)
 

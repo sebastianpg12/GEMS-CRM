@@ -1,0 +1,30 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="emeraldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#50C878;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#008000;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#006400;stop-opacity:1" />
+    </linearGradient>
+    <filter id="emeraldShine" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="64" cy="64" r="60" fill="url(#emeraldGradient)" stroke="#fff" stroke-width="3"/>
+
+  <!-- Emerald gem (rectangular) -->
+  <rect x="44" y="34" width="40" height="60" rx="8" fill="#32CD32" stroke="#fff" stroke-width="2" filter="url(#emeraldShine)"/>
+
+  <!-- Inner shine -->
+  <rect x="49" y="39" width="30" height="50" rx="6" fill="#fff" opacity="0.2"/>
+
+  <!-- Sparkles -->
+  <circle cx="52" cy="45" r="2" fill="#fff" opacity="0.9"/>
+  <circle cx="70" cy="55" r="1.5" fill="#fff" opacity="0.7"/>
+  <circle cx="58" cy="80" r="1" fill="#fff" opacity="0.8"/>
+</svg>

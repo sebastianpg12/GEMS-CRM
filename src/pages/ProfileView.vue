@@ -3,16 +3,14 @@
     <!-- Header -->
     <div class="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
       <div class="flex flex-col md:flex-row items-center gap-6">
-        <!-- Foto de perfil -->
+        <!-- Avatar de perfil -->
         <div class="relative">
           <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-purple-500/50 shadow-2xl">
             <img
-              v-if="profileData?.photo"
-              :src="imgSrc"
-              :alt="profileData.name || 'Usuario'"
+              v-if="selectedAvatarData"
+              :src="selectedAvatarData.path"
+              :alt="selectedAvatarData.name"
               class="w-full h-full object-cover"
-              @error="onImageError"
-              @load="onImageLoad"
             >
             <div
               v-else
@@ -21,14 +19,14 @@
               {{ getInitials(profileData?.name || 'U') }}
             </div>
           </div>
-          
-          <!-- Botón para cambiar foto -->
+
+          <!-- Botón para elegir gema -->
           <button
-            @click="triggerFileInput"
-            class="absolute bottom-2 right-2 w-10 h-10 bg-yellow-600 hover:bg-yellow-700 rounded-full flex items-center justify-center text-white shadow-lg transition-all duration-200 transform hover:scale-110"
-            title="Cambiar foto"
+            @click="openAvatarSelector"
+            class="absolute bottom-2 right-2 w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-full flex items-center justify-center text-white shadow-lg transition-all duration-200 transform hover:scale-110"
+            title="Elegir Gema"
           >
-            <i class="fas fa-camera text-sm"></i>
+            <i class="fas fa-gem text-sm"></i>
           </button>
         </div>
         
@@ -269,14 +267,26 @@
       </form>
     </div>
 
-    <!-- Input de archivo oculto -->
-    <input
-      ref="fileInput"
-      type="file"
-      accept="image/*"
-      @change="handleFileSelect"
-      class="hidden"
-    />
+    <!-- Modal Selector de Avatares -->
+    <div v-if="showAvatarSelector" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+      <div class="bg-gray-900 rounded-2xl p-6 max-w-md w-full mx-4">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-bold text-white">Elige tu Gema</h3>
+          <button
+            @click="showAvatarSelector = false"
+            class="text-gray-400 hover:text-white transition-colors"
+          >
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+
+        <AvatarSelector
+          :selected-avatar="tempSelectedAvatar || profileData.avatar || getDefaultAvatar().id"
+          @select="selectAvatar"
+          @confirm="confirmAvatarSelection"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -284,16 +294,18 @@
 import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { userService } from '@/services/userService'
+import { AvatarService } from '@/services/avatarService'
 import { toast } from 'vue3-toastify'
-import { API_CONFIG } from '@/config/api'
-import { getFullPhotoUrl } from '@/utils/photoUtils'
+import AvatarSelector from '@/components/AvatarSelector.vue'
+import { getAvatarById, getDefaultAvatar } from '@/utils/avatarConfig'
 
 const authStore = useAuthStore()
 
 // State
 const loading = ref(false)
 const isEditing = ref(false)
-const fileInput = ref<HTMLInputElement>()
+const showAvatarSelector = ref(false)
+const tempSelectedAvatar = ref<string>('')
 
 const profileData = ref({
   name: '',
@@ -301,22 +313,15 @@ const profileData = ref({
   role: '',
   phone: '',
   department: '',
-  photo: '',
+  avatar: null as string | null, // Permitir null
   createdAt: '',
   updatedAt: ''
 })
 
-// URL absoluta para la foto en entorno local/prod (centralizada)
-const resolvedPhotoUrl = computed(() => {
-  const url = profileData.value?.photo || ''
-  return getFullPhotoUrl(url)
-})
-
-// Add a small cache-busting param on retry to bypass potential CDN/cold-start hiccups
-const imgBust = ref<number | null>(null)
-const imgSrc = computed(() => {
-  if (!resolvedPhotoUrl.value) return ''
-  return imgBust.value ? `${resolvedPhotoUrl.value}?v=${imgBust.value}` : resolvedPhotoUrl.value
+// Computed para obtener datos del avatar seleccionado
+const selectedAvatarData = computed(() => {
+  const avatarId = profileData.value?.avatar
+  return avatarId ? getAvatarById(avatarId) : getDefaultAvatar()
 })
 
 const editForm = ref({
@@ -361,32 +366,48 @@ const formatDate = (dateString: string) => {
   }
 }
 
-// Función para manejar errores de carga de imagen
-const onImageError = (event: Event) => {
-  console.error('Error al cargar la imagen:', event)
-  const img = event.target as HTMLImageElement
-  console.error('URL de imagen que falló:', img.src)
-  console.error('ProfileData.photo:', profileData.value?.photo)
-  toast.error('Error al cargar la imagen de perfil')
-  // Intentar un reintento rápido con cache-busting una sola vez
-  if (!imgBust.value && resolvedPhotoUrl.value) {
-    imgBust.value = Date.now()
-    setTimeout(() => { imgBust.value = null }, 5000)
-  } else {
-    // Fallback a iniciales si ya reintentamos
-    if (profileData.value) {
-      profileData.value.photo = ''
-    }
-  }
+// Funciones para manejar selección de avatares
+const selectAvatar = (avatarId: string) => {
+  tempSelectedAvatar.value = avatarId
 }
 
-// Función para confirmar carga exitosa de imagen
-const onImageLoad = (event: Event) => {
-  console.log('Imagen cargada exitosamente')
-  const img = event.target as HTMLImageElement
-  console.log('URL de imagen cargada:', img.src)
-  // Limpiar bust si existía
-  imgBust.value = null
+const openAvatarSelector = () => {
+  tempSelectedAvatar.value = profileData.value.avatar || getDefaultAvatar().id
+  showAvatarSelector.value = true
+}
+
+const confirmAvatarSelection = async () => {
+  if (!tempSelectedAvatar.value) return
+
+  try {
+    loading.value = true
+
+    // Usar el servicio de avatares específico
+    const result = await AvatarService.updateUserAvatar(tempSelectedAvatar.value)
+
+    if (result.success) {
+      // Actualizar datos locales
+      profileData.value.avatar = tempSelectedAvatar.value
+
+      // Actualizar el store de auth
+      if (authStore.user) {
+        authStore.user.avatar = tempSelectedAvatar.value
+        localStorage.setItem('user', JSON.stringify(authStore.user))
+      }
+
+      showAvatarSelector.value = false
+      tempSelectedAvatar.value = ''
+      toast.success('Avatar actualizado correctamente')
+    } else {
+      toast.error(result.message || 'Error al actualizar el avatar')
+    }
+
+  } catch (error) {
+    console.error('Error al actualizar avatar:', error)
+    toast.error('Error al actualizar el avatar')
+  } finally {
+    loading.value = false
+  }
 }
 
 const toggleEditMode = () => {
@@ -416,18 +437,17 @@ const updateProfile = async () => {
   try {
     loading.value = true
     
-    await userService.updateProfile(editForm.value)
+    const result = await authStore.updateProfile(editForm.value)
     
-    // Actualizar datos locales
-    Object.assign(profileData.value, editForm.value)
-    
-    // Actualizar también el store
-    if (authStore.user) {
-      Object.assign(authStore.user, editForm.value)
+    if (result.success) {
+      // Actualizar datos locales
+      Object.assign(profileData.value, editForm.value)
+      
+      isEditing.value = false
+      toast.success('Perfil actualizado correctamente')
+    } else {
+      toast.error(result.message || 'Error al actualizar el perfil')
     }
-    
-    isEditing.value = false
-    toast.success('Perfil actualizado correctamente')
     
   } catch (error) {
     console.error('Error al actualizar perfil:', error)
@@ -463,56 +483,6 @@ const updatePassword = async () => {
   }
 }
 
-const triggerFileInput = () => {
-  fileInput.value?.click()
-}
-
-const handleFileSelect = async (event: Event) => {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  
-  if (!file) return
-  
-  // Validar tipo de archivo
-  if (!file.type.startsWith('image/')) {
-    toast.error('Por favor selecciona un archivo de imagen')
-    return
-  }
-  
-  // Validar tamaño (máximo 5MB)
-  if (file.size > 5 * 1024 * 1024) {
-    toast.error('La imagen debe ser menor a 5MB')
-    return
-  }
-  
-  try {
-    loading.value = true
-    console.log('📸 Iniciando subida de foto...')
-    
-    const photoUrl = await userService.uploadPhoto(file)
-    console.log('✅ Foto subida exitosamente:', photoUrl)
-    
-    // Actualizar foto usando el método del authStore
-    authStore.updateUserPhoto(photoUrl)
-    
-    // Actualizar foto en profileData local
-    if (profileData.value) {
-      profileData.value.photo = photoUrl
-      console.log('📋 ProfileData actualizado con nueva foto')
-    }
-    
-    toast.success('Foto actualizada correctamente')
-    
-  } catch (error: any) {
-    console.error('❌ Error al subir foto:', error)
-    toast.error('Error al subir la foto: ' + (error.message || 'Error desconocido'))
-  } finally {
-    loading.value = false
-    // Limpiar input
-    if (target) target.value = ''
-  }
-}
-
 const loadProfile = async () => {
   try {
     loading.value = true
@@ -527,11 +497,11 @@ const loadProfile = async () => {
         name: authStore.user.name || '',
         email: authStore.user.email || '',
         role: authStore.user.role || '',
-        phone: authStore.user.phone || '',
+        phone: (authStore.user as any).phone || '',
         department: authStore.user.department || '',
-        photo: authStore.user.photo || '',
-        createdAt: authStore.user.createdAt || '',
-        updatedAt: authStore.user.updatedAt || ''
+        avatar: (authStore.user as any).avatar || null, // Permitir null
+        createdAt: (authStore.user as any).createdAt || '',
+        updatedAt: (authStore.user as any).updatedAt || ''
       }
       console.log('📋 ProfileData inicial:', profileData.value)
     } else {
@@ -543,7 +513,17 @@ const loadProfile = async () => {
       console.log('🌐 Cargando perfil del servidor...')
       const profile = await userService.getProfile()
       console.log('✅ Perfil cargado del servidor:', profile)
-      profileData.value = profile
+      profileData.value = {
+        name: profile.name || '',
+        email: profile.email || '',
+        role: profile.role || '',
+        phone: profile.phone || '',
+        department: profile.department || '',
+        avatar: profile.avatar || null, // No forzar valor por defecto
+        createdAt: profile.createdAt || '',
+        updatedAt: profile.updatedAt || ''
+      }
+      
     } catch (serverError) {
       console.error('❌ Error al cargar perfil del servidor:', serverError)
       
@@ -554,41 +534,27 @@ const loadProfile = async () => {
           name: authStore.user.name || '',
           email: authStore.user.email || '',
           role: authStore.user.role || '',
-          phone: authStore.user.phone || '',
+          phone: (authStore.user as any).phone || '',
           department: authStore.user.department || '',
-          photo: authStore.user.photo || '',
-          createdAt: authStore.user.createdAt || '',
-          updatedAt: authStore.user.updatedAt || ''
+          avatar: (authStore.user as any).avatar || null, // No forzar valor por defecto
+          createdAt: (authStore.user as any).createdAt || '',
+          updatedAt: (authStore.user as any).updatedAt || ''
         }
       }
     }
     
   } catch (error) {
     console.error('❌ Error general al cargar perfil:', error)
-    toast.error('Error al cargar el perfil: ' + (error?.message || 'Error desconocido'))
+    toast.error('Error al cargar el perfil: ' + ((error as any)?.message || 'Error desconocido'))
   } finally {
     loading.value = false
     console.log('🏁 Carga de perfil completada')
     console.log('📋 ProfileData final:', profileData.value)
     
-    // Debug específico para la foto
-    console.log('🖼️ DEBUGGING FOTO:')
-    console.log('- profileData.value?.photo:', profileData.value?.photo)
-    console.log('- Tipo de dato:', typeof profileData.value?.photo)
-    console.log('- Longitud de URL:', profileData.value?.photo?.length)
-    console.log('- Es string válido:', typeof profileData.value?.photo === 'string' && profileData.value.photo.length > 0)
-    
-    if (profileData.value?.photo) {
-      console.log('✅ Foto detectada, URL original:', profileData.value.photo)
-      console.log('🔗 URL resuelta:', resolvedPhotoUrl.value)
-      // Verificar si la URL es accesible (usando la resuelta)
-      const img = new Image()
-      img.onload = () => console.log('✅ Imagen accesible desde:', resolvedPhotoUrl.value)
-      img.onerror = (err) => console.error('❌ Imagen NO accesible:', err, 'URL:', resolvedPhotoUrl.value)
-      img.src = resolvedPhotoUrl.value
-    } else {
-      console.log('❌ No hay foto disponible')
-    }
+    // Debug específico para el avatar
+    console.log('� DEBUGGING AVATAR:')
+    console.log('- profileData.value?.avatar:', profileData.value?.avatar)
+    console.log('- Avatar seleccionado:', selectedAvatarData.value)
   }
 }
 

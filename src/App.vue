@@ -29,7 +29,7 @@
           <div class="flex items-center">
             <UserAvatar
               :name="authStore.user?.name || 'Usuario'"
-              :photo="authStore.user?.photo"
+              :avatar="authStore.user?.avatar"
               size="md"
               :clickable="true"
               @click="router.push('/profile')"
@@ -120,7 +120,7 @@
                 >
                   <UserAvatar
                     :name="authStore.user?.name || 'Usuario'"
-                    :photo="authStore.user?.photo"
+                    :avatar="authStore.user?.avatar"
                     size="sm"
                   />
                   <i class="fas fa-chevron-down text-gray-400 text-sm"></i>

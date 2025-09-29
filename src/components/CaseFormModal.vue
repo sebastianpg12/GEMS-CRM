@@ -250,7 +250,7 @@
         </div>
 
         <!-- Subida de archivos -->
-        <div v-if="isEditing">
+        <div>
           <label class="block text-sm font-medium text-purple-200 mb-2">
             Subir archivos
           </label>
@@ -386,8 +386,8 @@ watch(() => props.caseItem, (newCase) => {
       asignado_a: newCase.asignado_a || '',
       fecha_limite: newCase.fecha_limite ? formatDateForInput(newCase.fecha_limite) : '',
       fecha_resolucion: newCase.fecha_resolucion ? formatDateForInput(newCase.fecha_resolucion) : '',
-      gravedad: newCase.gravedad || '',
-      impacto: newCase.impacto || '',
+      gravedad: newCase.gravedad || undefined,
+      impacto: newCase.impacto || undefined,
       categoria: newCase.categoria || '',
       tags: [...(newCase.tags || [])],
       progreso: newCase.progreso || 0
@@ -406,16 +406,48 @@ const handleSubmit = async () => {
       fecha_resolucion: form.value.fecha_resolucion ? new Date(form.value.fecha_resolucion) : undefined
     }
 
-    if (isEditing.value) {
-      await casesService.updateCase(props.caseItem!._id!, caseData)
+    // Si hay archivos seleccionados, usar FormData
+    if (selectedFiles.value.length > 0) {
+      const formData = new FormData()
       
-      // Subir archivos si hay seleccionados
-      if (selectedFiles.value.length > 0) {
-        const fileList = createFileList(selectedFiles.value)
-        await casesService.uploadFiles(props.caseItem!._id!, fileList)
+      // Agregar datos del caso como JSON string
+      formData.append('titulo', caseData.titulo!)
+      formData.append('descripcion', caseData.descripcion!)
+      formData.append('tipo', caseData.tipo!)
+      formData.append('estado', caseData.estado!)
+      formData.append('prioridad', caseData.prioridad!)
+      formData.append('progreso', caseData.progreso?.toString() || '0')
+      
+      if (caseData.cliente_id) formData.append('cliente_id', caseData.cliente_id)
+      if (caseData.asignado_a) formData.append('asignado_a', caseData.asignado_a)
+      if (caseData.fecha_limite) formData.append('fecha_limite', caseData.fecha_limite.toISOString())
+      if (caseData.fecha_resolucion) formData.append('fecha_resolucion', caseData.fecha_resolucion.toISOString())
+      if (caseData.gravedad) formData.append('gravedad', caseData.gravedad)
+      if (caseData.impacto) formData.append('impacto', caseData.impacto)
+      if (caseData.categoria) formData.append('categoria', caseData.categoria)
+      
+      // Agregar tags como JSON
+      if (caseData.tags && caseData.tags.length > 0) {
+        formData.append('tags', JSON.stringify(caseData.tags))
+      }
+      
+      // Agregar archivos
+      selectedFiles.value.forEach(file => {
+        formData.append('archivos', file)
+      })
+      
+      if (isEditing.value) {
+        await casesService.update(props.caseItem!._id!, formData)
+      } else {
+        await casesService.create(formData)
       }
     } else {
-      await casesService.createCase(caseData)
+      // Sin archivos, usar JSON normal
+      if (isEditing.value) {
+        await casesService.updateCase(props.caseItem!._id!, caseData)
+      } else {
+        await casesService.createCase(caseData)
+      }
     }
     
     emit('saved')

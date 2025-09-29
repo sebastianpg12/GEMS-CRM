@@ -231,6 +231,7 @@
 import { ref, reactive, onMounted, watch } from 'vue'
 import { casesService, type Case, type CaseFile } from '../../services/casesService'
 import { useNotifications } from '../../composables/useNotifications'
+import { API_CONFIG } from '../../config/api'
 
 // Composables
 const { showError, toast } = useNotifications()
@@ -346,9 +347,30 @@ const removeExistingFile = (index: number) => {
 }
 
 const downloadFile = (file: CaseFile) => {
-  // TODO: Implement file download
-  console.log('Downloading file:', file.nombre)
-  window.open(file.url, '_blank')
+  try {
+    // Construir URL completa para el archivo
+    const baseUrl = API_CONFIG.BASE_URL.replace('/api', '') // Remover /api del final
+    const fileUrl = `${baseUrl}${file.url}`
+    
+    console.log('Downloading file:', file.nombre, 'from URL:', fileUrl)
+    
+    // Crear un enlace temporal y hacer clic en él
+    const link = document.createElement('a')
+    link.href = fileUrl
+    link.download = file.nombre // Sugerir nombre del archivo
+    link.target = '_blank'
+    
+    // Agregar al DOM temporalmente y hacer clic
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  } catch (error) {
+    console.error('Error downloading file:', error)
+    // Fallback: abrir en nueva pestaña
+    const baseUrl = API_CONFIG.BASE_URL.replace('/api', '')
+    const fileUrl = `${baseUrl}${file.url}`
+    window.open(fileUrl, '_blank')
+  }
 }
 
 const getFileIcon = (fileName: string) => {
