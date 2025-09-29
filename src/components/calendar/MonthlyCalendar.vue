@@ -91,7 +91,7 @@
             <div class="truncate font-medium">{{ activity.title }}</div>
             <div class="flex items-center gap-1 text-xs opacity-75">
               <i class="fas fa-user" style="font-size: 8px;"></i>
-              <span>{{ getAssignedToName(activity.assignedToUser) }}</span>
+              <span>{{ getAssignedToName(activity) }}</span>
             </div>
           </div>
           
@@ -142,12 +142,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import type { ActivityData, TeamMember } from '../../types'
+import { ref, computed } from 'vue'
+import type { Activity, TeamMember } from '../../types'
 
 // Props
 interface Props {
-  activities: ActivityData[]
+  activities: Activity[]
   clients: any[]
   teamMembers: TeamMember[]
 }
@@ -156,7 +156,7 @@ const props = defineProps<Props>()
 // Emits
 const emit = defineEmits<{
   quickTask: [date: Date]
-  viewActivity: [activity: ActivityData]
+  viewActivity: [activity: Activity]
 }>()
 
 // Reactive data
@@ -247,14 +247,14 @@ const getDayClasses = (day: any) => {
   return classes.join(' ')
 }
 
-const getActivitiesForDay = (date: Date): ActivityData[] => {
+const getActivitiesForDay = (date: Date): Activity[] => {
   return props.activities.filter(activity => {
     const activityDate = new Date(activity.date)
     return activityDate.toDateString() === date.toDateString()
   })
 }
 
-const getActivityClasses = (activity: ActivityData) => {
+const getActivityClasses = (activity: Activity) => {
   const baseClasses = 'transition-colors'
   
   switch (activity.status) {
@@ -282,9 +282,25 @@ const getClientName = (clientData: any): string => {
   return 'Sin cliente'
 }
 
-const getAssignedToName = (assignedUser?: any): string => {
-  if (!assignedUser) return 'Sin asignar'
-  if (typeof assignedUser === 'object' && assignedUser.name) return assignedUser.name
+const getAssignedToName = (activity: Activity): string => {
+  if (!activity || !activity.assignedTo || activity.assignedTo.length === 0) return 'Sin asignar'
+  
+  // Si assignedTo es un array
+  if (Array.isArray(activity.assignedTo)) {
+    const firstUser = activity.assignedTo[0]
+    
+    // Si es un string (ID), buscar en teamMembers
+    if (typeof firstUser === 'string') {
+      const member = props.teamMembers.find(m => m._id === firstUser)
+      return member?.name || 'Sin asignar'
+    }
+    
+    // Si es un objeto completo de usuario
+    if (firstUser && typeof firstUser === 'object' && 'name' in firstUser) {
+      return (firstUser as any).name
+    }
+  }
+  
   return 'Sin asignar'
 }
 
@@ -292,7 +308,7 @@ const addQuickTask = (date: Date) => {
   emit('quickTask', date)
 }
 
-const viewActivity = (activity: ActivityData) => {
+const viewActivity = (activity: Activity) => {
   emit('viewActivity', activity)
 }
 </script>
