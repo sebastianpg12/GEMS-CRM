@@ -116,7 +116,6 @@
           </label>
           <select
             v-model="selectedTeamMember"
-            @change="loadActivities"
             class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
           >
             <option value="">Todos los miembros</option>
@@ -134,7 +133,6 @@
           </label>
           <select
             v-model="selectedStatus"
-            @change="loadActivities"
             class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
           >
             <option value="">Todos los estados</option>
@@ -1075,6 +1073,36 @@ const filteredActivities = computed(() => {
       activity.description?.toLowerCase().includes(search) ||
       getClientName(activity.clientId).toLowerCase().includes(search)
     )
+  }
+
+  // Filtrar por miembro del equipo asignado
+  if (selectedTeamMember.value && selectedTeamMember.value !== 'all') {
+    filtered = filtered.filter(activity => {
+      if (selectedTeamMember.value === 'unassigned') {
+        // Mostrar actividades sin asignar
+        return !activity.assignedTo || activity.assignedTo.length === 0
+      }
+
+      // Mostrar actividades asignadas al miembro seleccionado
+      if (!activity.assignedTo || activity.assignedTo.length === 0) return false
+
+      // Si assignedTo es un array de objetos (populated)
+      if (Array.isArray(activity.assignedTo) && typeof activity.assignedTo[0] === 'object') {
+        return activity.assignedTo.some((user: any) => user._id === selectedTeamMember.value)
+      }
+
+      // Si assignedTo es un array de strings (IDs)
+      if (Array.isArray(activity.assignedTo) && typeof activity.assignedTo[0] === 'string') {
+        return activity.assignedTo.includes(selectedTeamMember.value)
+      }
+
+      return false
+    })
+  }
+
+  // Filtrar por estado
+  if (selectedStatus.value && selectedStatus.value !== 'all') {
+    filtered = filtered.filter(activity => activity.status === selectedStatus.value)
   }
 
   return filtered
