@@ -430,9 +430,9 @@
               <template v-if="Array.isArray(activity.assignedTo) && activity.assignedTo.length > 0">
                 <div v-for="user in activity.assignedTo" :key="user._id || user" class="flex items-center gap-1">
                   <AvatarInline
-                    :name="user.name || getSmartAssignedName(user)"
-                    :photo="user.photo || ''"
-                    :avatar="user.avatar || ''"
+                    :name="getUserInfo(user).name"
+                    :photo="getUserInfo(user).photo"
+                    :avatar="getUserInfo(user).avatar"
                   />
                 </div>
               </template>
@@ -581,8 +581,9 @@
               <template v-if="Array.isArray(activity.assignedTo) && activity.assignedTo.length > 0">
                 <div v-for="user in activity.assignedTo" :key="user._id || user" class="flex items-center gap-1">
                   <AvatarInline
-                    :name="user.name || getSmartAssignedName(user)"
-                    :photo="user.photo || ''"
+                    :name="getUserInfo(user).name"
+                    :photo="getUserInfo(user).photo"
+                    :avatar="getUserInfo(user).avatar"
                   />
                 </div>
               </template>
@@ -590,6 +591,7 @@
                 <AvatarInline
                   :name="getSmartAssignedName(activity)"
                   :photo="''"
+                  :avatar="''"
                 />
               </template>
             </div>
@@ -708,8 +710,9 @@
               <template v-if="Array.isArray(activity.assignedTo) && activity.assignedTo.length > 0">
                 <div v-for="user in activity.assignedTo" :key="user._id || user" class="flex items-center gap-1">
                   <AvatarInline
-                    :name="user.name || getSmartAssignedName(user)"
-                    :photo="user.photo || ''"
+                    :name="getUserInfo(user).name"
+                    :photo="getUserInfo(user).photo"
+                    :avatar="getUserInfo(user).avatar"
                   />
                 </div>
               </template>
@@ -717,7 +720,16 @@
                 <AvatarInline
                   :name="getSmartAssignedName(activity)"
                   :photo="''"
+                  :avatar="''"
                 />
+                <button
+                  v-if="!Array.isArray(activity.assignedTo) || activity.assignedTo.length === 0"
+                  @click="showAssignModal(activity)"
+                  class="ml-auto text-xs text-purple-400 hover:text-purple-300 transition-colors"
+                  title="Asignar actividad"
+                >
+                  <i class="fas fa-user-plus"></i>
+                </button>
               </template>
             </div>
 
