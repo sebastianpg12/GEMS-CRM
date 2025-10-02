@@ -987,7 +987,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { activityService, type ActivityData } from '../../services/activityService'
 import { clientService, type ClientData } from '../../services/clientService'
 import { teamService } from '../../services/teamService'
@@ -1932,6 +1932,17 @@ onMounted(async () => {
     loadTeamMembers(),
     loadActivities()
   ])
+  
+  // Actualizar estado de actividades vencidas
+  await updateOverdueActivities()
+  
+  // Configurar intervalo para verificar periódicamente las actividades vencidas (cada 5 minutos)
+  const checkOverdueInterval = setInterval(updateOverdueActivities, 5 * 60 * 1000)
+  
+  // Limpiar intervalo cuando el componente se desmonta
+  onUnmounted(() => {
+    clearInterval(checkOverdueInterval)
+  })
 
   // Cerrar dropdown al hacer click fuera
   document.addEventListener('click', (e) => {
