@@ -39,6 +39,24 @@
             Nueva Actividad
           </button>
         </PermissionGuard>
+        
+        <!-- Botones de gestión de notificaciones -->
+        <PermissionGuard :roles="['admin', 'manager']" :fallback="false">
+          <div class="flex items-center gap-2">
+            <!-- Botón para abrir configuración de notificaciones -->
+            <button
+              @click="$emit('open-notification-settings')"
+              class="px-3 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all duration-200 flex items-center gap-2 text-sm"
+              title="Configuración de notificaciones WhatsApp"
+            >
+              <i class="fas fa-cog"></i>
+              <span class="hidden sm:inline">Configurar</span>
+            </button>
+            
+            <!-- Componente de notificación existente -->
+            <TaskNotifier :activities="activities" />
+          </div>
+        </PermissionGuard>
       </div>
     </div>
 
@@ -1000,6 +1018,7 @@ import AssignActivityModal from '../modals/AssignActivityModal.vue'
 import MonthlyCalendar from '../calendar/MonthlyCalendar.vue'
 import QuickTaskModal from '../modals/QuickTaskModal.vue'
 import AvatarInline from '../AvatarInline.vue'
+import TaskNotifier from '../notifications/TaskNotifier.vue'
 
 // Props
 interface Props {
@@ -1013,6 +1032,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   create: []
   edit: [activity: ActivityData]
+  'open-notification-settings': []
 }>()
 
 // Composables
@@ -1974,6 +1994,7 @@ defineExpose({
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

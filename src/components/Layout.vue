@@ -116,6 +116,7 @@
         <!-- Notifications -->
         <div class="flex items-center space-x-2 sm:space-x-4 flex-shrink-0 mt-2 sm:mt-0">
           <OnlineUsersPopover />
+          
           <!-- Chat Unread Badge -->
           <router-link to="/chat" class="relative p-2 text-gray-400 hover:text-white transition-colors">
             <ChatBubbleLeftRightIcon class="w-6 h-6" />
@@ -123,6 +124,7 @@
               {{ chatUnread > 99 ? '99+' : chatUnread }}
             </span>
           </router-link>
+          
           <button @click="showNotifications = !showNotifications" class="relative p-2 text-gray-400 hover:text-white transition-colors">
             <BellIcon class="w-6 h-6" />
             <span v-if="unreadCount > 0" class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
@@ -171,6 +173,18 @@
       </div>
     </div>
   </div>
+  
+  <!-- Modal de configuración de notificaciones -->
+  <TaskReportSettingsModal 
+    v-if="showNotificationSettings" 
+    @close="showNotificationSettings = false" 
+  />
+  
+  <!-- Modal del notificador de tareas -->
+  <TaskNotifierModal 
+    v-if="showTaskNotifier" 
+    @close="showTaskNotifier = false" 
+  />
 </template>
 
 <script setup lang="ts">
@@ -181,6 +195,8 @@ import { useChatStore } from '../stores/chatStore'
 import ChatWidget from './ChatWidget.vue'
 import OnlineUsersPopover from './OnlineUsersPopover.vue'
 import NewMessageToast from './NewMessageToast.vue'
+import TaskReportSettingsModal from './modals/TaskReportSettingsModal.vue'
+import TaskNotifierModal from './modals/TaskNotifierModal.vue'
 import {
   HomeIcon,
   UserGroupIcon,
@@ -202,6 +218,17 @@ const notificationsStore = useNotificationsStore()
 const chatStore = useChatStore()
 
 const showNotifications = ref(false)
+const showNotificationSettings = ref(false)
+const showTaskNotifier = ref(false)
+
+// Funciones para abrir los modales
+const openNotificationSettings = () => {
+  showNotificationSettings.value = true
+}
+
+const openTaskNotifier = () => {
+  showTaskNotifier.value = true
+}
 
 const navigation = [
   { name: 'Dashboard', path: '/', icon: 'logo' },
@@ -212,6 +239,7 @@ const navigation = [
   { name: 'Gestión de Casos', path: '/cases', icon: FolderIcon },
   { name: 'Equipo', path: '/team', icon: DocumentTextIcon },
   { name: 'Chat Interno', path: '/chat', icon: ChatBubbleLeftRightIcon },
+  { name: 'Notificaciones', path: '/task-reports', icon: BellIcon },
 ]
 
 const pageTitle = computed(() => {
@@ -228,7 +256,8 @@ const pageDescription = computed(() => {
     '/accounting': 'Gestión financiera unificada',
     '/cases': 'Documentos, incidencias y seguimientos',
     '/team': 'Gestión del equipo de trabajo',
-    '/chat': 'Chat interno del equipo'
+    '/chat': 'Chat interno del equipo',
+    '/task-reports': 'Configuración de notificaciones WhatsApp'
   }
   return descriptions[route.path] || ''
 })

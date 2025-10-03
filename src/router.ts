@@ -15,6 +15,8 @@ import CasesView from './components/CasesView.vue'
 import ProfileView from './pages/ProfileView.vue'
 import ChatPage from './pages/ChatPage.vue'
 import ClientDetail from './pages/ClientDetail.vue'
+import TaskReportConfig from './pages/TaskReportConfig.vue'
+import TasksNotifier from './pages/TasksNotifier.vue'
 
 const routes = [
   {
@@ -102,6 +104,24 @@ const routes = [
     meta: { 
       requiresAuth: true,
       requiredPermissions: ['view-activities', 'view-team']
+    }
+  },
+  {
+    path: '/task-reports',
+    name: 'TaskReportConfig',
+    component: TaskReportConfig,
+    meta: { 
+      requiresAuth: true,
+      requiredRoles: ['admin', 'manager']
+    }
+  },
+  {
+    path: '/tasks-notifier',
+    name: 'TasksNotifier',
+    component: TasksNotifier,
+    meta: { 
+      requiresAuth: true,
+      requiredPermissions: ['send-notifications']
     }
   },
   {

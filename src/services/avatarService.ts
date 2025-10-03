@@ -49,6 +49,7 @@ export interface AvatarResponse {
     avatars?: string[]
     default?: string
     avatar?: string | null
+    photo?: string | null
     user?: any
     stats?: AvatarStats
   }
@@ -94,16 +95,19 @@ export class AvatarService {
   /**
    * Obtiene el avatar actual del usuario
    */
-  static async getUserAvatar(): Promise<string | null> {
+  static async getUserAvatar(): Promise<{ avatar: string | null, photo: string | null }> {
     try {
       const response = await apiClient.get('/avatars/user')
       if (response.data.success) {
-        return response.data.data?.avatar || null
+        return {
+          avatar: response.data.data?.avatar || null,
+          photo: response.data.data?.photo || null
+        }
       }
-      return null
+      return { avatar: null, photo: null }
     } catch (error) {
       console.error('Error getting user avatar:', error)
-      return null
+      return { avatar: null, photo: null }
     }
   }
 
@@ -131,6 +135,40 @@ export class AvatarService {
       return response.data
     } catch (error) {
       console.error('Error removing user avatar:', error)
+      throw error
+    }
+  }
+  
+  /**
+   * Sube una foto de perfil personalizada
+   */
+  static async uploadProfilePhoto(file: File): Promise<AvatarResponse> {
+    try {
+      const formData = new FormData()
+      formData.append('photo', file)
+      
+      const response = await apiClient.post('/avatars/upload-photo', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+      
+      return response.data
+    } catch (error) {
+      console.error('Error uploading profile photo:', error)
+      throw error
+    }
+  }
+  
+  /**
+   * Elimina la foto de perfil personalizada del usuario
+   */
+  static async removeProfilePhoto(): Promise<AvatarResponse> {
+    try {
+      const response = await apiClient.delete('/avatars/photo')
+      return response.data
+    } catch (error) {
+      console.error('Error removing profile photo:', error)
       throw error
     }
   }
