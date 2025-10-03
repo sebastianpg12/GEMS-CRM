@@ -6,12 +6,22 @@
         <!-- Avatar de perfil -->
         <div class="relative">
           <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-purple-500/50 shadow-2xl">
+            <!-- Foto personalizada de perfil -->
             <img
-              v-if="selectedAvatarData"
+              v-if="profileData.photo"
+              :src="resolvedPhotoUrl"
+              :alt="profileData.name"
+              class="w-full h-full object-cover"
+              @error="onPhotoError"
+            >
+            <!-- Avatar predefinido -->
+            <img
+              v-else-if="selectedAvatarData"
               :src="selectedAvatarData.path"
               :alt="selectedAvatarData.name"
               class="w-full h-full object-cover"
             >
+            <!-- Iniciales como fallback -->
             <div
               v-else
               class="w-full h-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center text-white text-4xl font-bold"
@@ -20,14 +30,26 @@
             </div>
           </div>
 
-          <!-- Botón para elegir gema -->
-          <button
-            @click="openAvatarSelector"
-            class="absolute bottom-2 right-2 w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-full flex items-center justify-center text-white shadow-lg transition-all duration-200 transform hover:scale-110"
-            title="Elegir Gema"
-          >
-            <i class="fas fa-gem text-sm"></i>
-          </button>
+          <!-- Botones para gestionar avatar/foto -->
+          <div class="absolute bottom-2 right-2 flex gap-2">
+            <!-- Botón para subir foto personalizada -->
+            <button
+              @click="togglePhotoUploader"
+              class="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-full flex items-center justify-center text-white shadow-lg transition-all duration-200 transform hover:scale-110"
+              title="Subir foto personalizada"
+            >
+              <i class="fas fa-camera text-sm"></i>
+            </button>
+            
+            <!-- Botón para elegir gema predefinida -->
+            <button
+              @click="openAvatarSelector"
+              class="w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-full flex items-center justify-center text-white shadow-lg transition-all duration-200 transform hover:scale-110"
+              title="Elegir Gema"
+            >
+              <i class="fas fa-gem text-sm"></i>
+            </button>
+          </div>
         </div>
         
         <!-- Info básica -->
@@ -287,6 +309,26 @@
         />
       </div>
     </div>
+    
+    <!-- Modal de Subida de Foto -->
+    <div v-if="showPhotoUploader" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+      <div class="bg-gray-900 rounded-2xl p-6 max-w-md w-full mx-4">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-bold text-white">Foto de Perfil</h3>
+          <button
+            @click="showPhotoUploader = false"
+            class="text-gray-400 hover:text-white transition-colors"
+          >
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+
+        <ProfilePhotoUploader
+          :current-photo="profileData.photo"
+          @update="handlePhotoUpdate"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -297,7 +339,9 @@ import { userService } from '@/services/userService'
 import { AvatarService } from '@/services/avatarService'
 import { toast } from 'vue3-toastify'
 import AvatarSelector from '@/components/AvatarSelector.vue'
+import ProfilePhotoUploader from '@/components/ProfilePhotoUploader.vue'
 import { getAvatarById, getDefaultAvatar } from '@/utils/avatarConfig'
+import { API_CONFIG } from '@/config/api'
 
 const authStore = useAuthStore()
 
@@ -305,7 +349,9 @@ const authStore = useAuthStore()
 const loading = ref(false)
 const isEditing = ref(false)
 const showAvatarSelector = ref(false)
+const showPhotoUploader = ref(false)
 const tempSelectedAvatar = ref<string>('')
+const photoErrored = ref(false)
 
 const profileData = ref({
   name: '',
@@ -314,6 +360,7 @@ const profileData = ref({
   phone: '',
   department: '',
   avatar: null as string | null, // Permitir null
+  photo: null as string | null, // Foto personalizada
   createdAt: '',
   updatedAt: ''
 })
@@ -321,7 +368,16 @@ const profileData = ref({
 // Computed para obtener datos del avatar seleccionado
 const selectedAvatarData = computed(() => {
   const avatarId = profileData.value?.avatar
-  return avatarId ? getAvatarById(avatarId) : getDefaultAvatar()
+  return avatarId ? getAvatarById(avatarId) : null
+})
+
+// Computed para URL de foto de perfil
+const resolvedPhotoUrl = computed(() => {
+  const url = profileData.value.photo
+  if (!url || photoErrored.value) return ''
+  if (/^https?:\/\//i.test(url)) return url
+  const origin = String(API_CONFIG.BASE_URL).replace(/\/?api\/?$/i, '')
+  return `${origin.replace(/\/$/, '')}/${url.replace(/^\//, '')}`
 })
 
 const editForm = ref({
@@ -351,6 +407,40 @@ const getRoleDisplayName = (role: string) => {
     'employee': 'Empleado'
   }
   return roles[role] || role || 'Sin rol'
+}
+
+// Manejo de errores de imagen
+const onPhotoError = () => {
+  photoErrored.value = true
+  console.error('Error cargando foto de perfil')
+}
+
+// Funciones para el manejo de foto de perfil
+const togglePhotoUploader = () => {
+  showPhotoUploader.value = !showPhotoUploader.value
+  // Cerrar selector de avatares si está abierto
+  if (showPhotoUploader.value) {
+    showAvatarSelector.value = false
+  }
+}
+
+const handlePhotoUpdate = (data: { photo: string | null, avatar: string | null }) => {
+  // Actualizar datos en el perfil
+  profileData.value.photo = data.photo
+  profileData.value.avatar = data.avatar
+  
+  // Actualizar en el store de auth
+  if (authStore.user) {
+    authStore.user.photo = data.photo
+    authStore.user.avatar = data.avatar
+    localStorage.setItem('user', JSON.stringify(authStore.user))
+  }
+  
+  // Cerrar el modal
+  showPhotoUploader.value = false
+  
+  // Resetear error de foto
+  photoErrored.value = false
 }
 
 const formatDate = (dateString: string) => {
@@ -388,10 +478,12 @@ const confirmAvatarSelection = async () => {
     if (result.success) {
       // Actualizar datos locales
       profileData.value.avatar = tempSelectedAvatar.value
+      profileData.value.photo = null // Al elegir avatar, se elimina la foto
 
       // Actualizar el store de auth
       if (authStore.user) {
-        authStore.user.avatar = tempSelectedAvatar.value
+        (authStore.user as any).avatar = tempSelectedAvatar.value
+        (authStore.user as any).photo = null
         localStorage.setItem('user', JSON.stringify(authStore.user))
       }
 
@@ -500,6 +592,7 @@ const loadProfile = async () => {
         phone: (authStore.user as any).phone || '',
         department: authStore.user.department || '',
         avatar: (authStore.user as any).avatar || null, // Permitir null
+        photo: (authStore.user as any).photo || null,   // Permitir null
         createdAt: (authStore.user as any).createdAt || '',
         updatedAt: (authStore.user as any).updatedAt || ''
       }
@@ -520,9 +613,13 @@ const loadProfile = async () => {
         phone: profile.phone || '',
         department: profile.department || '',
         avatar: profile.avatar || null, // No forzar valor por defecto
+        photo: profile.photo || null,   // Foto personalizada
         createdAt: profile.createdAt || '',
         updatedAt: profile.updatedAt || ''
       }
+      
+      // Limpiar errores de carga de imagen
+      photoErrored.value = false
       
     } catch (serverError) {
       console.error('❌ Error al cargar perfil del servidor:', serverError)
@@ -537,10 +634,30 @@ const loadProfile = async () => {
           phone: (authStore.user as any).phone || '',
           department: authStore.user.department || '',
           avatar: (authStore.user as any).avatar || null, // No forzar valor por defecto
+          photo: (authStore.user as any).photo || null,   // Foto personalizada
           createdAt: (authStore.user as any).createdAt || '',
           updatedAt: (authStore.user as any).updatedAt || ''
         }
       }
+    }
+    
+    // Intentar cargar información de avatar del usuario
+    try {
+      const avatarInfo = await AvatarService.getUserAvatar()
+      if (avatarInfo) {
+        // Si obtenemos información actualizada, la usamos
+        profileData.value.avatar = avatarInfo.avatar
+        profileData.value.photo = avatarInfo.photo
+        
+        // Actualizar también en el store
+        if (authStore.user) {
+          (authStore.user as any).avatar = avatarInfo.avatar
+          (authStore.user as any).photo = avatarInfo.photo
+          localStorage.setItem('user', JSON.stringify(authStore.user))
+        }
+      }
+    } catch (avatarError) {
+      console.error('Error al cargar información de avatar:', avatarError)
     }
     
   } catch (error) {
@@ -551,10 +668,12 @@ const loadProfile = async () => {
     console.log('🏁 Carga de perfil completada')
     console.log('📋 ProfileData final:', profileData.value)
     
-    // Debug específico para el avatar
-    console.log('� DEBUGGING AVATAR:')
-    console.log('- profileData.value?.avatar:', profileData.value?.avatar)
+    // Debug específico para el avatar y foto
+    console.log('🖼️ DEBUGGING IMÁGENES:')
+    console.log('- Avatar ID:', profileData.value?.avatar)
+    console.log('- Foto Path:', profileData.value?.photo)
     console.log('- Avatar seleccionado:', selectedAvatarData.value)
+    console.log('- URL foto resuelta:', resolvedPhotoUrl.value)
   }
 }
 
