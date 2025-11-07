@@ -359,7 +359,12 @@ export const useChatStore = defineStore('chat', () => {
     const currentUserId = authStore.user?._id
     if (!currentUserId) return
     const roomMessages = messages.value[roomId] || []
-    const unread = roomMessages.filter(msg => msg.sender._id !== currentUserId && !msg.readBy.some(r => r.user === currentUserId)).length
+    const unread = roomMessages.filter(msg => {
+      // Verificar que el mensaje tenga sender
+      if (!msg.sender || !msg.sender._id) return false
+      // Verificar que no sea del usuario actual y no esté leído
+      return msg.sender._id !== currentUserId && !msg.readBy?.some(r => r.user === currentUserId)
+    }).length
     unreadByRoom.value[roomId] = unread
   }
 

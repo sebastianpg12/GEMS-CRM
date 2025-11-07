@@ -26,14 +26,16 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-  target: 'https://gems-crm-backend.onrender.com',
+        target: 'https://gems-crm-backend.onrender.com',
         changeOrigin: true,
-        secure: true
+        secure: false, // Ignorar errores de certificado SSL en desarrollo
+        rewrite: (path) => path
       },
       '/uploads': {
-  target: 'https://gems-crm-backend.onrender.com',
+        target: 'https://gems-crm-backend.onrender.com',
         changeOrigin: true,
-        secure: true
+        secure: false, // Ignorar errores de certificado SSL en desarrollo
+        rewrite: (path) => path
       }
     }
   }

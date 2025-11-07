@@ -18,6 +18,16 @@
             Kanban
           </button>
           <button
+            @click="currentView = 'tasks'"
+            :class="currentView === 'tasks' 
+              ? 'bg-purple-600 text-white' 
+              : 'text-gray-400 hover:text-white'"
+            class="px-3 py-1 rounded-md text-sm font-medium transition-colors"
+          >
+            <i class="fas fa-tasks mr-2"></i>
+            Tasks
+          </button>
+          <button
             @click="currentView = 'calendar'"
             :class="currentView === 'calendar' 
               ? 'bg-purple-600 text-white' 
@@ -40,28 +50,15 @@
           </button>
         </PermissionGuard>
         
-        <!-- Botones de gestión de notificaciones -->
-        <PermissionGuard :roles="['admin', 'manager']" :fallback="false">
-          <div class="flex items-center gap-2">
-            <!-- Botón para abrir configuración de notificaciones -->
-            <button
-              @click="$emit('open-notification-settings')"
-              class="px-3 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all duration-200 flex items-center gap-2 text-sm"
-              title="Configuración de notificaciones WhatsApp"
-            >
-              <i class="fas fa-cog"></i>
-              <span class="hidden sm:inline">Configurar</span>
-            </button>
-            
-            <!-- Componente de notificación existente -->
-            <TaskNotifier :activities="activities" />
-          </div>
-        </PermissionGuard>
+        <!-- Botones de gestión de notificaciones - REMOVED -->
       </div>
     </div>
 
-    <!-- Barra de tarea rápida (en ambas vistas) -->
-    <div class="bg-gradient-to-r from-yellow-600/20 to-orange-600/20 backdrop-blur-sm rounded-xl p-4 border border-yellow-500/30 relative">
+    <!-- Barra de tarea rápida (solo en Kanban y Calendario) -->
+    <div 
+      v-if="currentView !== 'tasks'"
+      class="bg-gradient-to-r from-yellow-600/20 to-orange-600/20 backdrop-blur-sm rounded-xl p-4 border border-yellow-500/30 relative"
+    >
       <div class="flex items-center gap-4">
         <div class="flex items-center gap-2 text-yellow-300">
           <i class="fas fa-lightning-bolt"></i>
@@ -124,8 +121,11 @@
       </div>
     </div>
 
-    <!-- Filtros -->
-    <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-gray-700/50">
+    <!-- Filtros (solo en Kanban y Calendario) -->
+    <div 
+      v-if="currentView !== 'tasks'"
+      class="bg-gray-800/50 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-gray-700/50"
+    >
       <div class="flex flex-wrap gap-3 sm:gap-4 items-center">
         <!-- Filtro por miembro del equipo -->
         <div class="flex-1 min-w-64">
@@ -183,8 +183,600 @@
       />
     </div>
 
+    <!-- Vista de Tasks (Azure DevOps Style) - Lista y Panel -->
+    <div v-else-if="currentView === 'tasks'" class="flex gap-4 h-[calc(100vh-280px)]">
+      <!-- Panel Principal - Lista de Tareas -->
+      <div class="flex-1 space-y-4 overflow-hidden">
+        <!-- Toolbar Superior -->
+        <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl p-3 border border-gray-700/50">
+          <div class="flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3 flex-1">
+              <!-- Board Selector -->
+              <select
+                v-model="selectedBoardId"
+                @change="handleBoardChange"
+                class="px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Seleccionar tablero...</option>
+                <option v-for="board in boardsStore.myBoards" :key="board._id" :value="board._id">
+                  {{ board.name }}
+                </option>
+              </select>
+
+              <!-- Botón Nuevo Tablero -->
+              <button
+                @click="showCreateBoardModal = true"
+                class="px-3 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-md hover:from-purple-700 hover:to-pink-700 text-sm font-medium flex items-center gap-2"
+                title="Crear nuevo tablero"
+              >
+                <i class="fas fa-plus"></i>
+                <span class="hidden sm:inline">Nuevo Tablero</span>
+              </button>
+
+              <!-- Sprint Selector -->
+              <select
+                v-if="selectedBoard && selectedBoard.type === 'scrum'"
+                v-model="selectedSprintId"
+                @change="filterBySprint"
+                class="px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Todos los sprints</option>
+                <option value="backlog">Backlog</option>
+                <option v-for="sprint in selectedBoard.sprints" :key="sprint._id" :value="sprint._id">
+                  {{ sprint.name }} ({{ sprint.status }})
+                </option>
+              </select>
+
+              <!-- Filtros -->
+              <div class="relative">
+                <button class="px-3 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 text-sm">
+                  <i class="fas fa-filter mr-2"></i>
+                  Filtros
+                </button>
+              </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="flex items-center gap-2">
+              <button
+                v-if="selectedBoardId"
+                @click="openCreateTaskModal"
+                class="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-md hover:from-green-700 hover:to-emerald-700 text-sm font-medium flex items-center gap-2"
+              >
+                <i class="fas fa-plus"></i>
+                <span>Nueva Tarea</span>
+              </button>
+              <button
+                v-if="selectedBoardId"
+                @click="refreshTasks"
+                class="px-3 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600"
+              >
+                <i class="fas fa-sync-alt"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lista de Tareas -->
+        <div v-if="selectedBoardId" class="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700/50 overflow-hidden">
+          <!-- Body scrolleable -->
+          <div class="p-4 overflow-y-auto max-h-[calc(100vh-420px)]">
+            <!-- Grupo: Sprint Activo -->
+            <div v-if="activeSprintTasks.length > 0" class="mb-6">
+              <div class="flex items-center gap-2 mb-3 cursor-pointer" @click="toggleGroup('activeSprint')">
+                <i :class="groupsExpanded.activeSprint ? 'fas fa-chevron-down' : 'fas fa-chevron-right'" class="text-gray-400 text-xs"></i>
+                <span class="text-sm font-medium text-blue-400">
+                  <i class="fas fa-running mr-2"></i>
+                  Sprint Activo
+                </span>
+                <span class="text-xs text-gray-500 ml-2">{{ activeSprintTasks.length }} tareas</span>
+              </div>
+              <div v-show="groupsExpanded.activeSprint" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div
+                  v-for="task in activeSprintTasks"
+                  :key="task._id"
+                  class="bg-gray-900/50 rounded-lg p-4 border border-gray-700 hover:border-blue-500/40 transition-all duration-200 group"
+                >
+                  <!-- Header de la tarjeta -->
+                  <div class="flex items-start justify-between gap-2 mb-3">
+                    <div class="flex-1">
+                      <div class="flex items-center gap-2 mb-1">
+                        <span class="text-xs font-medium text-blue-400">{{ task._id.slice(-4).toUpperCase() }}</span>
+                        <i :class="getTypeIcon(task.type)" class="text-xs"></i>
+                      </div>
+                      <h3 class="text-sm font-semibold text-white line-clamp-2">{{ task.title }}</h3>
+                    </div>
+                    <div class="flex items-center gap-1">
+                      <button
+                        @click.stop="selectTask(task)"
+                        class="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-blue-500/20 rounded transition-all"
+                        title="Ver detalles"
+                      >
+                        <i class="fas fa-eye text-xs"></i>
+                      </button>
+                      <button
+                        @click.stop="editTaskFromCard(task)"
+                        class="p-1.5 text-gray-400 hover:text-purple-400 hover:bg-purple-500/20 rounded transition-all"
+                        title="Editar"
+                      >
+                        <i class="fas fa-edit text-xs"></i>
+                      </button>
+                      <button
+                        @click.stop="deleteTask(task._id)"
+                        class="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/20 rounded transition-all"
+                        title="Eliminar"
+                      >
+                        <i class="fas fa-trash text-xs"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Descripción -->
+                  <p v-if="task.description" class="text-xs text-gray-400 mb-3 line-clamp-2">{{ task.description }}</p>
+
+                  <!-- Estado y Prioridad -->
+                  <div class="flex items-center gap-2 mb-3">
+                    <span :class="getStatusBadgeClass(task.boardStatus)" class="text-xs px-2 py-1 rounded">
+                      {{ getStatusLabel(task.boardStatus) }}
+                    </span>
+                    <span :class="getPriorityClass(task.priority)" class="text-xs px-2 py-1 rounded">
+                      {{ task.priority }}
+                    </span>
+                  </div>
+
+                  <!-- Asignado -->
+                  <div class="flex items-center gap-2">
+                    <div v-if="task.assignedTo" class="flex items-center gap-2">
+                      <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-xs text-white">
+                        {{ getAssignedName(task.assignedTo).charAt(0) }}
+                      </div>
+                      <span class="text-xs text-gray-300">{{ getAssignedName(task.assignedTo) }}</span>
+                    </div>
+                    <span v-else class="text-xs text-gray-500">Sin asignar</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Grupo: Backlog -->
+            <div>
+              <div class="flex items-center gap-2 mb-3 cursor-pointer" @click="toggleGroup('backlog')">
+                <i :class="groupsExpanded.backlog ? 'fas fa-chevron-down' : 'fas fa-chevron-right'" class="text-gray-400 text-xs"></i>
+                <span class="text-sm font-medium text-gray-400">
+                  <i class="fas fa-inbox mr-2"></i>
+                  Backlog
+                </span>
+                <span class="text-xs text-gray-500 ml-2">{{ getTasksByStatus('backlog').length }} tareas</span>
+              </div>
+              <div v-show="groupsExpanded.backlog" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div
+                  v-for="task in getTasksByStatus('backlog')"
+                  :key="task._id"
+                  class="bg-gray-900/50 rounded-lg p-4 border border-gray-700 hover:border-gray-500/40 transition-all duration-200 group"
+                >
+                  <!-- Header de la tarjeta -->
+                  <div class="flex items-start justify-between gap-2 mb-3">
+                    <div class="flex-1">
+                      <div class="flex items-center gap-2 mb-1">
+                        <span class="text-xs font-medium text-blue-400">{{ task._id.slice(-4).toUpperCase() }}</span>
+                        <i :class="getTypeIcon(task.type)" class="text-xs"></i>
+                      </div>
+                      <h3 class="text-sm font-semibold text-white line-clamp-2">{{ task.title }}</h3>
+                    </div>
+                    <div class="flex items-center gap-1">
+                      <button
+                        @click.stop="selectTask(task)"
+                        class="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-blue-500/20 rounded transition-all"
+                        title="Ver detalles"
+                      >
+                        <i class="fas fa-eye text-xs"></i>
+                      </button>
+                      <button
+                        @click.stop="editTaskFromCard(task)"
+                        class="p-1.5 text-gray-400 hover:text-purple-400 hover:bg-purple-500/20 rounded transition-all"
+                        title="Editar"
+                      >
+                        <i class="fas fa-edit text-xs"></i>
+                      </button>
+                      <button
+                        @click.stop="deleteTask(task._id)"
+                        class="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/20 rounded transition-all"
+                        title="Eliminar"
+                      >
+                        <i class="fas fa-trash text-xs"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Descripción -->
+                  <p v-if="task.description" class="text-xs text-gray-400 mb-3 line-clamp-2">{{ task.description }}</p>
+
+                  <!-- Estado y Prioridad -->
+                  <div class="flex items-center gap-2 mb-3">
+                    <span :class="getStatusBadgeClass(task.boardStatus)" class="text-xs px-2 py-1 rounded">
+                      {{ getStatusLabel(task.boardStatus) }}
+                    </span>
+                    <span :class="getPriorityClass(task.priority)" class="text-xs px-2 py-1 rounded">
+                      {{ task.priority }}
+                    </span>
+                  </div>
+
+                  <!-- Asignado -->
+                  <div class="flex items-center gap-2">
+                    <div v-if="task.assignedTo" class="flex items-center gap-2">
+                      <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-xs text-white">
+                        {{ getAssignedName(task.assignedTo).charAt(0) }}
+                      </div>
+                      <span class="text-xs text-gray-300">{{ getAssignedName(task.assignedTo) }}</span>
+                    </div>
+                    <span v-else class="text-xs text-gray-500">Sin asignar</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div v-else class="bg-gray-800/50 backdrop-blur-sm rounded-xl p-12 border border-gray-700/50 text-center">
+          <i class="fas fa-tasks text-gray-600 text-6xl mb-4"></i>
+          <h3 class="text-xl font-bold text-gray-300 mb-2">No hay tablero seleccionado</h3>
+          <p class="text-gray-400 mb-6">Selecciona un tablero para ver y gestionar las tareas</p>
+          <button
+            @click="showCreateBoardModal = true"
+            class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-md hover:from-purple-700 hover:to-pink-700 font-medium"
+          >
+            <i class="fas fa-plus mr-2"></i>
+            Crear primer tablero
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Detalles de Tarea -->
+    <Teleport to="body">
+      <div
+        v-if="selectedTask"
+        class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+        @click.self="selectedTask = null"
+      >
+        <div class="bg-gray-800 rounded-2xl w-full max-w-2xl max-h-[90vh] shadow-2xl border border-blue-500/20 flex flex-col overflow-hidden"
+        >
+        <!-- Header -->
+        <div class="p-4 border-b border-gray-700/50 flex items-center justify-between bg-gray-900/50">
+          <div class="flex items-center gap-3">
+            <i :class="getTypeIcon(selectedTask.type)" class="text-lg"></i>
+            <span class="text-sm font-medium text-blue-400">{{ selectedTask._id.slice(-4).toUpperCase() }}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button
+              @click="showEditTaskModal"
+              class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-md text-xs flex items-center gap-1"
+              title="Editar tarea"
+            >
+              <i class="fas fa-edit"></i>
+            </button>
+            <button
+              @click="deleteTask(selectedTask._id)"
+              class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-md text-xs flex items-center gap-1"
+              title="Eliminar tarea"
+            >
+              <i class="fas fa-trash"></i>
+            </button>
+            <button @click="selectedTask = null" class="text-gray-400 hover:text-white">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Body Scrolleable -->
+        <div class="flex-1 overflow-y-auto p-4 space-y-4">
+          <!-- Título -->
+          <div>
+            <h3 class="text-lg font-bold text-white mb-2">{{ selectedTask.title }}</h3>
+            <p class="text-sm text-gray-400">{{ selectedTask.description || 'Sin descripción' }}</p>
+          </div>
+
+          <!-- Estado y Prioridad -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs font-medium text-gray-400 mb-1 block">Estado</label>
+              <select
+                v-model="selectedTask.boardStatus"
+                @change="updateTaskStatus"
+                class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm"
+              >
+                <option value="backlog">Backlog</option>
+                <option value="todo">To Do</option>
+                <option value="in-progress">In Progress</option>
+                <option value="review">Review</option>
+                <option value="testing">Testing</option>
+                <option value="done">Done</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-gray-400 mb-1 block">Prioridad</label>
+              <select
+                v-model="selectedTask.priority"
+                @change="updateTaskPriority"
+                class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm"
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="urgent">Urgent</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Asignado -->
+          <div>
+            <label class="text-xs font-medium text-gray-400 mb-2 block">Persona asignada</label>
+            <div v-if="getFirstAssigned(selectedTask.assignedTo)" class="flex items-center gap-3 p-3 bg-gray-700/50 rounded-lg">
+              <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium">
+                {{ getFirstAssigned(selectedTask.assignedTo)?.name?.charAt(0) || '?' }}
+              </div>
+              <div>
+                <div class="text-sm font-medium text-white">{{ getFirstAssigned(selectedTask.assignedTo)?.name || 'Sin nombre' }}</div>
+                <div class="text-xs text-gray-400">{{ getFirstAssigned(selectedTask.assignedTo)?.email || '' }}</div>
+              </div>
+            </div>
+            <div v-else class="text-sm text-gray-500 p-3 bg-gray-700/30 rounded-lg">Sin asignar</div>
+          </div>
+
+          <!-- Fechas -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs font-medium text-gray-400 mb-1 block">Fecha inicio</label>
+              <input
+                type="date"
+                v-model="selectedTask.startDate"
+                class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm"
+              />
+            </div>
+            <div>
+              <label class="text-xs font-medium text-gray-400 mb-1 block">Fecha límite</label>
+              <input
+                type="date"
+                v-model="selectedTask.dueDate"
+                class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm"
+              />
+            </div>
+          </div>
+
+          <!-- Estimación -->
+          <div>
+            <label class="text-xs font-medium text-gray-400 mb-1 block">Estimación original</label>
+            <input
+              type="text"
+              v-model="selectedTask.estimatedTime"
+              placeholder="4h"
+              class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm"
+            />
+          </div>
+
+          <!-- Sprint -->
+          <div v-if="selectedBoard?.type === 'scrum'">
+            <label class="text-xs font-medium text-gray-400 mb-2 block">Sprint</label>
+            <select
+              v-model="selectedTask.sprint"
+              @change="updateTaskSprint"
+              class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm"
+            >
+              <option value="">Backlog</option>
+              <option v-for="sprint in selectedBoard.sprints" :key="sprint._id" :value="sprint._id">
+                {{ sprint.name }} ({{ sprint.status }})
+              </option>
+            </select>
+          </div>
+          <div v-else>
+            <label class="text-xs font-medium text-gray-400 mb-2 block">Sprint</label>
+            <div class="text-sm text-blue-400">{{ getTaskSprintName(selectedTask) }}</div>
+          </div>
+
+          <!-- GitHub Integration -->
+          <div class="border-t border-gray-700/50 pt-4">
+            <div class="flex items-center justify-between mb-3">
+              <label class="text-xs font-medium text-gray-400">Desarrollo</label>
+              <i class="fab fa-github text-gray-500"></i>
+            </div>
+
+            <!-- Rama actual -->
+            <div v-if="selectedTask.github?.branch" class="mb-3">
+              <div class="flex items-center gap-2 p-3 bg-green-900/20 border border-green-500/30 rounded-lg">
+                <i class="fas fa-code-branch text-green-400"></i>
+                <span class="text-sm text-green-300">{{ selectedTask.github.branch }}</span>
+              </div>
+            </div>
+
+            <!-- Crear rama -->
+            <div v-if="!selectedTask.github?.branch" class="space-y-3">
+              <button
+                @click="openCreateBranchModal"
+                class="w-full px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 text-sm"
+              >
+                <i class="fas fa-code-branch mr-2"></i>
+                Crear rama
+              </button>
+            </div>
+
+            <!-- PR -->
+            <div v-if="selectedTask.github?.pr" class="mt-3">
+              <a
+                :href="selectedTask.github.pr"
+                target="_blank"
+                class="flex items-center gap-2 p-3 bg-purple-900/20 border border-purple-500/30 rounded-lg hover:bg-purple-900/30 transition-colors"
+              >
+                <i class="fas fa-code-pull-request text-purple-400"></i>
+                <span class="text-sm text-purple-300">Ver Pull Request</span>
+                <i class="fas fa-external-link-alt text-purple-400 text-xs ml-auto"></i>
+              </a>
+            </div>
+            <button
+              v-else-if="selectedTask.github?.branch"
+              @click="createPullRequest"
+              class="w-full mt-3 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 text-sm"
+            >
+              <i class="fas fa-code-pull-request mr-2"></i>
+              Crear Pull Request
+            </button>
+          </div>
+
+          <!-- Comentarios -->
+          <div class="border-t border-gray-700/50 pt-4">
+            <label class="text-xs font-medium text-gray-400 mb-3 block">Comentarios</label>
+            <div class="space-y-3 mb-3">
+              <div
+                v-for="comment in selectedTask.comments"
+                :key="comment._id"
+                class="p-3 bg-gray-700/50 rounded-lg"
+              >
+                <div class="flex items-center gap-2 mb-2">
+                  <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-xs text-white">
+                    {{ comment.user?.name?.charAt(0) }}
+                  </div>
+                  <span class="text-xs font-medium text-white">{{ comment.user?.name }}</span>
+                  <span class="text-xs text-gray-500">{{ formatDate(comment.createdAt) }}</span>
+                </div>
+                <p class="text-sm text-gray-300">{{ comment.text }}</p>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <input
+                v-model="newComment"
+                @keyup.enter="addComment"
+                type="text"
+                placeholder="Añadir comentario..."
+                class="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm"
+              />
+              <button
+                @click="addComment"
+                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                <i class="fas fa-paper-plane"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- Modal: Crear Rama de GitHub -->
+    <Teleport to="body">
+      <div
+        v-if="showCreateBranchModal && selectedTask"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[10000]"
+        @click.self="showCreateBranchModal = false"
+      >
+        <div class="bg-gray-800 rounded-xl border border-gray-700 p-6 max-w-md w-full mx-4">
+        <h3 class="text-xl font-bold text-white mb-4">
+          <i class="fab fa-github mr-2"></i>
+          Crear rama
+        </h3>
+
+        <div class="space-y-4">
+          <!-- Repositorio -->
+          <div>
+            <label class="text-sm font-medium text-gray-300 mb-2 block">Repositorio</label>
+            <select
+              v-model="branchForm.repository"
+              class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white"
+            >
+              <option value="">Seleccionar...</option>
+              <option v-for="repo in githubStore.repositories" :key="repo.name" :value="repo.full_name">
+                {{ repo.name }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Tipo -->
+          <div>
+            <label class="text-sm font-medium text-gray-300 mb-2 block">Tipo</label>
+            <select
+              v-model="branchForm.type"
+              class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white"
+            >
+              <option value="feature">Feature</option>
+              <option value="bugfix">Bugfix</option>
+              <option value="hotfix">Hotfix</option>
+              <option value="release">Release</option>
+            </select>
+          </div>
+
+          <!-- Rama base -->
+          <div>
+            <label class="text-sm font-medium text-gray-300 mb-2 block">Desde rama</label>
+            <select
+              v-model="branchForm.baseBranch"
+              class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white"
+            >
+              <option value="master">master</option>
+              <option value="main">main</option>
+              <option value="develop">develop</option>
+            </select>
+          </div>
+
+          <!-- Nombre de la rama (editable) -->
+          <div>
+            <label class="text-sm font-medium text-gray-300 mb-2 block">
+              Nombre de la rama
+              <button
+                @click="branchForm.customName = generateBranchName()"
+                type="button"
+                class="ml-2 text-xs text-blue-400 hover:text-blue-300"
+                title="Regenerar nombre"
+              >
+                <i class="fas fa-sync-alt"></i>
+              </button>
+            </label>
+            <input
+              v-model="branchForm.customName"
+              type="text"
+              placeholder="feature/task-123-titulo"
+              class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              @focus="() => { if (!branchForm.customName) branchForm.customName = generateBranchName() }"
+            />
+            <p class="text-xs text-gray-500 mt-1">Puedes personalizar el nombre de la rama</p>
+          </div>
+
+          <!-- Diagrama visual -->
+          <div class="py-4 flex items-center justify-center gap-4">
+            <div class="flex flex-col items-center">
+              <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+              <div class="text-xs text-gray-400 mt-2">{{ branchForm.baseBranch }}</div>
+            </div>
+            <div class="flex-1 h-0.5 bg-blue-500"></div>
+            <div class="flex flex-col items-center">
+              <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+              <div class="text-xs text-gray-400 mt-2 text-center max-w-[120px] truncate">
+                {{ branchForm.customName || generateBranchName() }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex gap-3 mt-6">
+          <button
+            @click="createGitHubBranch"
+            :disabled="!branchForm.repository"
+            class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+          >
+            Crear
+          </button>
+          <button
+            @click="showCreateBranchModal = false"
+            class="px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600"
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+      </div>
+    </Teleport>
+
     <!-- Loading state -->
-    <div v-else-if="loading" class="flex items-center justify-center py-12">
+    <div v-if="loading" class="flex items-center justify-center py-12">
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
     </div>
 
@@ -1001,6 +1593,264 @@
         </div>
       </div>
     </Teleport>
+
+    <!-- Modal Crear/Editar Tarea -->
+    <Teleport to="body">
+      <div
+        v-if="showCreateTaskModal"
+        class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+        @click.self="closeTaskModal"
+      >
+        <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-2xl shadow-2xl border border-green-500/20 max-h-[90vh] overflow-y-auto">
+          <h2 class="text-xl font-bold text-white mb-4">
+            <i class="fas fa-tasks mr-2"></i>
+            {{ isEditingTask ? 'Editar Tarea' : 'Nueva Tarea' }}
+          </h2>
+          
+          <form @submit.prevent="createTask">
+            <div class="grid grid-cols-2 gap-4">
+              <!-- Título -->
+              <div class="col-span-2">
+                <label class="block text-sm font-medium text-gray-300 mb-2">Título *</label>
+                <input
+                  v-model="newTask.title"
+                  type="text"
+                  required
+                  class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  placeholder="Título de la tarea"
+                />
+              </div>
+
+              <!-- Descripción -->
+              <div class="col-span-2">
+                <label class="block text-sm font-medium text-gray-300 mb-2">Descripción</label>
+                <textarea
+                  v-model="newTask.description"
+                  rows="3"
+                  class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  placeholder="Describe la tarea..."
+                ></textarea>
+              </div>
+
+              <!-- Tipo -->
+              <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Tipo *</label>
+                <select
+                  v-model="newTask.type"
+                  required
+                  class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                >
+                  <option value="feature">Feature</option>
+                  <option value="bug">Bug</option>
+                  <option value="task">Task</option>
+                  <option value="improvement">Improvement</option>
+                  <option value="documentation">Documentation</option>
+                </select>
+              </div>
+
+              <!-- Prioridad -->
+              <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Prioridad *</label>
+                <select
+                  v-model="newTask.priority"
+                  required
+                  class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                >
+                  <option value="low">Baja</option>
+                  <option value="medium">Media</option>
+                  <option value="high">Alta</option>
+                  <option value="critical">Crítica</option>
+                </select>
+              </div>
+
+              <!-- Estado del Board -->
+              <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Estado *</label>
+                <select
+                  v-model="newTask.boardStatus"
+                  required
+                  class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                >
+                  <option v-for="column in selectedBoard?.columns" :key="column.id" :value="column.mappedStatus">
+                    {{ column.name }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Sprint -->
+              <div v-if="selectedBoard?.type === 'scrum'">
+                <label class="block text-sm font-medium text-gray-300 mb-2">Sprint</label>
+                <select
+                  v-model="newTask.sprint"
+                  class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                >
+                  <option value="">Backlog</option>
+                  <option v-for="sprint in selectedBoard?.sprints" :key="sprint._id" :value="sprint._id">
+                    {{ sprint.name }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Asignado a -->
+              <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Asignar a</label>
+                <select
+                  v-model="newTask.assignedTo"
+                  class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                >
+                  <option value="">Sin asignar</option>
+                  <option v-for="member in teamMembers" :key="member._id" :value="member._id">
+                    {{ member.name }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Story Points -->
+              <div v-if="selectedBoard?.type === 'scrum'">
+                <label class="block text-sm font-medium text-gray-300 mb-2">Story Points</label>
+                <input
+                  v-model.number="newTask.storyPoints"
+                  type="number"
+                  min="0"
+                  class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  placeholder="0"
+                />
+              </div>
+
+              <!-- Estimación -->
+              <div class="col-span-2">
+                <label class="block text-sm font-medium text-gray-300 mb-2">Estimación de tiempo</label>
+                <input
+                  v-model="newTask.estimatedTime"
+                  type="text"
+                  class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  placeholder="Ej: 2 horas, 1 día"
+                />
+              </div>
+
+              <!-- Etiquetas -->
+              <div class="col-span-2">
+                <label class="block text-sm font-medium text-gray-300 mb-2">Etiquetas</label>
+                <input
+                  v-model="newTask.tags"
+                  type="text"
+                  class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  placeholder="frontend, backend, api (separadas por comas)"
+                />
+              </div>
+            </div>
+
+            <div class="flex justify-end space-x-3 mt-6">
+              <button
+                type="button"
+                @click="closeTaskModal"
+                class="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700 border border-gray-600 rounded-lg hover:bg-gray-600"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                :disabled="!newTask.title || !newTask.type || !newTask.boardStatus"
+                class="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-green-600 to-emerald-600 rounded-lg hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <i :class="isEditingTask ? 'fas fa-save' : 'fas fa-plus'" class="mr-2"></i>
+                {{ isEditingTask ? 'Guardar Cambios' : 'Crear Tarea' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- Modal Crear Tablero -->
+    <Teleport to="body">
+      <div
+        v-if="showCreateBoardModal"
+        class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+        @click.self="showCreateBoardModal = false"
+      >
+        <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-md shadow-2xl border border-purple-500/20">
+          <h2 class="text-xl font-bold text-white mb-4">Crear Nuevo Tablero</h2>
+          
+          <form @submit.prevent="createBoard">
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-300 mb-2">Nombre</label>
+              <input
+                v-model="newBoard.name"
+                type="text"
+                required
+                class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                placeholder="Mi Proyecto"
+              />
+            </div>
+
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-300 mb-2">Descripción</label>
+              <textarea
+                v-model="newBoard.description"
+                rows="3"
+                class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                placeholder="Descripción del proyecto..."
+              ></textarea>
+            </div>
+
+            <div class="mb-6">
+              <label class="block text-sm font-medium text-gray-300 mb-2">Tipo de Tablero</label>
+              <div class="grid grid-cols-2 gap-3">
+                <label 
+                  class="relative flex items-center p-4 border-2 rounded-lg cursor-pointer transition-colors"
+                  :class="newBoard.type === 'kanban' ? 'border-blue-500 bg-blue-500/10' : 'border-gray-600 hover:border-gray-500 bg-gray-700/30'"
+                >
+                  <input
+                    v-model="newBoard.type"
+                    type="radio"
+                    value="kanban"
+                    class="sr-only"
+                  />
+                  <div class="flex-1">
+                    <div class="font-medium text-white">Kanban</div>
+                    <div class="text-xs text-gray-400">Flujo continuo</div>
+                  </div>
+                </label>
+
+                <label 
+                  class="relative flex items-center p-4 border-2 rounded-lg cursor-pointer transition-colors"
+                  :class="newBoard.type === 'scrum' ? 'border-purple-500 bg-purple-500/10' : 'border-gray-600 hover:border-gray-500 bg-gray-700/30'"
+                >
+                  <input
+                    v-model="newBoard.type"
+                    type="radio"
+                    value="scrum"
+                    class="sr-only"
+                  />
+                  <div class="flex-1">
+                    <div class="font-medium text-white">Scrum</div>
+                    <div class="text-xs text-gray-400">Con sprints</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div class="flex justify-end space-x-3">
+              <button
+                type="button"
+                @click="showCreateBoardModal = false"
+                class="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700 border border-gray-600 rounded-lg hover:bg-gray-600"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                :disabled="!newBoard.name"
+                class="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Crear Tablero
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -1011,6 +1861,9 @@ import { clientService, type ClientData } from '../../services/clientService'
 import { teamService } from '../../services/teamService'
 import { useNotifications } from '../../composables/useNotifications'
 import { useAuthStore } from '../../stores/auth'
+import { useBoardsStore } from '../../stores/boards'
+import { useTasksStore } from '../../stores/tasks'
+import { useGitHubStore } from '../../stores/github'
 import type { TeamMember } from '../../types'
 import PermissionGuard from '../PermissionGuard.vue'
 import ActivityFormModal from '../forms/ActivityFormModal.vue'
@@ -1018,7 +1871,7 @@ import AssignActivityModal from '../modals/AssignActivityModal.vue'
 import MonthlyCalendar from '../calendar/MonthlyCalendar.vue'
 import QuickTaskModal from '../modals/QuickTaskModal.vue'
 import AvatarInline from '../AvatarInline.vue'
-import TaskNotifier from '../notifications/TaskNotifier.vue'
+// import TaskNotifier from '../notifications/TaskNotifier.vue' // REMOVED
 
 // Props
 interface Props {
@@ -1032,12 +1885,14 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   create: []
   edit: [activity: ActivityData]
-  'open-notification-settings': []
 }>()
 
 // Composables
 const { showSuccess, showError, confirmDelete, toast, showLoading, closeLoading } = useNotifications()
 const authStore = useAuthStore()
+const boardsStore = useBoardsStore()
+const tasksStore = useTasksStore()
+const githubStore = useGitHubStore()
 
 // Reactive data
 const activities = ref<ActivityData[]>([])
@@ -1050,7 +1905,7 @@ const draggedActivity = ref<ActivityData | null>(null)
 const isDragging = ref(false)
 
 // Vista y UI
-const currentView = ref<'kanban' | 'calendar'>('kanban')
+const currentView = ref<'kanban' | 'tasks' | 'calendar'>('kanban')
 const quickTaskTitle = ref('')
 const showQuickSettings = ref(false)
 const showQuickTaskHints = ref(false)
@@ -1074,6 +1929,14 @@ const editingActivity = ref<ActivityData | null>(null)
 const showAssignModalState = ref(false)
 const assigningActivity = ref<ActivityData | null>(null)
 const assignLoading = ref(false)
+
+// Modales para tableros
+const showCreateBoardModal = ref(false)
+const newBoard = ref({
+  name: '',
+  description: '',
+  type: 'kanban' as 'kanban' | 'scrum'
+})
 
 // Modales para funcionalidad del calendario
 const showQuickTaskModal = ref(false)
@@ -1176,8 +2039,20 @@ const getUserInfo = (user: any) => {
 const loadActivities = async () => {
   loading.value = true
   try {
+    // Cargar actividades tradicionales
     activities.value = await activityService.getAll()
     console.log('✅ Activities loaded:', activities.value.length)
+    
+    // Cargar boards y tasks del nuevo sistema
+    await boardsStore.fetchBoards()
+    console.log('✅ Boards loaded:', boardsStore.myBoards.length)
+    
+    // Si hay boards, cargar las tareas del primer board por defecto
+    if (boardsStore.myBoards.length > 0) {
+      const firstBoard = boardsStore.myBoards[0]
+      await tasksStore.fetchTasks(firstBoard._id)
+      console.log('✅ Tasks loaded:', tasksStore.tasks.length)
+    }
   } catch (err) {
     console.error('❌ Error loading activities:', err)
     error.value = err instanceof Error ? err.message : 'Error desconocido'
@@ -1536,6 +2411,36 @@ const createQuickTaskForStatus = async (status: string) => {
   }
 }
 
+// Funciones para manejo de tableros
+const createBoard = async () => {
+  if (!newBoard.value.name) {
+    showError('Error', 'El nombre del tablero es requerido')
+    return
+  }
+
+  try {
+    showLoading('Creando tablero...')
+    await boardsStore.createBoard(newBoard.value)
+    
+    showSuccess('Tablero creado exitosamente')
+    showCreateBoardModal.value = false
+    
+    // Resetear formulario
+    newBoard.value = {
+      name: '',
+      description: '',
+      type: 'kanban'
+    }
+    
+    // Recargar la lista de tableros
+    await boardsStore.fetchBoards()
+  } catch (err) {
+    showError('Error al crear tablero', err instanceof Error ? err.message : 'Error desconocido')
+  } finally {
+    closeLoading()
+  }
+}
+
 // También crear una función auxiliar más simple para los casos actuales
 const getActivityAssignedName = (assignedUser?: any): string => {
   console.log('🔍 getActivityAssignedName received:', assignedUser)
@@ -1809,16 +2714,6 @@ const findActivityAssignment = (activityId: string): string => {
   return 'Sin asignar'
 }
 
-const getPriorityClass = (priority: string) => {
-  const classes = {
-    low: 'bg-blue-900/20 text-blue-300 border-blue-500/30',
-    medium: 'bg-yellow-900/20 text-yellow-300 border-yellow-500/30',
-    high: 'bg-orange-900/20 text-orange-300 border-orange-500/30',
-    urgent: 'bg-red-900/20 text-red-300 border-red-500/30'
-  }
-  return classes[priority as keyof typeof classes] || classes.medium
-}
-
 const getPriorityIcon = (priority: string) => {
   const icons = {
     low: 'fas fa-arrow-down',
@@ -1843,6 +2738,557 @@ const clearFilters = () => {
   selectedTeamMember.value = ''
   selectedStatus.value = ''
   loadActivities()
+}
+
+// Tasks functions
+const selectedBoardId = ref('')
+const selectedTask = ref<any>(null)
+const selectedSprintId = ref('')
+const showCreateBranchModal = ref(false)
+const showCreateTaskModal = ref(false)
+const isEditingTask = ref(false)
+const editingTaskId = ref('')
+const newComment = ref('')
+
+const newTask = ref({
+  title: '',
+  description: '',
+  type: 'task',
+  priority: 'medium',
+  boardStatus: 'todo',
+  sprint: '',
+  assignedTo: '',
+  storyPoints: 0,
+  estimatedTime: '',
+  tags: ''
+})
+
+const groupsExpanded = ref({
+  activeSprint: true,
+  backlog: true
+})
+
+const branchForm = ref({
+  repository: '',
+  type: 'feature',
+  baseBranch: 'master',
+  customName: ''
+})
+
+const selectedBoard = computed(() => {
+  return boardsStore.myBoards.find(b => b._id === selectedBoardId.value)
+})
+
+const activeSprintTasks = computed(() => {
+  if (!selectedBoard.value || selectedBoard.value.type !== 'scrum') return []
+  const activeSprint = selectedBoard.value.sprints?.find((s: any) => s.status === 'active')
+  if (!activeSprint) return []
+  return tasksStore.tasks.filter(task => task.sprint === activeSprint._id && task.boardStatus !== 'backlog')
+})
+
+const getTasksByStatus = (status: string) => {
+  return tasksStore.tasks.filter(task => task.boardStatus === status)
+}
+
+const handleBoardChange = async () => {
+  if (selectedBoardId.value) {
+    await tasksStore.fetchTasks(selectedBoardId.value)
+    // Cargar repositorios de GitHub si el usuario tiene configuración
+    const authStore = useAuthStore()
+    if (authStore.user?.githubUsername) {
+      try {
+        await githubStore.fetchRepositories(authStore.user.githubUsername)
+      } catch (err) {
+        console.log('No se pudieron cargar repositorios de GitHub')
+      }
+    }
+  }
+}
+
+const filterBySprint = async () => {
+  // Implementar filtrado por sprint si es necesario
+  await tasksStore.fetchTasks(selectedBoardId.value)
+}
+
+const refreshTasks = async () => {
+  if (selectedBoardId.value) {
+    await tasksStore.fetchTasks(selectedBoardId.value)
+  }
+}
+
+const openCreateTaskModal = () => {
+  // Resetear el formulario
+  newTask.value = {
+    title: '',
+    description: '',
+    type: 'task',
+    priority: 'medium',
+    boardStatus: selectedBoard.value?.columns[0]?.mappedStatus || 'todo',
+    sprint: '',
+    assignedTo: authStore.user?._id || '',
+    storyPoints: 0,
+    estimatedTime: '',
+    tags: ''
+  }
+  showCreateTaskModal.value = true
+}
+
+const createTask = async () => {
+  if (!newTask.value.title || !selectedBoardId.value) {
+    showError('Error', 'El título es requerido')
+    return
+  }
+
+  try {
+    showLoading(isEditingTask.value ? 'Actualizando tarea...' : 'Creando tarea...')
+    
+    // Preparar datos de la tarea
+    const taskData: any = {
+      boardId: selectedBoardId.value,
+      title: newTask.value.title,
+      description: newTask.value.description,
+      type: newTask.value.type,
+      priority: newTask.value.priority,
+      boardStatus: newTask.value.boardStatus,
+      status: 'active',
+      assignedTo: newTask.value.assignedTo || undefined,
+      estimatedTime: newTask.value.estimatedTime || undefined,
+    }
+
+    // Agregar sprint si es un board scrum
+    if (selectedBoard.value?.type === 'scrum' && newTask.value.sprint) {
+      taskData.sprint = newTask.value.sprint
+      taskData.storyPoints = newTask.value.storyPoints || 0
+    }
+
+    // Procesar tags
+    if (newTask.value.tags) {
+      taskData.tags = newTask.value.tags.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag)
+    }
+
+    if (isEditingTask.value && editingTaskId.value) {
+      // Actualizar tarea existente
+      await tasksStore.updateTask(editingTaskId.value, taskData)
+      showSuccess('Tarea actualizada exitosamente')
+    } else {
+      // Crear nueva tarea en el board
+      const createdTask = await tasksStore.createTask(taskData)
+      
+      // También crear una actividad en el Kanban para dar seguimiento
+      const activityStatus = mapBoardStatusToActivityStatus(newTask.value.boardStatus)
+      const activityData = {
+        title: newTask.value.title,
+        description: newTask.value.description,
+        status: activityStatus,
+        priority: newTask.value.priority,
+        assignedTo: newTask.value.assignedTo,
+        date: new Date().toISOString(),
+        dueDate: null,
+        estimatedTime: newTask.value.estimatedTime,
+        taskId: createdTask._id,
+        clientId: null
+      }
+      
+      await activityService.create(activityData)
+      showSuccess('Tarea creada exitosamente')
+    }
+    
+    closeTaskModal()
+    
+    // Recargar las tareas y actividades
+    await Promise.all([
+      tasksStore.fetchTasks(selectedBoardId.value),
+      loadActivities()
+    ])
+  } catch (err) {
+    showError(
+      isEditingTask.value ? 'Error al actualizar tarea' : 'Error al crear tarea',
+      err instanceof Error ? err.message : 'Error desconocido'
+    )
+  } finally {
+    closeLoading()
+  }
+}
+
+const closeTaskModal = () => {
+  showCreateTaskModal.value = false
+  isEditingTask.value = false
+  editingTaskId.value = ''
+  newTask.value = {
+    title: '',
+    description: '',
+    type: 'task',
+    priority: 'medium',
+    boardStatus: 'todo',
+    sprint: '',
+    assignedTo: '',
+    storyPoints: 0,
+    estimatedTime: '',
+    tags: ''
+  }
+}
+
+// Función para mapear estados del board a estados de actividad
+const mapBoardStatusToActivityStatus = (boardStatus: string): 'pending' | 'in-progress' | 'completed' => {
+  const statusMap: Record<string, 'pending' | 'in-progress' | 'completed'> = {
+    'backlog': 'pending',
+    'todo': 'pending',
+    'in-progress': 'in-progress',
+    'review': 'in-progress',
+    'testing': 'in-progress',
+    'done': 'completed'
+  }
+  return statusMap[boardStatus] || 'pending'
+}
+
+const selectTask = (task: any) => {
+  selectedTask.value = task
+}
+
+const toggleGroup = (groupName: keyof typeof groupsExpanded.value) => {
+  groupsExpanded.value[groupName] = !groupsExpanded.value[groupName]
+}
+
+const getStatusBadgeClass = (status: string) => {
+  const classes = {
+    backlog: 'bg-gray-600/50 text-gray-300',
+    todo: 'bg-blue-600/50 text-blue-300',
+    'in-progress': 'bg-yellow-600/50 text-yellow-300',
+    review: 'bg-purple-600/50 text-purple-300',
+    testing: 'bg-orange-600/50 text-orange-300',
+    done: 'bg-green-600/50 text-green-300'
+  }
+  return classes[status as keyof typeof classes] || classes.backlog
+}
+
+const getStatusLabel = (status: string) => {
+  const labels = {
+    backlog: 'Backlog',
+    todo: 'To Do',
+    'in-progress': 'In Progress',
+    review: 'Review',
+    testing: 'Testing',
+    done: 'Done'
+  }
+  return labels[status as keyof typeof labels] || status
+}
+
+const getTaskSprintName = (task: any) => {
+  if (!task.sprint || !selectedBoard.value) return '-'
+  const sprint = selectedBoard.value.sprints?.find((s: any) => s._id === task.sprint)
+  return sprint ? sprint.name : '-'
+}
+
+const updateTaskStatus = async () => {
+  if (!selectedTask.value) return
+  try {
+    await tasksStore.updateTask(selectedTask.value._id, {
+      boardStatus: selectedTask.value.boardStatus
+    })
+    await toast('Estado actualizado', 'success')
+  } catch (error) {
+    await toast('Error al actualizar estado', 'error')
+  }
+}
+
+const updateTaskPriority = async () => {
+  if (!selectedTask.value) return
+  try {
+    await tasksStore.updateTask(selectedTask.value._id, {
+      priority: selectedTask.value.priority
+    })
+    await toast('Prioridad actualizada', 'success')
+  } catch (error) {
+    await toast('Error al actualizar prioridad', 'error')
+  }
+}
+
+const updateTaskSprint = async () => {
+  if (!selectedTask.value) return
+  try {
+    await tasksStore.updateTask(selectedTask.value._id, {
+      sprint: selectedTask.value.sprint || null
+    })
+    await toast('Sprint actualizado', 'success')
+    await tasksStore.fetchTasks(selectedBoardId.value)
+  } catch (error) {
+    await toast('Error al actualizar sprint', 'error')
+  }
+}
+
+const deleteTask = async (taskId: string) => {
+  const confirmed = await confirmDelete(
+    '¿Eliminar tarea?',
+    'Esta acción no se puede deshacer. La tarea se eliminará permanentemente.'
+  )
+  
+  if (!confirmed) return
+
+  try {
+    showLoading('Eliminando tarea...')
+    await tasksStore.deleteTask(taskId)
+    selectedTask.value = null
+    showSuccess('Tarea eliminada exitosamente')
+    await tasksStore.fetchTasks(selectedBoardId.value)
+  } catch (error) {
+    showError('Error al eliminar tarea', error instanceof Error ? error.message : 'Error desconocido')
+  } finally {
+    closeLoading()
+  }
+}
+
+const showEditTaskModal = () => {
+  if (!selectedTask.value) return
+  
+  // Llenar el formulario con los datos actuales
+  newTask.value = {
+    title: selectedTask.value.title,
+    description: selectedTask.value.description || '',
+    type: selectedTask.value.type,
+    priority: selectedTask.value.priority,
+    boardStatus: selectedTask.value.boardStatus,
+    sprint: selectedTask.value.sprint || '',
+    assignedTo: typeof selectedTask.value.assignedTo === 'object' 
+      ? selectedTask.value.assignedTo._id 
+      : selectedTask.value.assignedTo || '',
+    storyPoints: selectedTask.value.storyPoints || 0,
+    estimatedTime: selectedTask.value.estimatedTime || '',
+    tags: selectedTask.value.tags?.join(', ') || ''
+  }
+  
+  showCreateTaskModal.value = true
+  isEditingTask.value = true
+  editingTaskId.value = selectedTask.value._id
+}
+
+const editTaskFromCard = (task: any) => {
+  selectedTask.value = task
+  showEditTaskModal()
+}
+
+const getAssignedName = (assignedTo: any): string => {
+  if (!assignedTo) return 'Sin asignar'
+  
+  // Si es un array, tomar el primer elemento
+  if (Array.isArray(assignedTo)) {
+    if (assignedTo.length === 0) return 'Sin asignar'
+    const firstAssigned = assignedTo[0]
+    if (typeof firstAssigned === 'object' && firstAssigned?.name) return firstAssigned.name
+    if (typeof firstAssigned === 'string') {
+      const member = teamMembers.value.find(m => m._id === firstAssigned)
+      return member?.name || 'Sin asignar'
+    }
+    return 'Sin asignar'
+  }
+  
+  // Si es un objeto directo
+  if (typeof assignedTo === 'object' && assignedTo.name) return assignedTo.name
+  
+  // Si es un string (ID)
+  if (typeof assignedTo === 'string') {
+    const member = teamMembers.value.find(m => m._id === assignedTo)
+    return member?.name || 'Sin asignar'
+  }
+  
+  return 'Sin asignar'
+}
+
+const getFirstAssigned = (assignedTo: any): any => {
+  if (!assignedTo) return null
+  
+  // Si es un array, devolver el primer elemento
+  if (Array.isArray(assignedTo)) {
+    if (assignedTo.length === 0) return null
+    const firstAssigned = assignedTo[0]
+    
+    // Si es un objeto con datos de usuario
+    if (typeof firstAssigned === 'object' && firstAssigned) {
+      return firstAssigned
+    }
+    
+    // Si es un string (ID), buscar en teamMembers
+    if (typeof firstAssigned === 'string') {
+      return teamMembers.value.find(m => m._id === firstAssigned) || null
+    }
+    
+    return null
+  }
+  
+  // Si es un objeto directo
+  if (typeof assignedTo === 'object' && assignedTo) return assignedTo
+  
+  // Si es un string (ID)
+  if (typeof assignedTo === 'string') {
+    return teamMembers.value.find(m => m._id === assignedTo) || null
+  }
+  
+  return null
+}
+
+const generateBranchName = () => {
+  if (!selectedTask.value) return ''
+  const taskId = selectedTask.value._id.slice(-4).toUpperCase()
+  const title = selectedTask.value.title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .substring(0, 40)
+  return `${branchForm.value.type}/${taskId}-${title}`
+}
+
+const openCreateBranchModal = async () => {
+  showCreateBranchModal.value = true
+  
+  // Cargar repositorios del usuario si no están cargados
+  if (githubStore.repositories.length === 0) {
+    try {
+      // Obtener el owner desde configuración (puedes configurar esto en el .env o settings)
+      const owner = 'sebastianpg12' // TODO: Obtener de configuración del usuario
+      await githubStore.fetchRepositories(owner)
+    } catch (error) {
+      console.error('Error loading repositories:', error)
+    }
+  }
+}
+
+const createGitHubBranch = async () => {
+  if (!selectedTask.value || !branchForm.value.repository) return
+  
+  try {
+    showLoading('Creando rama en GitHub...')
+    
+    // Extraer owner y repo del full_name (formato: "owner/repo")
+    const [repoOwner, repoName] = branchForm.value.repository.split('/')
+    
+    // Primero actualizar la tarea con la información del repositorio
+    await tasksStore.updateTask(selectedTask.value._id, {
+      github: {
+        repoOwner,
+        repoName,
+        branch: selectedTask.value.github?.branch,
+        branchUrl: selectedTask.value.github?.branchUrl,
+        pullRequest: selectedTask.value.github?.pullRequest,
+        commits: selectedTask.value.github?.commits,
+        lastSync: new Date()
+      }
+    })
+    
+    // Crear rama con nombre personalizado (si existe) o auto-generado
+    const customBranchName = branchForm.value.customName || generateBranchName()
+    const result = await githubStore.createBranch(
+      selectedTask.value._id, 
+      branchForm.value.baseBranch,
+      customBranchName
+    )
+    
+    // Actualizar la vista local
+    if (selectedTask.value.github) {
+      selectedTask.value.github.branch = result.task.github.branch
+      selectedTask.value.github.branchUrl = result.task.github.branchUrl
+      selectedTask.value.github.repoOwner = repoOwner
+      selectedTask.value.github.repoName = repoName
+    }
+    
+    // Refrescar tareas para obtener los datos actualizados
+    await tasksStore.fetchTasks(selectedBoardId.value)
+    
+    // Limpiar el formulario
+    branchForm.value.customName = ''
+    showCreateBranchModal.value = false
+    closeLoading()
+    await toast('Rama creada exitosamente', 'success')
+  } catch (error: any) {
+    closeLoading()
+    await toast(error.message || 'Error al crear rama', 'error')
+  }
+}
+
+const createPullRequest = async () => {
+  if (!selectedTask.value || !selectedTask.value.github?.branch) return
+  
+  try {
+    showLoading('Creando Pull Request...')
+    
+    const title = `[${selectedTask.value._id.slice(-4).toUpperCase()}] ${selectedTask.value.title}`
+    const description = selectedTask.value.description || ''
+    
+    // Crear PR desde el backend usando el taskId
+    const result = await githubStore.createPullRequest(selectedTask.value._id, title, description)
+    
+    // Actualizar la vista local
+    if (selectedTask.value.github) {
+      selectedTask.value.github.pr = result.prUrl
+    }
+    
+    // Refrescar tareas
+    await tasksStore.fetchTasks(selectedBoardId.value)
+    
+    closeLoading()
+    await toast('Pull Request creado', 'success')
+  } catch (error: any) {
+    closeLoading()
+    await toast(error.message || 'Error al crear PR', 'error')
+  }
+}
+
+const addComment = async () => {
+  if (!selectedTask.value || !newComment.value.trim()) return
+  
+  try {
+    await tasksStore.addComment(selectedTask.value._id, newComment.value)
+    
+    // Actualizar la vista local
+    if (!selectedTask.value.comments) {
+      selectedTask.value.comments = []
+    }
+    selectedTask.value.comments.push({
+      _id: Date.now().toString(),
+      text: newComment.value,
+      user: authStore.user,
+      createdAt: new Date().toISOString()
+    })
+    
+    newComment.value = ''
+    await toast('Comentario añadido', 'success')
+  } catch (error) {
+    await toast('Error al añadir comentario', 'error')
+  }
+}
+
+const viewTask = (task: any) => {
+  selectedTask.value = task
+}
+
+const getPriorityClass = (priority: string) => {
+  const classes = {
+    low: 'bg-gray-600/50 text-gray-300',
+    medium: 'bg-blue-600/50 text-blue-300',
+    high: 'bg-orange-600/50 text-orange-300',
+    urgent: 'bg-red-600/50 text-red-300'
+  }
+  return classes[priority as keyof typeof classes] || classes.medium
+}
+
+const getTypeIcon = (type: string) => {
+  const icons = {
+    bug: 'fas fa-bug text-red-400',
+    feature: 'fas fa-star text-yellow-400',
+    task: 'fas fa-tasks text-blue-400',
+    improvement: 'fas fa-arrow-up text-green-400',
+    documentation: 'fas fa-book text-purple-400'
+  }
+  return icons[type as keyof typeof icons] || icons.task
+}
+
+const getTypeLabel = (type: string) => {
+  const labels = {
+    bug: 'Bug',
+    feature: 'Feature',
+    task: 'Task',
+    improvement: 'Improvement',
+    documentation: 'Documentation'
+  }
+  return labels[type as keyof typeof labels] || 'Task'
 }
 
 const getClientName = (clientData: any): string => {
@@ -1950,8 +3396,27 @@ onMounted(async () => {
   await Promise.all([
     loadClients(),
     loadTeamMembers(),
-    loadActivities()
+    loadActivities(),
+    boardsStore.fetchBoards() // Cargar tableros disponibles
   ])
+  
+  // Crear tablero por defecto si no hay ninguno
+  if (boardsStore.myBoards.length === 0) {
+    try {
+      const defaultBoard = await boardsStore.createBoard({
+        name: 'Tablero Principal',
+        description: 'Tablero de tareas del equipo',
+        type: 'kanban',
+        members: []
+      })
+      selectedBoardId.value = defaultBoard._id
+    } catch (error) {
+      console.error('Error creando tablero por defecto:', error)
+    }
+  } else {
+    // Si ya hay tableros, seleccionar el primero
+    selectedBoardId.value = boardsStore.myBoards[0]._id
+  }
   
   // Actualizar estado de actividades vencidas
   await updateOverdueActivities()
