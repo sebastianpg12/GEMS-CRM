@@ -213,6 +213,17 @@
                 <span class="hidden sm:inline">Nuevo Tablero</span>
               </button>
 
+              <!-- Botón Eliminar Tablero -->
+              <button
+                v-if="selectedBoardId && boardsStore.myBoards.length > 1"
+                @click="confirmDeleteBoard"
+                class="px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm font-medium flex items-center gap-2"
+                title="Eliminar tablero actual"
+              >
+                <i class="fas fa-trash"></i>
+                <span class="hidden sm:inline">Eliminar</span>
+              </button>
+
               <!-- Sprint Selector -->
               <select
                 v-if="selectedBoard && selectedBoard.type === 'scrum'"
@@ -1720,12 +1731,23 @@
               <!-- Estimación -->
               <div class="col-span-2">
                 <label class="block text-sm font-medium text-gray-300 mb-2">Estimación de tiempo</label>
-                <input
+                <select
                   v-model="newTask.estimatedTime"
-                  type="text"
-                  class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="Ej: 2 horas, 1 día"
-                />
+                  class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                >
+                  <option value="">Sin estimación</option>
+                  <option value="15m">15 minutos</option>
+                  <option value="30m">30 minutos</option>
+                  <option value="1h">1 hora</option>
+                  <option value="2h">2 horas</option>
+                  <option value="3h">3 horas</option>
+                  <option value="4h">4 horas</option>
+                  <option value="1d">1 día</option>
+                  <option value="2d">2 días</option>
+                  <option value="3d">3 días</option>
+                  <option value="1w">1 semana</option>
+                  <option value="2w">2 semanas</option>
+                </select>
               </div>
 
               <!-- Etiquetas -->
@@ -1796,38 +1818,12 @@
 
             <div class="mb-6">
               <label class="block text-sm font-medium text-gray-300 mb-2">Tipo de Tablero</label>
-              <div class="grid grid-cols-2 gap-3">
-                <label 
-                  class="relative flex items-center p-4 border-2 rounded-lg cursor-pointer transition-colors"
-                  :class="newBoard.type === 'kanban' ? 'border-blue-500 bg-blue-500/10' : 'border-gray-600 hover:border-gray-500 bg-gray-700/30'"
-                >
-                  <input
-                    v-model="newBoard.type"
-                    type="radio"
-                    value="kanban"
-                    class="sr-only"
-                  />
-                  <div class="flex-1">
-                    <div class="font-medium text-white">Kanban</div>
-                    <div class="text-xs text-gray-400">Flujo continuo</div>
-                  </div>
-                </label>
-
-                <label 
-                  class="relative flex items-center p-4 border-2 rounded-lg cursor-pointer transition-colors"
-                  :class="newBoard.type === 'scrum' ? 'border-purple-500 bg-purple-500/10' : 'border-gray-600 hover:border-gray-500 bg-gray-700/30'"
-                >
-                  <input
-                    v-model="newBoard.type"
-                    type="radio"
-                    value="scrum"
-                    class="sr-only"
-                  />
-                  <div class="flex-1">
-                    <div class="font-medium text-white">Scrum</div>
-                    <div class="text-xs text-gray-400">Con sprints</div>
-                  </div>
-                </label>
+              <div class="flex items-center p-4 border-2 border-purple-500 bg-purple-500/10 rounded-lg">
+                <div class="flex-1">
+                  <div class="font-medium text-white">Scrum</div>
+                  <div class="text-xs text-gray-400">Tablero con sprints para gestión ágil</div>
+                </div>
+                <i class="fas fa-check-circle text-purple-500 text-xl"></i>
               </div>
             </div>
 
@@ -1935,7 +1931,7 @@ const showCreateBoardModal = ref(false)
 const newBoard = ref({
   name: '',
   description: '',
-  type: 'kanban' as 'kanban' | 'scrum'
+  type: 'scrum' as 'kanban' | 'scrum'
 })
 
 // Modales para funcionalidad del calendario
@@ -2429,13 +2425,48 @@ const createBoard = async () => {
     newBoard.value = {
       name: '',
       description: '',
-      type: 'kanban'
+      type: 'scrum'
     }
     
     // Recargar la lista de tableros
     await boardsStore.fetchBoards()
   } catch (err) {
     showError('Error al crear tablero', err instanceof Error ? err.message : 'Error desconocido')
+  } finally {
+    closeLoading()
+  }
+}
+
+const confirmDeleteBoard = async () => {
+  if (!selectedBoardId.value) return
+  
+  const board = boardsStore.myBoards.find(b => b._id === selectedBoardId.value)
+  if (!board) return
+  
+  const confirmed = await confirmDelete(
+    `¿Eliminar tablero "${board.name}"?`,
+    'Esta acción no se puede deshacer. Todas las tareas asociadas se eliminarán permanentemente.'
+  )
+  
+  if (!confirmed) return
+
+  try {
+    showLoading('Eliminando tablero...')
+    await boardsStore.deleteBoard(selectedBoardId.value)
+    
+    // Recargar tableros
+    await boardsStore.fetchBoards()
+    
+    // Seleccionar el primer tablero disponible o limpiar selección
+    if (boardsStore.myBoards.length > 0) {
+      selectedBoardId.value = boardsStore.myBoards[0]._id
+    } else {
+      selectedBoardId.value = ''
+    }
+    
+    showSuccess('Tablero eliminado exitosamente')
+  } catch (err) {
+    showError('Error al eliminar tablero', err instanceof Error ? err.message : 'Error desconocido')
   } finally {
     closeLoading()
   }
@@ -3406,7 +3437,7 @@ onMounted(async () => {
       const defaultBoard = await boardsStore.createBoard({
         name: 'Tablero Principal',
         description: 'Tablero de tareas del equipo',
-        type: 'kanban',
+        type: 'scrum',
         members: []
       })
       selectedBoardId.value = defaultBoard._id
