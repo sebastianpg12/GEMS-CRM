@@ -251,7 +251,7 @@
             <div class="flex items-center gap-2">
               <button
                 v-if="selectedBoardId"
-                @click="openCreateTaskModal"
+                @click="openCreateTaskModal()"
                 class="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-md hover:from-green-700 hover:to-emerald-700 text-sm font-medium flex items-center gap-2"
               >
                 <i class="fas fa-plus"></i>
@@ -272,155 +272,169 @@
         <div v-if="selectedBoardId" class="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700/50 overflow-hidden">
           <!-- Body scrolleable -->
           <div class="p-4 overflow-y-auto max-h-[calc(100vh-420px)]">
-            <!-- Grupo: Sprint Activo -->
-            <div v-if="activeSprintTasks.length > 0" class="mb-6">
-              <div class="flex items-center gap-2 mb-3 cursor-pointer" @click="toggleGroup('activeSprint')">
-                <i :class="groupsExpanded.activeSprint ? 'fas fa-chevron-down' : 'fas fa-chevron-right'" class="text-gray-400 text-xs"></i>
-                <span class="text-sm font-medium text-blue-400">
-                  <i class="fas fa-running mr-2"></i>
-                  Sprint Activo
-                </span>
-                <span class="text-xs text-gray-500 ml-2">{{ activeSprintTasks.length }} tareas</span>
+            <!-- Vista Jerárquica Minimalista: Épica → Feature → User Story → Task -->
+            <div v-for="epic in getEpics()" :key="epic._id" class="mb-3">
+              <!-- Épica -->
+              <div class="group hover:bg-purple-500/5 rounded transition-colors">
+                <div class="flex items-center gap-2 py-2 px-3 border-l-2 border-purple-500">
+                  <button @click="toggleEpic(epic._id)" class="p-1 hover:bg-gray-700 rounded">
+                    <i :class="isEpicCollapsed(epic._id) ? 'fas fa-chevron-right' : 'fas fa-chevron-down'" class="text-xs text-gray-400"></i>
+                  </button>
+                  <i class="fas fa-mountain text-purple-400 text-sm"></i>
+                  <span class="text-xs font-mono text-purple-300">{{ epic._id.slice(-4).toUpperCase() }}</span>
+                  <div class="flex-1 min-w-0">
+                    <span class="text-sm font-medium text-white">{{ epic.title }}</span>
+                  </div>
+                  <div class="flex items-center gap-3 text-xs text-gray-400">
+                    <span>{{ getEpicFeatures(epic._id).length }} features</span>
+                    <span>{{ getEpicTasks(epic._id).length }} tasks</span>
+                  </div>
+                  <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100">
+                    <button @click="selectTask(epic)" class="p-1 text-gray-400 hover:bg-blue-500/20 rounded" title="Ver">
+                      <i class="fas fa-eye text-xs"></i>
+                    </button>
+                    <button @click="editTaskFromCard(epic)" class="p-1 text-gray-400 hover:bg-purple-500/20 rounded" title="Editar">
+                      <i class="fas fa-edit text-xs"></i>
+                    </button>
+                    <button @click="deleteTask(epic._id)" class="p-1 text-gray-400 hover:bg-red-500/20 rounded" title="Eliminar">
+                      <i class="fas fa-trash text-xs"></i>
+                    </button>
+                    <button @click="openCreateFeatureModal(epic._id)" class="p-1 text-green-400 hover:bg-green-500/20 rounded" title="Nueva Feature">
+                      <i class="fas fa-plus text-xs"></i>
+                    </button>
+                  </div>
+                </div>
               </div>
-              <div v-show="groupsExpanded.activeSprint" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div
-                  v-for="task in activeSprintTasks"
-                  :key="task._id"
-                  class="bg-gray-900/50 rounded-lg p-4 border border-gray-700 hover:border-blue-500/40 transition-all duration-200 group"
-                >
-                  <!-- Header de la tarjeta -->
-                  <div class="flex items-start justify-between gap-2 mb-3">
-                    <div class="flex-1">
-                      <div class="flex items-center gap-2 mb-1">
-                        <span class="text-xs font-medium text-blue-400">{{ task._id.slice(-4).toUpperCase() }}</span>
-                        <i :class="getTypeIcon(task.type)" class="text-xs"></i>
+
+              <!-- Features de la épica -->
+              <div v-if="!isEpicCollapsed(epic._id)" class="ml-6">
+                <div v-for="feature in getEpicFeatures(epic._id)" :key="feature._id" class="mb-2">
+                  <div class="group hover:bg-blue-500/5 rounded transition-colors">
+                    <div class="flex items-center gap-2 py-1.5 px-3 border-l-2 border-blue-500">
+                      <button @click="toggleFeature(feature._id)" class="p-1 hover:bg-gray-700 rounded">
+                        <i :class="isFeatureCollapsed(feature._id) ? 'fas fa-chevron-right' : 'fas fa-chevron-down'" class="text-xs text-gray-400"></i>
+                      </button>
+                      <i class="fas fa-layer-group text-blue-400 text-xs"></i>
+                      <span class="text-xs font-mono text-blue-300">{{ feature._id.slice(-4).toUpperCase() }}</span>
+                      <div class="flex-1 min-w-0">
+                        <span class="text-sm text-gray-200">{{ feature.title }}</span>
                       </div>
-                      <h3 class="text-sm font-semibold text-white line-clamp-2">{{ task.title }}</h3>
-                    </div>
-                    <div class="flex items-center gap-1">
-                      <button
-                        @click.stop="selectTask(task)"
-                        class="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-blue-500/20 rounded transition-all"
-                        title="Ver detalles"
-                      >
-                        <i class="fas fa-eye text-xs"></i>
-                      </button>
-                      <button
-                        @click.stop="editTaskFromCard(task)"
-                        class="p-1.5 text-gray-400 hover:text-purple-400 hover:bg-purple-500/20 rounded transition-all"
-                        title="Editar"
-                      >
-                        <i class="fas fa-edit text-xs"></i>
-                      </button>
-                      <button
-                        @click.stop="deleteTask(task._id)"
-                        class="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/20 rounded transition-all"
-                        title="Eliminar"
-                      >
-                        <i class="fas fa-trash text-xs"></i>
-                      </button>
+                      <div class="flex items-center gap-2 text-xs text-gray-400">
+                        <span>{{ getFeatureUserStories(feature._id).length }} stories</span>
+                      </div>
+                      <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100">
+                        <button @click="selectTask(feature)" class="p-1 text-gray-400 hover:bg-blue-500/20 rounded" title="Ver">
+                          <i class="fas fa-eye text-xs"></i>
+                        </button>
+                        <button @click="editTaskFromCard(feature)" class="p-1 text-gray-400 hover:bg-purple-500/20 rounded" title="Editar">
+                          <i class="fas fa-edit text-xs"></i>
+                        </button>
+                        <button @click="deleteTask(feature._id)" class="p-1 text-gray-400 hover:bg-red-500/20 rounded" title="Eliminar">
+                          <i class="fas fa-trash text-xs"></i>
+                        </button>
+                        <button @click="openCreateUserStoryModal(feature._id)" class="p-1 text-green-400 hover:bg-green-500/20 rounded" title="Nueva User Story">
+                          <i class="fas fa-plus text-xs"></i>
+                        </button>
+                      </div>
                     </div>
                   </div>
 
-                  <!-- Descripción -->
-                  <p v-if="task.description" class="text-xs text-gray-400 mb-3 line-clamp-2">{{ task.description }}</p>
-
-                  <!-- Estado y Prioridad -->
-                  <div class="flex items-center gap-2 mb-3">
-                    <span :class="getStatusBadgeClass(task.boardStatus)" class="text-xs px-2 py-1 rounded">
-                      {{ getStatusLabel(task.boardStatus) }}
-                    </span>
-                    <span :class="getPriorityClass(task.priority)" class="text-xs px-2 py-1 rounded">
-                      {{ task.priority }}
-                    </span>
-                  </div>
-
-                  <!-- Asignado -->
-                  <div class="flex items-center gap-2">
-                    <div v-if="task.assignedTo" class="flex items-center gap-2">
-                      <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-xs text-white">
-                        {{ getAssignedName(task.assignedTo).charAt(0) }}
+                  <!-- User Stories de la feature -->
+                  <div v-if="!isFeatureCollapsed(feature._id)" class="ml-6">
+                    <div v-for="story in getFeatureUserStories(feature._id)" :key="story._id" class="mb-2">
+                      <div class="group hover:bg-green-500/5 rounded transition-colors">
+                        <div class="flex items-center gap-2 py-1.5 px-3 border-l-2 border-green-500">
+                          <button @click="toggleStory(story._id)" class="p-1 hover:bg-gray-700 rounded">
+                            <i :class="isStoryCollapsed(story._id) ? 'fas fa-chevron-right' : 'fas fa-chevron-down'" class="text-xs text-gray-400"></i>
+                          </button>
+                          <i class="fas fa-book-open text-green-400 text-xs"></i>
+                          <span class="text-xs font-mono text-green-300">{{ story._id.slice(-4).toUpperCase() }}</span>
+                          <div class="flex-1 min-w-0">
+                            <span class="text-sm text-gray-200">{{ story.title }}</span>
+                          </div>
+                          <div class="flex items-center gap-2 text-xs text-gray-400">
+                            <span>{{ getUserStoryTasks(story._id).length }} tasks</span>
+                          </div>
+                          <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100">
+                            <button @click="selectTask(story)" class="p-1 text-gray-400 hover:bg-blue-500/20 rounded" title="Ver">
+                              <i class="fas fa-eye text-xs"></i>
+                            </button>
+                            <button @click="editTaskFromCard(story)" class="p-1 text-gray-400 hover:bg-purple-500/20 rounded" title="Editar">
+                              <i class="fas fa-edit text-xs"></i>
+                            </button>
+                            <button @click="deleteTask(story._id)" class="p-1 text-gray-400 hover:bg-red-500/20 rounded" title="Eliminar">
+                              <i class="fas fa-trash text-xs"></i>
+                            </button>
+                            <button @click="openCreateTaskModal(story._id)" class="p-1 text-green-400 hover:bg-green-500/20 rounded" title="Nueva Task">
+                              <i class="fas fa-plus text-xs"></i>
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                      <span class="text-xs text-gray-300">{{ getAssignedName(task.assignedTo) }}</span>
+
+                      <!-- Tasks de la user story -->
+                      <div v-if="!isStoryCollapsed(story._id)" class="ml-6">
+                        <div v-for="task in getUserStoryTasks(story._id)" :key="task._id" class="mb-1">
+                          <div class="group hover:bg-gray-500/5 rounded transition-colors">
+                            <div class="flex items-center gap-2 py-1 px-3 border-l border-gray-500">
+                              <i class="fas fa-tasks text-gray-400 text-xs"></i>
+                              <span class="text-xs font-mono text-gray-400">{{ task._id.slice(-4).toUpperCase() }}</span>
+                              <div class="flex-1 min-w-0">
+                                <span class="text-sm text-gray-300">{{ task.title }}</span>
+                              </div>
+                              <span :class="getStatusBadgeClass(task.boardStatus)" class="text-xs px-2 py-0.5 rounded">
+                                {{ getStatusLabel(task.boardStatus) }}
+                              </span>
+                              <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100">
+                                <button @click="selectTask(task)" class="p-1 text-gray-400 hover:bg-blue-500/20 rounded" title="Ver">
+                                  <i class="fas fa-eye text-xs"></i>
+                                </button>
+                                <button @click="editTaskFromCard(task)" class="p-1 text-gray-400 hover:bg-purple-500/20 rounded" title="Editar">
+                                  <i class="fas fa-edit text-xs"></i>
+                                </button>
+                                <button @click="deleteTask(task._id)" class="p-1 text-gray-400 hover:bg-red-500/20 rounded" title="Eliminar">
+                                  <i class="fas fa-trash text-xs"></i>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <span v-else class="text-xs text-gray-500">Sin asignar</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- Grupo: Backlog -->
-            <div>
-              <div class="flex items-center gap-2 mb-3 cursor-pointer" @click="toggleGroup('backlog')">
-                <i :class="groupsExpanded.backlog ? 'fas fa-chevron-down' : 'fas fa-chevron-right'" class="text-gray-400 text-xs"></i>
-                <span class="text-sm font-medium text-gray-400">
-                  <i class="fas fa-inbox mr-2"></i>
-                  Backlog
-                </span>
-                <span class="text-xs text-gray-500 ml-2">{{ getTasksByStatus('backlog').length }} tareas</span>
+            <!-- Tareas sin jerarquía (independientes) -->
+            <div v-if="getIndependentTasks().length > 0" class="mb-4">
+              <div class="flex items-center gap-2 mb-3 px-2">
+                <i class="fas fa-tasks text-gray-400 text-sm"></i>
+                <h3 class="text-sm font-medium text-gray-400">Tareas Independientes</h3>
+                <span class="text-xs text-gray-500">{{ getIndependentTasks().length }}</span>
               </div>
-              <div v-show="groupsExpanded.backlog" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div
-                  v-for="task in getTasksByStatus('backlog')"
-                  :key="task._id"
-                  class="bg-gray-900/50 rounded-lg p-4 border border-gray-700 hover:border-gray-500/40 transition-all duration-200 group"
-                >
-                  <!-- Header de la tarjeta -->
-                  <div class="flex items-start justify-between gap-2 mb-3">
-                    <div class="flex-1">
-                      <div class="flex items-center gap-2 mb-1">
-                        <span class="text-xs font-medium text-blue-400">{{ task._id.slice(-4).toUpperCase() }}</span>
-                        <i :class="getTypeIcon(task.type)" class="text-xs"></i>
-                      </div>
-                      <h3 class="text-sm font-semibold text-white line-clamp-2">{{ task.title }}</h3>
+              <div class="space-y-1">
+                <div v-for="task in getIndependentTasks()" :key="task._id" class="group hover:bg-gray-500/5 rounded transition-colors">
+                  <div class="flex items-center gap-2 py-1.5 px-3 border-l border-gray-500">
+                    <i class="fas fa-tasks text-gray-400 text-xs"></i>
+                    <span class="text-xs font-mono text-gray-400">{{ task._id.slice(-4).toUpperCase() }}</span>
+                    <div class="flex-1 min-w-0">
+                      <span class="text-sm text-gray-300">{{ task.title }}</span>
                     </div>
-                    <div class="flex items-center gap-1">
-                      <button
-                        @click.stop="selectTask(task)"
-                        class="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-blue-500/20 rounded transition-all"
-                        title="Ver detalles"
-                      >
+                    <span :class="getStatusBadgeClass(task.boardStatus)" class="text-xs px-2 py-0.5 rounded">
+                      {{ getStatusLabel(task.boardStatus) }}
+                    </span>
+                    <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100">
+                      <button @click="selectTask(task)" class="p-1 text-gray-400 hover:bg-blue-500/20 rounded" title="Ver">
                         <i class="fas fa-eye text-xs"></i>
                       </button>
-                      <button
-                        @click.stop="editTaskFromCard(task)"
-                        class="p-1.5 text-gray-400 hover:text-purple-400 hover:bg-purple-500/20 rounded transition-all"
-                        title="Editar"
-                      >
+                      <button @click="editTaskFromCard(task)" class="p-1 text-gray-400 hover:bg-purple-500/20 rounded" title="Editar">
                         <i class="fas fa-edit text-xs"></i>
                       </button>
-                      <button
-                        @click.stop="deleteTask(task._id)"
-                        class="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/20 rounded transition-all"
-                        title="Eliminar"
-                      >
+                      <button @click="deleteTask(task._id)" class="p-1 text-gray-400 hover:bg-red-500/20 rounded" title="Eliminar">
                         <i class="fas fa-trash text-xs"></i>
                       </button>
                     </div>
-                  </div>
-
-                  <!-- Descripción -->
-                  <p v-if="task.description" class="text-xs text-gray-400 mb-3 line-clamp-2">{{ task.description }}</p>
-
-                  <!-- Estado y Prioridad -->
-                  <div class="flex items-center gap-2 mb-3">
-                    <span :class="getStatusBadgeClass(task.boardStatus)" class="text-xs px-2 py-1 rounded">
-                      {{ getStatusLabel(task.boardStatus) }}
-                    </span>
-                    <span :class="getPriorityClass(task.priority)" class="text-xs px-2 py-1 rounded">
-                      {{ task.priority }}
-                    </span>
-                  </div>
-
-                  <!-- Asignado -->
-                  <div class="flex items-center gap-2">
-                    <div v-if="task.assignedTo" class="flex items-center gap-2">
-                      <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-xs text-white">
-                        {{ getAssignedName(task.assignedTo).charAt(0) }}
-                      </div>
-                      <span class="text-xs text-gray-300">{{ getAssignedName(task.assignedTo) }}</span>
-                    </div>
-                    <span v-else class="text-xs text-gray-500">Sin asignar</span>
                   </div>
                 </div>
               </div>
@@ -1651,11 +1665,64 @@
                   required
                   class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 >
+                  <option value="epic">Épica</option>
                   <option value="feature">Feature</option>
-                  <option value="bug">Bug</option>
+                  <option value="user-story">User Story</option>
                   <option value="task">Task</option>
-                  <option value="improvement">Improvement</option>
-                  <option value="documentation">Documentation</option>
+                  <option value="bug">Bug</option>
+                </select>
+              </div>
+
+              <!-- Relación Jerárquica: Épica (solo para Features) -->
+              <div v-if="newTask.type === 'feature'">
+                <label class="block text-sm font-medium text-gray-300 mb-2">
+                  <i class="fas fa-mountain text-purple-400 mr-1"></i>
+                  Épica *
+                </label>
+                <select
+                  v-model="newTask.epicId"
+                  required
+                  class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                >
+                  <option value="">Selecciona una épica</option>
+                  <option v-for="epic in getEpics()" :key="epic._id" :value="epic._id">
+                    {{ epic.title }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Relación Jerárquica: Feature (solo para User Stories) -->
+              <div v-if="newTask.type === 'user-story'">
+                <label class="block text-sm font-medium text-gray-300 mb-2">
+                  <i class="fas fa-layer-group text-blue-400 mr-1"></i>
+                  Feature *
+                </label>
+                <select
+                  v-model="newTask.featureId"
+                  required
+                  class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Selecciona una feature</option>
+                  <option v-for="feature in tasksStore.tasks.filter(t => t.type === 'feature')" :key="feature._id" :value="feature._id">
+                    {{ feature.title }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Relación Jerárquica: User Story (solo para Tasks) -->
+              <div v-if="newTask.type === 'task'">
+                <label class="block text-sm font-medium text-gray-300 mb-2">
+                  <i class="fas fa-book-open text-green-400 mr-1"></i>
+                  User Story (opcional)
+                </label>
+                <select
+                  v-model="newTask.userStoryId"
+                  class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                >
+                  <option value="">Sin User Story (tarea independiente)</option>
+                  <option v-for="story in tasksStore.tasks.filter(t => t.type === 'user-story')" :key="story._id" :value="story._id">
+                    {{ story.title }}
+                  </option>
                 </select>
               </div>
 
@@ -1847,6 +1914,96 @@
         </div>
       </div>
     </Teleport>
+
+    <!-- Modal Confirmación de Borrado en Cascada -->
+    <Teleport to="body">
+      <div
+        v-if="showCascadeDeleteModal"
+        class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+        @click.self="cancelCascadeDelete"
+      >
+        <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-md shadow-2xl border border-red-500/30 max-h-[90vh] overflow-y-auto">
+          <!-- Header con icono -->
+          <div class="flex flex-col items-center text-center mb-6">
+            <div class="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mb-4">
+              <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
+            </div>
+            <h2 class="text-xl font-bold text-white mb-2">¿Estás seguro?</h2>
+            <p class="text-gray-300 text-sm">
+              Esta acción eliminará permanentemente
+            </p>
+            <p class="text-red-400 font-semibold text-base mt-2 break-words max-w-full">
+              "{{ cascadeDeleteInfo.taskTitle }}"
+            </p>
+          </div>
+
+          <!-- Detalles de elementos a borrar (solo si hay cascada) -->
+          <div v-if="cascadeDeleteInfo.total > 0" class="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-4">
+            <p class="text-white font-medium mb-3 text-center">Esta acción eliminará en cascada:</p>
+            <div class="space-y-2.5">
+              <div v-if="cascadeDeleteInfo.features > 0" class="flex items-center justify-between bg-gray-900/50 rounded px-3 py-2">
+                <div class="flex items-center gap-2">
+                  <i class="fas fa-layer-group text-blue-400"></i>
+                  <span class="text-gray-200 text-sm">Features</span>
+                </div>
+                <span class="text-white font-semibold">{{ cascadeDeleteInfo.features }}</span>
+              </div>
+              <div v-if="cascadeDeleteInfo.stories > 0" class="flex items-center justify-between bg-gray-900/50 rounded px-3 py-2">
+                <div class="flex items-center gap-2">
+                  <i class="fas fa-book-open text-green-400"></i>
+                  <span class="text-gray-200 text-sm">User Stories</span>
+                </div>
+                <span class="text-white font-semibold">{{ cascadeDeleteInfo.stories }}</span>
+              </div>
+              <div v-if="cascadeDeleteInfo.tasks > 0" class="flex items-center justify-between bg-gray-900/50 rounded px-3 py-2">
+                <div class="flex items-center gap-2">
+                  <i class="fas fa-tasks text-gray-400"></i>
+                  <span class="text-gray-200 text-sm">Tasks</span>
+                </div>
+                <span class="text-white font-semibold">{{ cascadeDeleteInfo.tasks }}</span>
+              </div>
+              <div class="border-t border-red-500/30 pt-3 mt-3">
+                <div class="flex items-center justify-between font-bold bg-red-500/20 rounded px-3 py-2">
+                  <div class="flex items-center gap-2">
+                    <i class="fas fa-trash text-red-400"></i>
+                    <span class="text-white">Total</span>
+                  </div>
+                  <span class="text-red-400 text-lg">{{ cascadeDeleteInfo.total + 1 }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Advertencia -->
+          <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 mb-6">
+            <div class="flex items-start gap-2">
+              <i class="fas fa-info-circle text-yellow-500 mt-0.5 flex-shrink-0"></i>
+              <p class="text-yellow-200 text-xs leading-relaxed">
+                Esta acción no se puede deshacer. {{ cascadeDeleteInfo.total > 0 ? 'Todos los elementos hijos se eliminarán junto con el elemento principal.' : 'La tarea se eliminará permanentemente.' }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Botones -->
+          <div class="flex flex-col-reverse sm:flex-row gap-3">
+            <button
+              type="button"
+              @click="cancelCascadeDelete"
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-300 bg-gray-700 border border-gray-600 rounded-lg hover:bg-gray-600 transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              @click="confirmCascadeDelete"
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-red-600 to-red-700 rounded-lg hover:from-red-700 hover:to-red-800 transition-all"
+            >
+              Sí, eliminar<span v-if="cascadeDeleteInfo.total > 0" class="ml-1 font-normal text-xs">({{ cascadeDeleteInfo.total + 1 }})</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -1901,10 +2058,15 @@ const draggedActivity = ref<ActivityData | null>(null)
 const isDragging = ref(false)
 
 // Vista y UI
-const currentView = ref<'kanban' | 'tasks' | 'calendar'>('kanban')
+const currentView = ref<'kanban' | 'tasks' | 'calendar'>('tasks')
 const quickTaskTitle = ref('')
 const showQuickSettings = ref(false)
 const showQuickTaskHints = ref(false)
+
+// Estados de collapse para vista jerárquica
+const collapsedEpics = ref<Set<string>>(new Set())
+const collapsedFeatures = ref<Set<string>>(new Set())
+const collapsedStories = ref<Set<string>>(new Set())
 
 // Configuración de tareas rápidas
 const quickTaskSettings = ref({
@@ -1932,6 +2094,18 @@ const newBoard = ref({
   name: '',
   description: '',
   type: 'scrum' as 'kanban' | 'scrum'
+})
+
+// Modal de confirmación de borrado en cascada
+const showCascadeDeleteModal = ref(false)
+const cascadeDeleteInfo = ref({
+  taskId: '',
+  taskTitle: '',
+  taskType: '',
+  features: 0,
+  stories: 0,
+  tasks: 0,
+  total: 0
 })
 
 // Modales para funcionalidad del calendario
@@ -2781,7 +2955,21 @@ const isEditingTask = ref(false)
 const editingTaskId = ref('')
 const newComment = ref('')
 
-const newTask = ref({
+const newTask = ref<{
+  title: string
+  description: string
+  type: string
+  priority: string
+  boardStatus: string
+  sprint: string
+  assignedTo: string
+  storyPoints: number
+  estimatedTime: string
+  tags: string
+  epicId?: string
+  featureId?: string
+  userStoryId?: string
+}>({
   title: '',
   description: '',
   type: 'task',
@@ -2821,6 +3009,154 @@ const getTasksByStatus = (status: string) => {
   return tasksStore.tasks.filter(task => task.boardStatus === status)
 }
 
+// Funciones para vista jerárquica
+const getEpics = () => {
+  return tasksStore.tasks.filter(task => task.type === 'epic')
+}
+
+const getEpicFeatures = (epicId: string) => {
+  return tasksStore.tasks.filter(task => task.type === 'feature' && task.epicId === epicId)
+}
+
+const getFeatureUserStories = (featureId: string) => {
+  return tasksStore.tasks.filter(task => task.type === 'user-story' && task.featureId === featureId)
+}
+
+const getUserStoryTasks = (storyId: string) => {
+  return tasksStore.tasks.filter(task => task.type === 'task' && task.userStoryId === storyId)
+}
+
+const getEpicTasks = (epicId: string) => {
+  // Obtener todas las tareas bajo una épica (incluyendo features, stories y tasks)
+  const features = getEpicFeatures(epicId)
+  let count = features.length
+  features.forEach(feature => {
+    const stories = getFeatureUserStories(feature._id)
+    count += stories.length
+    stories.forEach(story => {
+      count += getUserStoryTasks(story._id).length
+    })
+  })
+  return { length: count }
+}
+
+const getIndependentTasks = () => {
+  // Tareas que no tienen relación jerárquica (ni son épicas, ni tienen padres)
+  return tasksStore.tasks.filter(task => 
+    task.type === 'task' && !task.userStoryId && !task.featureId && !task.epicId
+  )
+}
+
+const toggleEpic = (epicId: string) => {
+  if (collapsedEpics.value.has(epicId)) {
+    collapsedEpics.value.delete(epicId)
+  } else {
+    collapsedEpics.value.add(epicId)
+  }
+}
+
+const toggleFeature = (featureId: string) => {
+  if (collapsedFeatures.value.has(featureId)) {
+    collapsedFeatures.value.delete(featureId)
+  } else {
+    collapsedFeatures.value.add(featureId)
+  }
+}
+
+const toggleStory = (storyId: string) => {
+  if (collapsedStories.value.has(storyId)) {
+    collapsedStories.value.delete(storyId)
+  } else {
+    collapsedStories.value.add(storyId)
+  }
+}
+
+const isEpicCollapsed = (epicId: string) => {
+  return collapsedEpics.value.has(epicId)
+}
+
+const isFeatureCollapsed = (featureId: string) => {
+  return collapsedFeatures.value.has(featureId)
+}
+
+const isStoryCollapsed = (storyId: string) => {
+  return collapsedStories.value.has(storyId)
+}
+
+// Funciones para borrado en cascada
+const getAllChildrenIds = (taskId: string, taskType: string): string[] => {
+  const childrenIds: string[] = []
+  
+  if (taskType === 'epic') {
+    // Obtener todas las features de esta épica
+    const features = getEpicFeatures(taskId)
+    features.forEach(feature => {
+      childrenIds.push(feature._id)
+      // Obtener todas las stories de cada feature
+      const stories = getFeatureUserStories(feature._id)
+      stories.forEach(story => {
+        childrenIds.push(story._id)
+        // Obtener todas las tasks de cada story
+        const tasks = getUserStoryTasks(story._id)
+        tasks.forEach(task => childrenIds.push(task._id))
+      })
+    })
+  } else if (taskType === 'feature') {
+    // Obtener todas las stories de esta feature
+    const stories = getFeatureUserStories(taskId)
+    stories.forEach(story => {
+      childrenIds.push(story._id)
+      // Obtener todas las tasks de cada story
+      const tasks = getUserStoryTasks(story._id)
+      tasks.forEach(task => childrenIds.push(task._id))
+    })
+  } else if (taskType === 'user-story') {
+    // Obtener todas las tasks de esta story
+    const tasks = getUserStoryTasks(taskId)
+    tasks.forEach(task => childrenIds.push(task._id))
+  }
+  
+  return childrenIds
+}
+
+const getChildrenCount = (taskId: string, taskType: string) => {
+  const childrenIds = getAllChildrenIds(taskId, taskType)
+  return {
+    total: childrenIds.length,
+    features: 0,
+    stories: 0,
+    tasks: 0
+  }
+}
+
+const getDetailedChildrenCount = (taskId: string, taskType: string) => {
+  let features = 0
+  let stories = 0
+  let tasks = 0
+  
+  if (taskType === 'epic') {
+    const epicFeatures = getEpicFeatures(taskId)
+    features = epicFeatures.length
+    epicFeatures.forEach(feature => {
+      const featureStories = getFeatureUserStories(feature._id)
+      stories += featureStories.length
+      featureStories.forEach(story => {
+        tasks += getUserStoryTasks(story._id).length
+      })
+    })
+  } else if (taskType === 'feature') {
+    const featureStories = getFeatureUserStories(taskId)
+    stories = featureStories.length
+    featureStories.forEach(story => {
+      tasks += getUserStoryTasks(story._id).length
+    })
+  } else if (taskType === 'user-story') {
+    tasks = getUserStoryTasks(taskId).length
+  }
+  
+  return { features, stories, tasks, total: features + stories + tasks }
+}
+
 const handleBoardChange = async () => {
   if (selectedBoardId.value) {
     await tasksStore.fetchTasks(selectedBoardId.value)
@@ -2847,7 +3183,7 @@ const refreshTasks = async () => {
   }
 }
 
-const openCreateTaskModal = () => {
+const openCreateTaskModal = (storyId?: string) => {
   // Resetear el formulario
   newTask.value = {
     title: '',
@@ -2859,7 +3195,43 @@ const openCreateTaskModal = () => {
     assignedTo: authStore.user?._id || '',
     storyPoints: 0,
     estimatedTime: '',
-    tags: ''
+    tags: '',
+    ...(storyId && { userStoryId: storyId })
+  }
+  showCreateTaskModal.value = true
+}
+
+// Funciones para crear elementos jerárquicos
+const openCreateFeatureModal = (epicId: string) => {
+  newTask.value = {
+    title: '',
+    description: '',
+    type: 'feature',
+    priority: 'medium',
+    boardStatus: selectedBoard.value?.columns[0]?.mappedStatus || 'todo',
+    sprint: '',
+    assignedTo: authStore.user?._id || '',
+    storyPoints: 0,
+    estimatedTime: '',
+    tags: '',
+    epicId: epicId
+  }
+  showCreateTaskModal.value = true
+}
+
+const openCreateUserStoryModal = (featureId: string) => {
+  newTask.value = {
+    title: '',
+    description: '',
+    type: 'user-story',
+    priority: 'medium',
+    boardStatus: selectedBoard.value?.columns[0]?.mappedStatus || 'todo',
+    sprint: '',
+    assignedTo: authStore.user?._id || '',
+    storyPoints: 0,
+    estimatedTime: '',
+    tags: '',
+    featureId: featureId
   }
   showCreateTaskModal.value = true
 }
@@ -2867,6 +3239,16 @@ const openCreateTaskModal = () => {
 const createTask = async () => {
   if (!newTask.value.title || !selectedBoardId.value) {
     showError('Error', 'El título es requerido')
+    return
+  }
+
+  // Validar relaciones jerárquicas requeridas
+  if (newTask.value.type === 'feature' && !newTask.value.epicId) {
+    showError('Error', 'Debes seleccionar una Épica para la Feature')
+    return
+  }
+  if (newTask.value.type === 'user-story' && !newTask.value.featureId) {
+    showError('Error', 'Debes seleccionar una Feature para la User Story')
     return
   }
 
@@ -2884,6 +3266,17 @@ const createTask = async () => {
       status: 'active',
       assignedTo: newTask.value.assignedTo || undefined,
       estimatedTime: newTask.value.estimatedTime || undefined,
+    }
+
+    // Agregar relaciones jerárquicas según el tipo
+    if (newTask.value.type === 'feature' && newTask.value.epicId) {
+      taskData.epicId = newTask.value.epicId
+    }
+    if (newTask.value.type === 'user-story' && newTask.value.featureId) {
+      taskData.featureId = newTask.value.featureId
+    }
+    if (newTask.value.type === 'task' && newTask.value.userStoryId) {
+      taskData.userStoryId = newTask.value.userStoryId
     }
 
     // Agregar sprint si es un board scrum
@@ -3048,23 +3441,63 @@ const updateTaskSprint = async () => {
 }
 
 const deleteTask = async (taskId: string) => {
-  const confirmed = await confirmDelete(
-    '¿Eliminar tarea?',
-    'Esta acción no se puede deshacer. La tarea se eliminará permanentemente.'
-  )
-  
-  if (!confirmed) return
+  // Buscar la tarea para obtener su tipo y título
+  const task = tasksStore.tasks.find(t => t._id === taskId)
+  if (!task) {
+    showError('Error', 'Tarea no encontrada')
+    return
+  }
 
+  // Verificar si tiene elementos hijos
+  const childrenCount = getDetailedChildrenCount(taskId, task.type)
+  
+  // Siempre mostrar el modal personalizado (con o sin hijos)
+  cascadeDeleteInfo.value = {
+    taskId: taskId,
+    taskTitle: task.title,
+    taskType: task.type,
+    features: childrenCount.features,
+    stories: childrenCount.stories,
+    tasks: childrenCount.tasks,
+    total: childrenCount.total
+  }
+  showCascadeDeleteModal.value = true
+}
+
+const confirmCascadeDelete = async () => {
   try {
-    showLoading('Eliminando tarea...')
-    await tasksStore.deleteTask(taskId)
+    showLoading('Eliminando elementos...')
+    showCascadeDeleteModal.value = false
+    
+    // Obtener todos los IDs a borrar (el elemento principal + sus hijos)
+    const childrenIds = getAllChildrenIds(cascadeDeleteInfo.value.taskId, cascadeDeleteInfo.value.taskType)
+    const allIds = [cascadeDeleteInfo.value.taskId, ...childrenIds]
+    
+    // Borrar todos los elementos
+    for (const id of allIds) {
+      await tasksStore.deleteTask(id)
+    }
+    
     selectedTask.value = null
-    showSuccess('Tarea eliminada exitosamente')
+    showSuccess(`Se eliminaron ${allIds.length} elementos correctamente`)
     await tasksStore.fetchTasks(selectedBoardId.value)
   } catch (error) {
-    showError('Error al eliminar tarea', error instanceof Error ? error.message : 'Error desconocido')
+    showError('Error al eliminar elementos', error instanceof Error ? error.message : 'Error desconocido')
   } finally {
     closeLoading()
+  }
+}
+
+const cancelCascadeDelete = () => {
+  showCascadeDeleteModal.value = false
+  cascadeDeleteInfo.value = {
+    taskId: '',
+    taskTitle: '',
+    taskType: '',
+    features: 0,
+    stories: 0,
+    tasks: 0,
+    total: 0
   }
 }
 
@@ -3470,6 +3903,22 @@ onMounted(async () => {
 })
 
 // Watchers
+// Watch para limpiar relaciones jerárquicas cuando cambia el tipo
+watch(() => newTask.value.type, (newType, oldType) => {
+  if (newType !== oldType) {
+    // Limpiar todas las relaciones al cambiar el tipo
+    if (newType !== 'feature') {
+      newTask.value.epicId = undefined
+    }
+    if (newType !== 'user-story') {
+      newTask.value.featureId = undefined
+    }
+    if (newType !== 'task') {
+      newTask.value.userStoryId = undefined
+    }
+  }
+})
+
 watch(() => props.searchTerm, () => {
   // La búsqueda se maneja en el computed filteredActivities
 })

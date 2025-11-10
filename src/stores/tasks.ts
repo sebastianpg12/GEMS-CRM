@@ -52,6 +52,9 @@ export interface Task {
     createdAt: Date
   }>
   parentTask?: string
+  epicId?: string
+  featureId?: string
+  userStoryId?: string
   blockedBy: string[]
   relatedTasks: string[]
   github?: {
