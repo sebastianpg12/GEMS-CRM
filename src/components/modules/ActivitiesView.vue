@@ -621,7 +621,14 @@
             <div v-if="selectedTask.github?.branch" class="mb-3">
               <div class="flex items-center gap-2 p-3 bg-green-900/20 border border-green-500/30 rounded-lg">
                 <i class="fas fa-code-branch text-green-400"></i>
-                <span class="text-sm text-green-300">{{ selectedTask.github.branch }}</span>
+                <span class="text-sm text-green-300 flex-1">{{ selectedTask.github.branch }}</span>
+                <button
+                  @click="deleteGitHubBranch"
+                  class="px-2 py-1 text-xs bg-red-600/20 text-red-300 border border-red-500/30 rounded hover:bg-red-600/30 transition-colors"
+                  title="Eliminar rama"
+                >
+                  <i class="fas fa-trash"></i>
+                </button>
               </div>
             </div>
 
@@ -637,16 +644,26 @@
             </div>
 
             <!-- PR -->
-            <div v-if="selectedTask.github?.pr" class="mt-3">
+            <div v-if="selectedTask.github?.pr" class="mt-3 space-y-2">
               <a
                 :href="selectedTask.github.pr"
                 target="_blank"
                 class="flex items-center gap-2 p-3 bg-purple-900/20 border border-purple-500/30 rounded-lg hover:bg-purple-900/30 transition-colors"
               >
                 <i class="fas fa-code-pull-request text-purple-400"></i>
-                <span class="text-sm text-purple-300">Ver Pull Request</span>
-                <i class="fas fa-external-link-alt text-purple-400 text-xs ml-auto"></i>
+                <span class="text-sm text-purple-300 flex-1">Ver Pull Request</span>
+                <i class="fas fa-external-link-alt text-purple-400 text-xs"></i>
               </a>
+              
+              <!-- Botón para sincronizar estado del PR -->
+              <button
+                @click="syncPullRequestStatus"
+                class="w-full px-3 py-2 text-xs bg-purple-600/20 text-purple-300 border border-purple-500/30 rounded-lg hover:bg-purple-600/30 transition-colors flex items-center justify-center gap-2"
+                title="Actualizar estado del PR desde GitHub"
+              >
+                <i class="fas fa-sync-alt"></i>
+                <span>Actualizar estado del PR</span>
+              </button>
             </div>
             <button
               v-else-if="selectedTask.github?.branch"
@@ -2223,12 +2240,27 @@
           </div>
 
           <!-- Advertencia -->
-          <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 mb-6">
+          <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 mb-4">
             <div class="flex items-start gap-2">
               <i class="fas fa-info-circle text-yellow-500 mt-0.5 flex-shrink-0"></i>
               <p class="text-yellow-200 text-xs leading-relaxed">
                 Esta acción no se puede deshacer. {{ cascadeDeleteInfo.total > 0 ? 'Todos los elementos hijos se eliminarán junto con el elemento principal.' : 'La tarea se eliminará permanentemente.' }}
               </p>
+            </div>
+          </div>
+
+          <!-- 🌿 Advertencia de ramas de GitHub -->
+          <div class="bg-green-500/10 border border-green-500/30 rounded-lg p-3 mb-6">
+            <div class="flex items-start gap-2">
+              <i class="fab fa-github text-green-400 mt-0.5 flex-shrink-0"></i>
+              <div class="flex-1">
+                <p class="text-green-200 text-xs font-semibold mb-1">
+                  Ramas de GitHub
+                </p>
+                <p class="text-green-200/80 text-xs leading-relaxed">
+                  Las ramas asociadas a estas tareas (sin PR abierto) también se eliminarán automáticamente de GitHub.
+                </p>
+              </div>
             </div>
           </div>
 
@@ -2257,6 +2289,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import axios from 'axios'
 import { activityService, type ActivityData } from '../../services/activityService'
 import { clientService, type ClientData } from '../../services/clientService'
 import { teamService } from '../../services/teamService'
@@ -2294,6 +2327,9 @@ const authStore = useAuthStore()
 const boardsStore = useBoardsStore()
 const tasksStore = useTasksStore()
 const githubStore = useGitHubStore()
+
+// Constants
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 // Reactive data
 const activities = ref<ActivityData[]>([])
@@ -3863,13 +3899,98 @@ const confirmCascadeDelete = async () => {
     const childrenIds = getAllChildrenIds(cascadeDeleteInfo.value.taskId, cascadeDeleteInfo.value.taskType)
     const allIds = [cascadeDeleteInfo.value.taskId, ...childrenIds]
     
-    // Borrar todos los elementos
+    // 🌿 Recopilar todas las ramas de GitHub a eliminar
+    const branchesToDelete: Array<{
+      repoOwner: string
+      repoName: string
+      branch: string
+      taskTitle: string
+    }> = []
+    
+    for (const id of allIds) {
+      const task = tasksStore.tasks.find(t => t._id === id)
+      if (task?.github?.branch && task.github?.repoOwner && task.github?.repoName) {
+        // 🔄 Sincronizar estado del PR si existe
+        let canDelete = true
+        
+        if (task.github.pullRequest?.number) {
+          try {
+            console.log(`🔄 Sincronizando PR de tarea ${task.title}...`)
+            const response = await axios.post(
+              `${API_URL}/api/github/tasks/${id}/sync-pr`,
+              {},
+              { headers: { Authorization: `Bearer ${authStore.token}` }}
+            )
+            
+            // Actualizar con datos frescos
+            if (response.data.task?.github?.pullRequest) {
+              task.github.pullRequest = response.data.task.github.pullRequest
+              const prStatus = response.data.task.github.pullRequest.status
+              const prMerged = response.data.task.github.pullRequest.mergedAt
+              
+              // Solo prevenir si está abierto y no mergeado
+              if (prStatus === 'open' && !prMerged) {
+                canDelete = false
+                console.log(`⚠️ Rama "${task.github.branch}" tiene PR #${response.data.task.github.pullRequest.number} abierto`)
+              }
+            }
+          } catch (syncError) {
+            console.warn(`⚠️ No se pudo sincronizar PR de ${task.title}:`, syncError)
+            // Si no se puede sincronizar, usar datos locales
+            const pr = task.github.pullRequest
+            canDelete = !pr || 
+                       pr.status === 'closed' ||
+                       pr.status === 'merged' ||
+                       !!pr.mergedAt
+          }
+        }
+        
+        if (canDelete) {
+          branchesToDelete.push({
+            repoOwner: task.github.repoOwner,
+            repoName: task.github.repoName,
+            branch: task.github.branch,
+            taskTitle: task.title
+          })
+        }
+      }
+    }
+    
+    // Borrar todos los elementos de la base de datos
     for (const id of allIds) {
       await tasksStore.deleteTask(id)
     }
     
+    // 🌿 Eliminar ramas de GitHub (en segundo plano, no bloquear si falla)
+    if (branchesToDelete.length > 0) {
+      console.log(`🌿 Eliminando ${branchesToDelete.length} ramas de GitHub...`)
+      
+      for (const branchInfo of branchesToDelete) {
+        try {
+          await githubStore.deleteBranch(
+            branchInfo.repoOwner,
+            branchInfo.repoName,
+            branchInfo.branch
+          )
+          console.log(`✅ Rama eliminada: ${branchInfo.branch}`)
+        } catch (error: any) {
+          // Si la rama no existe (404), solo registrar
+          if (error.response?.status === 404) {
+            console.log(`⚠️ Rama ya no existe en GitHub: ${branchInfo.branch}`)
+          } else {
+            console.error(`❌ Error eliminando rama ${branchInfo.branch}:`, error.message)
+          }
+        }
+      }
+      
+      if (branchesToDelete.length > 0) {
+        await toast(`${allIds.length} elementos y ${branchesToDelete.length} ramas eliminadas`, 'success')
+      }
+    } else {
+      await toast(`${allIds.length} elementos eliminados correctamente`, 'success')
+    }
+    
     selectedTask.value = null
-    showSuccess(`Se eliminaron ${allIds.length} elementos correctamente`)
     await tasksStore.fetchTasks(selectedBoardId.value)
   } catch (error) {
     showError('Error al eliminar elementos', error instanceof Error ? error.message : 'Error desconocido')
@@ -4014,18 +4135,25 @@ const createGitHubBranch = async () => {
     // Extraer owner y repo del full_name (formato: "owner/repo")
     const [repoOwner, repoName] = branchForm.value.repository.split('/')
     
+    console.log('🔧 Configurando repositorio en tarea...')
+    console.log('Repository:', repoOwner, '/', repoName)
+    console.log('Base branch:', branchForm.value.baseBranch)
+    
     // Primero actualizar la tarea con la información del repositorio
     await tasksStore.updateTask(selectedTask.value._id, {
       github: {
         repoOwner,
         repoName,
-        branch: selectedTask.value.github?.branch,
-        branchUrl: selectedTask.value.github?.branchUrl,
-        pullRequest: selectedTask.value.github?.pullRequest,
-        commits: selectedTask.value.github?.commits,
+        branch: undefined, // Aún no hay rama
+        branchUrl: undefined,
+        pullRequest: undefined,
+        commits: [],
         lastSync: new Date()
       }
     })
+    
+    console.log('✅ Repositorio configurado en tarea')
+    console.log('🌿 Creando rama en GitHub...')
     
     // Crear rama con nombre personalizado (si existe) o auto-generado
     const customBranchName = branchForm.value.customName || generateBranchName()
@@ -4034,6 +4162,8 @@ const createGitHubBranch = async () => {
       branchForm.value.baseBranch,
       customBranchName
     )
+    
+    console.log('✅ Rama creada:', result)
     
     // Actualizar la vista local
     if (selectedTask.value.github) {
@@ -4052,8 +4182,18 @@ const createGitHubBranch = async () => {
     closeLoading()
     await toast('Rama creada exitosamente', 'success')
   } catch (error: any) {
+    console.error('❌ Error al crear rama:', error)
     closeLoading()
-    await toast(error.message || 'Error al crear rama', 'error')
+    
+    // Mejorar mensaje de error
+    let errorMsg = 'Error al crear rama'
+    if (error.response?.data?.error) {
+      errorMsg = error.response.data.error
+    } else if (error.message) {
+      errorMsg = error.message
+    }
+    
+    await toast(errorMsg, 'error')
   }
 }
 
@@ -4082,6 +4222,171 @@ const createPullRequest = async () => {
   } catch (error: any) {
     closeLoading()
     await toast(error.message || 'Error al crear PR', 'error')
+  }
+}
+
+const syncPullRequestStatus = async () => {
+  if (!selectedTask.value || !selectedTask.value.github?.pullRequest?.number) return
+  
+  try {
+    showLoading('Sincronizando estado del PR...')
+    
+    const response = await axios.post(
+      `${API_URL}/api/github/tasks/${selectedTask.value._id}/sync-pr`,
+      {},
+      { headers: { Authorization: `Bearer ${authStore.token}` }}
+    )
+    
+    if (response.data.task) {
+      // Actualizar tarea con datos frescos
+      selectedTask.value.github = response.data.task.github
+      
+      // También actualizar en el store
+      await tasksStore.fetchTasks(selectedBoardId.value)
+      
+      const pr = response.data.task.github.pullRequest
+      if (pr) {
+        const status = pr.mergedAt ? 'mergeado' : pr.status
+        await toast(`PR actualizado: estado ${status}`, 'success')
+      } else {
+        await toast('Estado del PR actualizado', 'success')
+      }
+    }
+    
+    closeLoading()
+  } catch (error: any) {
+    closeLoading()
+    console.error('Error sincronizando PR:', error)
+    await toast('Error al sincronizar estado del PR', 'error')
+  }
+}
+
+const deleteGitHubBranch = async () => {
+  if (!selectedTask.value || !selectedTask.value.github?.branch) return
+  
+  try {
+    const branchName = selectedTask.value.github.branch
+    const repoOwner = selectedTask.value.github.repoOwner
+    const repoName = selectedTask.value.github.repoName
+    
+    if (!repoOwner || !repoName) {
+      await toast('Información del repositorio no disponible', 'error')
+      return
+    }
+    
+    // 🔄 Sincronizar estado del PR desde GitHub antes de verificar
+    if (selectedTask.value.github.pullRequest?.number) {
+      try {
+        showLoading('Verificando estado del PR...')
+        console.log('🔄 Sincronizando estado del PR desde GitHub...')
+        
+        // Llamar al endpoint de sincronización
+        const response = await axios.post(
+          `${API_URL}/api/github/tasks/${selectedTask.value._id}/sync-pr`,
+          {},
+          { headers: { Authorization: `Bearer ${authStore.token}` }}
+        )
+        
+        // Actualizar tarea con datos frescos
+        if (response.data.task) {
+          selectedTask.value.github = response.data.task.github
+          console.log('✅ Estado del PR actualizado:', response.data.task.github.pullRequest)
+        }
+        
+        closeLoading()
+      } catch (syncError) {
+        console.warn('⚠️ No se pudo sincronizar PR, continuando con datos locales:', syncError)
+        closeLoading()
+      }
+    }
+    
+    // Verificar estado del PR después de sincronizar
+    if (selectedTask.value.github.pullRequest) {
+      const prStatus = selectedTask.value.github.pullRequest.status
+      const prMerged = selectedTask.value.github.pullRequest.mergedAt
+      
+      console.log('📊 Estado del PR:', { status: prStatus, merged: prMerged })
+      
+      // Si el PR está abierto (no cerrado ni mergeado)
+      if (prStatus === 'open' && !prMerged) {
+        const prNumber = selectedTask.value.github.pullRequest.number
+        await toast(
+          `No se puede eliminar: PR #${prNumber} está abierto.\n` +
+          `Cierra o mergea el PR en GitHub primero.`, 
+          'error'
+        )
+        return
+      }
+    }
+    
+    // ⚠️ CONFIRMACIÓN: Eliminar rama es una acción destructiva
+    const confirmed = confirm(
+      `⚠️ ¿Eliminar rama "${branchName}"?\n\n` +
+      `Esto eliminará la rama permanentemente de GitHub.\n` +
+      `Asegúrate de que:\n` +
+      `• El código ya fue mergeado\n` +
+      `• No hay trabajo sin guardar\n` +
+      `• El PR está cerrado o mergeado\n\n` +
+      `Esta acción NO se puede deshacer.`
+    )
+    
+    if (!confirmed) return
+    
+    showLoading('Eliminando rama de GitHub...')
+    
+    try {
+      // Eliminar rama en GitHub
+      await githubStore.deleteBranch(repoOwner, repoName, branchName)
+    } catch (deleteError: any) {
+      // Si la rama ya no existe en GitHub (404), solo limpiar localmente
+      if (deleteError.response?.status === 404) {
+        console.log('⚠️ Rama no encontrada en GitHub, limpiando solo localmente...')
+        await toast('Rama no encontrada en GitHub, limpiando asociación local', 'warning')
+      } else {
+        throw deleteError
+      }
+    }
+    
+    // Limpiar info de GitHub en la tarea
+    await tasksStore.updateTask(selectedTask.value._id, {
+      github: {
+        repoOwner: undefined,
+        repoName: undefined,
+        branch: undefined,
+        branchUrl: undefined,
+        pullRequest: undefined,
+        commits: [],
+        lastSync: new Date()
+      }
+    })
+    
+    // Actualizar la vista local
+    if (selectedTask.value.github) {
+      selectedTask.value.github.branch = undefined
+      selectedTask.value.github.branchUrl = undefined
+      selectedTask.value.github.pullRequest = undefined
+      selectedTask.value.github.repoOwner = undefined
+      selectedTask.value.github.repoName = undefined
+    }
+    
+    // Refrescar tareas
+    await tasksStore.fetchTasks(selectedBoardId.value)
+    
+    closeLoading()
+    await toast('Rama eliminada exitosamente', 'success')
+  } catch (error: any) {
+    console.error('❌ Error al eliminar rama:', error)
+    closeLoading()
+    
+    // Mejorar mensaje de error
+    let errorMsg = 'Error al eliminar rama'
+    if (error.response?.data?.error) {
+      errorMsg = error.response.data.error
+    } else if (error.message) {
+      errorMsg = error.message
+    }
+    
+    await toast(errorMsg, 'error')
   }
 }
 

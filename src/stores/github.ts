@@ -170,6 +170,24 @@ export const useGitHubStore = defineStore('github', () => {
     }
   }
 
+  async function deleteBranch(owner: string, repo: string, branchName: string) {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await axios.delete(
+        `${API_URL}/api/github/repos/${owner}/${repo}/branches/${branchName}`,
+        config.value
+      )
+      return response.data
+    } catch (err: any) {
+      error.value = err.response?.data?.error || 'Error al eliminar rama'
+      console.error('Error deleting branch:', err)
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   async function createPullRequest(taskId: string, title: string, description: string) {
     loading.value = true
     error.value = null
@@ -232,6 +250,7 @@ export const useGitHubStore = defineStore('github', () => {
     fetchPullRequests,
     fetchCommits,
     createBranch,
+    deleteBranch,
     createPullRequest,
     setupWebhook,
     $reset

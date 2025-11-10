@@ -58,20 +58,24 @@ export interface Task {
   blockedBy: string[]
   relatedTasks: string[]
   github?: {
-    repoOwner: string
-    repoName: string
+    repoOwner?: string
+    repoName?: string
     branch?: string
+    branchUrl?: string
     pullRequest?: {
       number: number
       url: string
       status: 'open' | 'closed' | 'merged'
+      mergedAt?: Date | string | null
     }
-    commits: Array<{
+    commits?: Array<{
       sha: string
       message: string
       author: string
       date: Date
     }>
+    pr?: string
+    lastSync?: Date
   }
   dueDate?: Date
   completedAt?: Date
