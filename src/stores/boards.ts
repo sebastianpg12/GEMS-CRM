@@ -47,6 +47,12 @@ export interface Board {
   columns: BoardColumn[]
   members: BoardMember[]
   sprints: Sprint[]
+  client?: {
+    _id: string
+    name: string
+    company?: string
+    email?: string
+  }
   github?: {
     repoOwner: string
     repoName: string
@@ -325,6 +331,53 @@ export const useBoardsStore = defineStore('boards', () => {
     }
   }
 
+  async function updateSprint(boardId: string, sprintId: string, sprintData: Partial<Sprint>) {
+    try {
+      const response = await axios.patch(
+        `${API_URL}/api/boards/${boardId}/sprints/${sprintId}`,
+        sprintData,
+        config.value
+      )
+      const index = boards.value.findIndex(b => b._id === boardId)
+      if (index !== -1) {
+        boards.value[index] = response.data
+      }
+      if (currentBoard.value?._id === boardId) {
+        currentBoard.value = response.data
+      }
+      return response.data
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'Error al actualizar sprint'
+      console.error('Error updating sprint:', err)
+      throw err
+    }
+  }
+
+  async function deleteSprint(boardId: string, sprintId: string) {
+    console.log('🗑️ deleteSprint store - boardId:', boardId, 'sprintId:', sprintId)
+    try {
+      const response = await axios.delete(
+        `${API_URL}/api/boards/${boardId}/sprints/${sprintId}`,
+        config.value
+      )
+      console.log('✅ Sprint eliminado - Response:', response.data)
+      const index = boards.value.findIndex(b => b._id === boardId)
+      if (index !== -1) {
+        boards.value[index] = response.data
+        console.log('✅ Board actualizado en el store')
+      }
+      if (currentBoard.value?._id === boardId) {
+        currentBoard.value = response.data
+        console.log('✅ currentBoard actualizado')
+      }
+      return response.data
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'Error al eliminar sprint'
+      console.error('❌ Error en deleteSprint:', err.response?.data || err.message)
+      throw err
+    }
+  }
+
   async function connectGitHub(boardId: string, repoOwner: string, repoName: string) {
     try {
       const response = await axios.post(
@@ -381,6 +434,8 @@ export const useBoardsStore = defineStore('boards', () => {
     addMember,
     removeMember,
     createSprint,
+    updateSprint,
+    deleteSprint,
     fetchActiveSprint,
     activateSprint,
     completeSprint,

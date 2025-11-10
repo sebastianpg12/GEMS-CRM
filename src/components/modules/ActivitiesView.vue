@@ -238,6 +238,17 @@
                 </option>
               </select>
 
+              <!-- Botón Gestionar Sprints -->
+              <button
+                v-if="selectedBoard && selectedBoard.type === 'scrum'"
+                @click="showSprintsModal = true"
+                class="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-medium flex items-center gap-2"
+                title="Gestionar sprints"
+              >
+                <i class="fas fa-running"></i>
+                <span class="hidden sm:inline">Sprints</span>
+              </button>
+
               <!-- Filtros -->
               <div class="relative">
                 <button class="px-3 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 text-sm">
@@ -1859,22 +1870,80 @@
         @click.self="showCreateBoardModal = false"
       >
         <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-md shadow-2xl border border-purple-500/20">
-          <h2 class="text-xl font-bold text-white mb-4">Crear Nuevo Tablero</h2>
+          <h2 class="text-xl font-bold text-white mb-4">
+            <i class="fas fa-plus-circle mr-2 text-purple-400"></i>
+            Crear Nuevo Tablero
+          </h2>
+
+          <!-- Debug Info (remover en producción) -->
+          <div v-if="clients.length > 0" class="mb-3 p-2 bg-green-500/10 border border-green-500/30 rounded text-xs text-green-400">
+            <i class="fas fa-check-circle mr-1"></i>
+            {{ clients.length }} cliente(s) disponible(s)
+          </div>
           
           <form @submit.prevent="createBoard">
             <div class="mb-4">
-              <label class="block text-sm font-medium text-gray-300 mb-2">Nombre</label>
+              <label class="block text-sm font-medium text-gray-300 mb-2">
+                <i class="fas fa-tag text-purple-400 mr-1"></i>
+                Nombre *
+              </label>
               <input
                 v-model="newBoard.name"
                 type="text"
                 required
                 class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                placeholder="Mi Proyecto"
+                placeholder="Ej: Desarrollo App Móvil"
               />
             </div>
 
             <div class="mb-4">
-              <label class="block text-sm font-medium text-gray-300 mb-2">Descripción</label>
+              <label class="block text-sm font-medium text-gray-300 mb-2">
+                <i class="fas fa-user-tie text-blue-400 mr-1"></i>
+                Cliente / Proyecto *
+              </label>
+              
+              <!-- Mensaje si no hay clientes -->
+              <div v-if="clients.length === 0" class="mb-3 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                <div class="flex items-start gap-2">
+                  <i class="fas fa-exclamation-triangle text-yellow-500 mt-0.5"></i>
+                  <div class="flex-1">
+                    <p class="text-xs text-yellow-200">
+                      No hay clientes disponibles. Debes crear un cliente primero.
+                    </p>
+                    <button
+                      type="button"
+                      @click="redirectToClients"
+                      class="mt-2 text-xs text-blue-400 hover:text-blue-300 underline"
+                    >
+                      <i class="fas fa-external-link-alt mr-1"></i>
+                      Ir a crear cliente
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <select
+                v-model="newBoard.clientId"
+                required
+                :disabled="clients.length === 0"
+                class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <option value="">{{ clients.length === 0 ? 'No hay clientes disponibles' : 'Selecciona un cliente' }}</option>
+                <option v-for="client in clients" :key="client._id" :value="client._id">
+                  {{ client.name }}{{ client.company ? ` - ${client.company}` : '' }}
+                </option>
+              </select>
+              <p class="text-xs text-gray-400 mt-1">
+                <i class="fas fa-info-circle mr-1"></i>
+                El tablero se asociará a este cliente/proyecto
+              </p>
+            </div>
+
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-300 mb-2">
+                <i class="fas fa-align-left text-gray-400 mr-1"></i>
+                Descripción
+              </label>
               <textarea
                 v-model="newBoard.description"
                 rows="3"
@@ -1884,7 +1953,10 @@
             </div>
 
             <div class="mb-6">
-              <label class="block text-sm font-medium text-gray-300 mb-2">Tipo de Tablero</label>
+              <label class="block text-sm font-medium text-gray-300 mb-2">
+                <i class="fas fa-layer-group text-purple-400 mr-1"></i>
+                Tipo de Tablero
+              </label>
               <div class="flex items-center p-4 border-2 border-purple-500 bg-purple-500/10 rounded-lg">
                 <div class="flex-1">
                   <div class="font-medium text-white">Scrum</div>
@@ -1904,13 +1976,189 @@
               </button>
               <button
                 type="submit"
-                :disabled="!newBoard.name"
+                :disabled="!newBoard.name || !newBoard.clientId"
                 class="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
+                <i class="fas fa-plus mr-2"></i>
                 Crear Tablero
               </button>
             </div>
           </form>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- Modal Gestionar Sprints -->
+    <Teleport to="body">
+      <div
+        v-if="showSprintsModal"
+        class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+        @click.self="showSprintsModal = false"
+      >
+        <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-2xl shadow-2xl border border-blue-500/20 max-h-[90vh] overflow-y-auto">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-white">
+              <i class="fas fa-running mr-2 text-blue-400"></i>
+              Gestionar Sprints
+            </h2>
+            <button
+              @click="showSprintsModal = false"
+              class="text-gray-400 hover:text-white"
+            >
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <!-- Información del Tablero y Cliente -->
+          <div v-if="selectedBoard" class="mb-6 p-4 bg-gray-700/30 rounded-lg border border-gray-600/50">
+            <div class="flex items-start justify-between">
+              <div>
+                <div class="flex items-center gap-2 mb-2">
+                  <i class="fas fa-layer-group text-purple-400"></i>
+                  <span class="font-medium text-white">{{ selectedBoard.name }}</span>
+                </div>
+                <div v-if="selectedBoard.client" class="flex items-center gap-2 text-sm text-gray-300">
+                  <i class="fas fa-user-tie text-blue-400"></i>
+                  <span>{{ selectedBoard.client.name }}</span>
+                  <span v-if="selectedBoard.client.company" class="text-gray-400">
+                    - {{ selectedBoard.client.company }}
+                  </span>
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="text-xs text-gray-400">Total Sprints</div>
+                <div class="text-2xl font-bold text-blue-400">{{ selectedBoard.sprints?.length || 0 }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Formulario Crear Nuevo Sprint -->
+          <div class="mb-6 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+            <h3 class="text-sm font-medium text-blue-400 mb-3">
+              <i class="fas fa-plus-circle mr-2"></i>
+              Crear Nuevo Sprint
+            </h3>
+            <form @submit.prevent="createSprint" class="space-y-3">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-medium text-gray-300 mb-1">Nombre del Sprint *</label>
+                  <input
+                    v-model="newSprint.name"
+                    type="text"
+                    required
+                    class="w-full px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white text-sm placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Sprint 1"
+                  />
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-gray-300 mb-1">Objetivo</label>
+                  <input
+                    v-model="newSprint.goal"
+                    type="text"
+                    class="w-full px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white text-sm placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Implementar autenticación"
+                  />
+                </div>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-medium text-gray-300 mb-1">Fecha Inicio *</label>
+                  <input
+                    v-model="newSprint.startDate"
+                    type="date"
+                    required
+                    class="w-full px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-gray-300 mb-1">Fecha Fin *</label>
+                  <input
+                    v-model="newSprint.endDate"
+                    type="date"
+                    required
+                    class="w-full px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+              <button
+                type="submit"
+                :disabled="!newSprint.name || !newSprint.startDate || !newSprint.endDate"
+                class="w-full px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg hover:from-blue-700 hover:to-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <i class="fas fa-plus mr-2"></i>
+                Crear Sprint
+              </button>
+            </form>
+          </div>
+
+          <!-- Lista de Sprints -->
+          <div class="space-y-3">
+            <h3 class="text-sm font-medium text-gray-300">
+              <i class="fas fa-list mr-2"></i>
+              Sprints Existentes
+            </h3>
+            
+            <div v-if="!selectedBoard?.sprints || selectedBoard.sprints.length === 0" class="text-center py-8 text-gray-400">
+              <i class="fas fa-inbox text-4xl mb-3 opacity-50"></i>
+              <p>No hay sprints creados</p>
+              <p class="text-xs mt-1">Crea tu primer sprint usando el formulario arriba</p>
+            </div>
+
+            <div v-else class="space-y-2">
+              <div
+                v-for="sprint in selectedBoard.sprints"
+                :key="sprint._id"
+                class="p-4 bg-gray-700/30 border border-gray-600/50 rounded-lg hover:border-blue-500/50 transition-colors"
+              >
+                <div class="flex items-start justify-between mb-2">
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-1">
+                      <h4 class="font-medium text-white">{{ sprint.name }}</h4>
+                      <span
+                        :class="{
+                          'bg-green-500/20 text-green-400 border-green-500/30': sprint.status === 'active',
+                          'bg-gray-500/20 text-gray-400 border-gray-500/30': sprint.status === 'planned',
+                          'bg-blue-500/20 text-blue-400 border-blue-500/30': sprint.status === 'completed'
+                        }"
+                        class="text-xs px-2 py-0.5 rounded-full border"
+                      >
+                        {{ sprint.status === 'active' ? 'Activo' : sprint.status === 'planned' ? 'Planeado' : 'Completado' }}
+                      </span>
+                    </div>
+                    <p v-if="sprint.goal" class="text-sm text-gray-400 mb-2">{{ sprint.goal }}</p>
+                    <div class="flex items-center gap-4 text-xs text-gray-400">
+                      <span>
+                        <i class="fas fa-calendar-alt mr-1"></i>
+                        {{ formatDate(sprint.startDate) }} - {{ formatDate(sprint.endDate) }}
+                      </span>
+                      <span v-if="sprint.velocity">
+                        <i class="fas fa-tachometer-alt mr-1"></i>
+                        Velocity: {{ sprint.velocity }}
+                      </span>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <button
+                      @click="deleteSprint(sprint._id)"
+                      class="p-2 text-red-400 hover:bg-red-500/20 rounded transition-colors"
+                      title="Eliminar sprint"
+                    >
+                      <i class="fas fa-trash text-sm"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-6 flex justify-end">
+            <button
+              @click="showSprintsModal = false"
+              class="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700 border border-gray-600 rounded-lg hover:bg-gray-600"
+            >
+              Cerrar
+            </button>
+          </div>
         </div>
       </div>
     </Teleport>
@@ -2093,7 +2341,17 @@ const showCreateBoardModal = ref(false)
 const newBoard = ref({
   name: '',
   description: '',
-  type: 'scrum' as 'kanban' | 'scrum'
+  type: 'scrum' as 'kanban' | 'scrum',
+  clientId: ''
+})
+
+// Modal de gestión de sprints
+const showSprintsModal = ref(false)
+const newSprint = ref({
+  name: '',
+  goal: '',
+  startDate: '',
+  endDate: ''
 })
 
 // Modal de confirmación de borrado en cascada
@@ -2294,8 +2552,9 @@ const loadClients = async () => {
   loadingClients.value = true
   try {
     clients.value = await clientService.getAll()
+    console.log('✅ Clientes cargados:', clients.value.length, clients.value)
   } catch (err) {
-    console.error('Error loading clients:', err)
+    console.error('❌ Error loading clients:', err)
   } finally {
     loadingClients.value = false
   }
@@ -2588,9 +2847,23 @@ const createBoard = async () => {
     return
   }
 
+  if (!newBoard.value.clientId) {
+    showError('Error', 'Debes seleccionar un cliente')
+    return
+  }
+
   try {
     showLoading('Creando tablero...')
-    await boardsStore.createBoard(newBoard.value)
+    
+    // Preparar datos del tablero
+    const boardData: any = {
+      name: newBoard.value.name,
+      description: newBoard.value.description,
+      type: newBoard.value.type,
+      client: newBoard.value.clientId // Enviar como string ID
+    }
+    
+    await boardsStore.createBoard(boardData)
     
     showSuccess('Tablero creado exitosamente')
     showCreateBoardModal.value = false
@@ -2599,7 +2872,8 @@ const createBoard = async () => {
     newBoard.value = {
       name: '',
       description: '',
-      type: 'scrum'
+      type: 'scrum',
+      clientId: ''
     }
     
     // Recargar la lista de tableros
@@ -2644,6 +2918,122 @@ const confirmDeleteBoard = async () => {
   } finally {
     closeLoading()
   }
+}
+
+// Funciones para gestión de sprints
+const createSprint = async () => {
+  if (!selectedBoardId.value) {
+    showError('Error', 'Debes seleccionar un tablero')
+    return
+  }
+
+  if (!newSprint.value.name || !newSprint.value.startDate || !newSprint.value.endDate) {
+    showError('Error', 'Completa todos los campos requeridos')
+    return
+  }
+
+  try {
+    showLoading('Creando sprint...')
+    await boardsStore.createSprint(selectedBoardId.value, {
+      name: newSprint.value.name,
+      goal: newSprint.value.goal,
+      startDate: new Date(newSprint.value.startDate),
+      endDate: new Date(newSprint.value.endDate),
+      status: 'planned'
+    })
+    
+    showSuccess('Sprint creado exitosamente')
+    
+    // Resetear formulario
+    newSprint.value = {
+      name: '',
+      goal: '',
+      startDate: '',
+      endDate: ''
+    }
+    
+    // Recargar tablero para actualizar la lista de sprints
+    await boardsStore.fetchBoardById(selectedBoardId.value)
+  } catch (err) {
+    showError('Error al crear sprint', err instanceof Error ? err.message : 'Error desconocido')
+  } finally {
+    closeLoading()
+  }
+}
+
+const editSprint = (sprint: any) => {
+  // Por ahora solo mostrar alerta, implementar edición completa después
+  toast('Función de edición en desarrollo', 'info')
+}
+
+const activateSprint = async (sprintId: string) => {
+  if (!selectedBoardId.value) return
+  
+  try {
+    showLoading('Activando sprint...')
+    await boardsStore.activateSprint(selectedBoardId.value, sprintId)
+    showSuccess('Sprint activado exitosamente')
+    await boardsStore.fetchBoardById(selectedBoardId.value)
+  } catch (err) {
+    showError('Error al activar sprint', err instanceof Error ? err.message : 'Error desconocido')
+  } finally {
+    closeLoading()
+  }
+}
+
+const completeSprint = async (sprintId: string) => {
+  if (!selectedBoardId.value) return
+  
+  const confirmed = await confirmDelete(
+    '¿Completar este sprint?',
+    'Las tareas incompletas se moverán al backlog.'
+  )
+  
+  if (!confirmed) return
+  
+  try {
+    showLoading('Completando sprint...')
+    await boardsStore.completeSprint(selectedBoardId.value, sprintId)
+    showSuccess('Sprint completado exitosamente')
+    await boardsStore.fetchBoardById(selectedBoardId.value)
+  } catch (err) {
+    showError('Error al completar sprint', err instanceof Error ? err.message : 'Error desconocido')
+  } finally {
+    closeLoading()
+  }
+}
+
+const deleteSprint = async (sprintId: string) => {
+  console.log('🗑️ Eliminando sprint:', sprintId)
+  console.log('📋 Board seleccionado:', selectedBoardId.value)
+  
+  if (!selectedBoardId.value) {
+    showError('Error', 'No hay tablero seleccionado')
+    return
+  }
+  
+  try {
+    console.log('🔄 Llamando a boardsStore.deleteSprint...')
+    await boardsStore.deleteSprint(selectedBoardId.value, sprintId)
+    console.log('✅ Sprint eliminado exitosamente')
+    toast('Sprint eliminado', 'success')
+    
+    console.log('🔄 Recargando tablero...')
+    await boardsStore.fetchBoardById(selectedBoardId.value)
+    console.log('✅ Tablero recargado')
+  } catch (err) {
+    console.error('❌ Error al eliminar sprint:', err)
+    showError('Error al eliminar sprint', err instanceof Error ? err.message : 'Error desconocido')
+  }
+}
+
+// Función para redirigir a la sección de clientes
+const redirectToClients = () => {
+  showCreateBoardModal.value = false
+  // Emitir evento o usar router para navegar
+  toast('Redirigiendo a la sección de clientes...', 'info')
+  // Si tienes vue-router configurado:
+  // router.push('/clients')
 }
 
 // También crear una función auxiliar más simple para los casos actuales
@@ -3773,7 +4163,7 @@ const getClientName = (clientData: any): string => {
   return 'Cliente no válido'
 }
 
-const formatDate = (dateString: string): string => {
+const formatDate = (dateString: string | Date): string => {
   return new Date(dateString).toLocaleDateString('es-ES', {
     year: 'numeric',
     month: 'short',
