@@ -250,10 +250,18 @@
               </button>
 
               <!-- Filtros -->
-              <div class="relative">
-                <button class="px-3 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 text-sm">
+              <div class="relative z-50">
+                <button 
+                  @click="toggleTaskFilters"
+                  ref="filterButton"
+                  class="px-3 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 text-sm"
+                  :class="{ 'bg-purple-600': showTaskFilters || hasActiveTaskFilters }"
+                >
                   <i class="fas fa-filter mr-2"></i>
                   Filtros
+                  <span v-if="hasActiveTaskFilters" class="ml-1 text-xs bg-white text-purple-600 rounded-full px-1.5">
+                    {{ activeFiltersCount }}
+                  </span>
                 </button>
               </div>
             </div>
@@ -2180,6 +2188,129 @@
       </div>
     </Teleport>
 
+    <!-- Panel de Filtros de Tareas (Teleport) -->
+    <Teleport to="body">
+      <div
+        v-if="showTaskFilters"
+        class="fixed inset-0 z-[9998]"
+        @click="showTaskFilters = false"
+      >
+        <div
+          :style="filterPanelStyle"
+          @click.stop
+          class="fixed w-80 bg-gray-800 border border-gray-700 rounded-lg shadow-2xl p-4 space-y-3"
+        >
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-semibold text-white">Filtros de Tareas</h3>
+            <button 
+              @click="clearTaskFilters"
+              class="text-xs text-purple-400 hover:text-purple-300"
+            >
+              Limpiar todo
+            </button>
+          </div>
+
+          <!-- Filtro por Estado del Board -->
+          <div>
+            <label class="block text-xs font-medium text-gray-400 mb-1">
+              Estado en Tablero
+            </label>
+            <select
+              v-model="taskFilters.boardStatus"
+              class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="">Todos los estados</option>
+              <option value="backlog">📋 Backlog</option>
+              <option value="todo">📝 Por Hacer</option>
+              <option value="in-progress">🔄 En Progreso</option>
+              <option value="review">👀 En Revisión</option>
+              <option value="done">✅ Completado</option>
+            </select>
+          </div>
+
+          <!-- Filtro por Prioridad -->
+          <div>
+            <label class="block text-xs font-medium text-gray-400 mb-1">
+              Prioridad
+            </label>
+            <select
+              v-model="taskFilters.priority"
+              class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="">Todas las prioridades</option>
+              <option value="critical">🔴 Crítica</option>
+              <option value="high">🟠 Alta</option>
+              <option value="medium">🟡 Media</option>
+              <option value="low">🟢 Baja</option>
+            </select>
+          </div>
+
+          <!-- Filtro por Tipo -->
+          <div>
+            <label class="block text-xs font-medium text-gray-400 mb-1">
+              Tipo de Tarea
+            </label>
+            <select
+              v-model="taskFilters.type"
+              class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="">Todos los tipos</option>
+              <option value="epic">🎯 Epic</option>
+              <option value="feature">⭐ Feature</option>
+              <option value="user-story">📖 User Story</option>
+              <option value="task">✅ Task</option>
+              <option value="bug">🐛 Bug</option>
+            </select>
+          </div>
+
+          <!-- Filtro por Asignado -->
+          <div>
+            <label class="block text-xs font-medium text-gray-400 mb-1">
+              Asignado a
+            </label>
+            <select
+              v-model="taskFilters.assignedTo"
+              class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="">Todos los miembros</option>
+              <option value="unassigned">Sin asignar</option>
+              <option v-for="member in teamMembers" :key="member._id" :value="member._id">
+                {{ member.name }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Filtro por Tags -->
+          <div v-if="availableTags.length > 0">
+            <label class="block text-xs font-medium text-gray-400 mb-1">
+              Etiquetas
+            </label>
+            <div class="flex flex-wrap gap-1 max-h-24 overflow-y-auto">
+              <button
+                v-for="tag in availableTags"
+                :key="tag"
+                @click="toggleTagFilter(tag)"
+                class="px-2 py-1 text-xs rounded-md transition-colors"
+                :class="taskFilters.tags.includes(tag) 
+                  ? 'bg-purple-600 text-white' 
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'"
+              >
+                #{{ tag }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Botón Aplicar -->
+          <button
+            @click="applyTaskFilters"
+            class="w-full px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 text-sm font-medium"
+          >
+            Aplicar Filtros
+          </button>
+        </div>
+      </div>
+    </Teleport>
+
     <!-- Modal Confirmación de Borrado en Cascada -->
     <Teleport to="body">
       <div
@@ -2363,6 +2494,18 @@ const quickTaskSettings = ref({
 // Filtros
 const selectedTeamMember = ref('')
 const selectedStatus = ref('')
+
+// Filtros de Tareas (Boards)
+const showTaskFilters = ref(false)
+const filterButton = ref<HTMLElement | null>(null)
+const filterPanelStyle = ref({})
+const taskFilters = ref({
+  boardStatus: '',
+  priority: '',
+  type: '',
+  assignedTo: '',
+  tags: [] as string[]
+})
 
 // Modales
 const showCreateModal = ref(false)
@@ -3371,6 +3514,45 @@ const clearFilters = () => {
   loadActivities()
 }
 
+// Task Filters Functions
+const toggleTaskFilters = () => {
+  showTaskFilters.value = !showTaskFilters.value
+  
+  if (showTaskFilters.value && filterButton.value) {
+    const rect = filterButton.value.getBoundingClientRect()
+    filterPanelStyle.value = {
+      top: `${rect.bottom + 8}px`,
+      right: `${window.innerWidth - rect.right}px`
+    }
+  }
+}
+
+const toggleTagFilter = (tag: string) => {
+  const index = taskFilters.value.tags.indexOf(tag)
+  if (index > -1) {
+    taskFilters.value.tags.splice(index, 1)
+  } else {
+    taskFilters.value.tags.push(tag)
+  }
+}
+
+const applyTaskFilters = () => {
+  showTaskFilters.value = false
+  // Los filtros se aplican automáticamente vía computed
+  toast('Filtros aplicados correctamente', 'success')
+}
+
+const clearTaskFilters = () => {
+  taskFilters.value = {
+    boardStatus: '',
+    priority: '',
+    type: '',
+    assignedTo: '',
+    tags: []
+  }
+  toast('Filtros limpiados', 'info')
+}
+
 // Tasks functions
 const selectedBoardId = ref('')
 const selectedTask = ref<any>(null)
@@ -3424,32 +3606,107 @@ const selectedBoard = computed(() => {
   return boardsStore.myBoards.find(b => b._id === selectedBoardId.value)
 })
 
+// Computed: Filtros de tareas activos
+const hasActiveTaskFilters = computed(() => {
+  return !!(
+    taskFilters.value.boardStatus ||
+    taskFilters.value.priority ||
+    taskFilters.value.type ||
+    taskFilters.value.assignedTo ||
+    taskFilters.value.tags.length > 0
+  )
+})
+
+const activeFiltersCount = computed(() => {
+  let count = 0
+  if (taskFilters.value.boardStatus) count++
+  if (taskFilters.value.priority) count++
+  if (taskFilters.value.type) count++
+  if (taskFilters.value.assignedTo) count++
+  if (taskFilters.value.tags.length > 0) count += taskFilters.value.tags.length
+  return count
+})
+
+// Computed: Tags disponibles
+const availableTags = computed(() => {
+  const tags = new Set<string>()
+  tasksStore.tasks.forEach(task => {
+    if (task.tags && Array.isArray(task.tags)) {
+      task.tags.forEach(tag => tags.add(tag))
+    }
+  })
+  return Array.from(tags).sort()
+})
+
+// Computed: Tareas filtradas
+const filteredTasks = computed(() => {
+  let filtered = tasksStore.tasks
+
+  if (taskFilters.value.boardStatus) {
+    filtered = filtered.filter(task => task.boardStatus === taskFilters.value.boardStatus)
+  }
+
+  if (taskFilters.value.priority) {
+    filtered = filtered.filter(task => task.priority === taskFilters.value.priority)
+  }
+
+  if (taskFilters.value.type) {
+    filtered = filtered.filter(task => task.type === taskFilters.value.type)
+  }
+
+  if (taskFilters.value.assignedTo) {
+    if (taskFilters.value.assignedTo === 'unassigned') {
+      filtered = filtered.filter(task => !task.assignedTo || task.assignedTo.length === 0)
+    } else {
+      filtered = filtered.filter(task => {
+        if (!task.assignedTo) return false
+        if (Array.isArray(task.assignedTo)) {
+          return task.assignedTo.some((user: any) => {
+            if (typeof user === 'string') return user === taskFilters.value.assignedTo
+            return user._id === taskFilters.value.assignedTo
+          })
+        }
+        return false
+      })
+    }
+  }
+
+  if (taskFilters.value.tags.length > 0) {
+    filtered = filtered.filter(task => {
+      if (!task.tags || !Array.isArray(task.tags)) return false
+      return taskFilters.value.tags.some(filterTag => task.tags.includes(filterTag))
+    })
+  }
+
+  return filtered
+})
+
 const activeSprintTasks = computed(() => {
   if (!selectedBoard.value || selectedBoard.value.type !== 'scrum') return []
   const activeSprint = selectedBoard.value.sprints?.find((s: any) => s.status === 'active')
   if (!activeSprint) return []
-  return tasksStore.tasks.filter(task => task.sprint === activeSprint._id && task.boardStatus !== 'backlog')
+  return filteredTasks.value.filter(task => task.sprint === activeSprint._id && task.boardStatus !== 'backlog')
 })
 
 const getTasksByStatus = (status: string) => {
-  return tasksStore.tasks.filter(task => task.boardStatus === status)
+  return filteredTasks.value.filter(task => task.boardStatus === status)
 }
 
 // Funciones para vista jerárquica
 const getEpics = () => {
-  return tasksStore.tasks.filter(task => task.type === 'epic')
+  return filteredTasks.value.filter(task => task.type === 'epic')
 }
 
 const getEpicFeatures = (epicId: string) => {
-  return tasksStore.tasks.filter(task => task.type === 'feature' && task.epicId === epicId)
+  return filteredTasks.value.filter(task => task.type === 'feature' && task.epicId === epicId)
 }
 
 const getFeatureUserStories = (featureId: string) => {
-  return tasksStore.tasks.filter(task => task.type === 'user-story' && task.featureId === featureId)
+  return filteredTasks.value.filter(task => task.type === 'user-story' && task.featureId === featureId)
 }
 
 const getUserStoryTasks = (storyId: string) => {
-  return tasksStore.tasks.filter(task => task.type === 'task' && task.userStoryId === storyId)
+  return filteredTasks.value.filter(task => task.type === 'task' && task.userStoryId === storyId)
 }
 
 const getEpicTasks = (epicId: string) => {
@@ -3468,7 +3725,7 @@ const getEpicTasks = (epicId: string) => {
 
 const getIndependentTasks = () => {
   // Tareas que no tienen relación jerárquica (ni son épicas, ni tienen padres)
-  return tasksStore.tasks.filter(task => 
+  return filteredTasks.value.filter(task => 
     task.type === 'task' && !task.userStoryId && !task.featureId && !task.epicId
   )
 }
@@ -3736,7 +3993,7 @@ const createTask = async () => {
         dueDate: null,
         estimatedTime: newTask.value.estimatedTime,
         taskId: createdTask._id,
-        clientId: null
+        clientId: selectedBoard.value?.client?._id || null // ✅ Usar client._id del tablero
       }
       
       await activityService.create(activityData)
@@ -3958,6 +4215,22 @@ const confirmCascadeDelete = async () => {
     
     // Borrar todos los elementos de la base de datos
     for (const id of allIds) {
+      // 🗑️ Primero eliminar la actividad asociada en el Kanban (si existe)
+      const task = tasksStore.tasks.find(t => t._id === id)
+      if (task) {
+        // Buscar actividad asociada por taskId
+        const relatedActivity = activities.value.find(a => a.taskId === id)
+        if (relatedActivity && relatedActivity._id) {
+          try {
+            await activityService.deleteActivity(relatedActivity._id)
+            console.log(`🗑️ Actividad eliminada del Kanban: ${relatedActivity.title}`)
+          } catch (error) {
+            console.warn(`⚠️ No se pudo eliminar actividad del Kanban:`, error)
+          }
+        }
+      }
+      
+      // Luego eliminar la tarea del board
       await tasksStore.deleteTask(id)
     }
     
@@ -3991,7 +4264,12 @@ const confirmCascadeDelete = async () => {
     }
     
     selectedTask.value = null
-    await tasksStore.fetchTasks(selectedBoardId.value)
+    
+    // Recargar tanto las tareas del board como las actividades del kanban
+    await Promise.all([
+      tasksStore.fetchTasks(selectedBoardId.value),
+      loadActivities()
+    ])
   } catch (error) {
     showError('Error al eliminar elementos', error instanceof Error ? error.message : 'Error desconocido')
   } finally {
@@ -4593,6 +4871,12 @@ onMounted(async () => {
     const target = e.target as HTMLElement
     if (!target.closest('.relative')) {
       showQuickSettings.value = false
+    }
+    // Cerrar panel de filtros si se hace clic fuera
+    if (!target.closest('.relative') || !target.closest('button')) {
+      if (!target.closest('[class*="bg-gray-800"]')) {
+        showTaskFilters.value = false
+      }
     }
   })
 })
