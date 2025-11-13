@@ -836,6 +836,68 @@
       </div>
     </Teleport>
 
+    <!-- Modal: Seleccionar rama base para PR -->
+    <Teleport to="body">
+      <div
+        v-if="showSelectBaseBranchModal && selectedTask"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[10000]"
+        @click.self="showSelectBaseBranchModal = false"
+      >
+        <div class="bg-gray-800 rounded-xl border border-gray-700 p-6 max-w-md w-full mx-4">
+          <h3 class="text-xl font-bold text-white mb-4">
+            <i class="fab fa-github mr-2"></i>
+            Seleccionar rama base para PR
+          </h3>
+
+          <div class="space-y-4">
+            <!-- Rama actual -->
+            <div>
+              <label class="text-sm font-medium text-gray-300 mb-2 block">
+                <i class="fas fa-code-branch text-green-400 mr-1"></i>
+                Rama de desarrollo
+              </label>
+              <div class="px-3 py-2 bg-gray-700/50 border border-green-500/30 rounded-md text-white text-sm">
+                {{ selectedTask.github?.branch }}
+              </div>
+            </div>
+
+            <!-- Rama base -->
+            <div>
+              <label class="text-sm font-medium text-gray-300 mb-2 block">
+                <i class="fas fa-code-branch text-blue-400 mr-1"></i>
+                Rama destino (base)
+              </label>
+              <select
+                v-model="selectedBaseBranchForPR"
+                class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="master">master</option>
+                <option value="main">main</option>
+                <option value="develop">develop</option>
+              </select>
+              <p class="text-xs text-gray-400 mt-2">Se creará un PR desde <span class="font-mono text-green-300">{{ selectedTask.github?.branch }}</span> hacia <span class="font-mono text-blue-300">{{ selectedBaseBranchForPR }}</span></p>
+            </div>
+          </div>
+
+          <div class="flex gap-3 mt-6">
+            <button
+              @click="confirmCreatePullRequest"
+              class="flex-1 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 font-medium"
+            >
+              <i class="fas fa-code-pull-request mr-2"></i>
+              Crear PR
+            </button>
+            <button
+              @click="showSelectBaseBranchModal = false"
+              class="px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
     <!-- Loading state -->
     <div v-if="loading" class="flex items-center justify-center py-12">
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
@@ -3560,9 +3622,11 @@ const selectedTask = ref<any>(null)
 const selectedSprintId = ref('')
 const showCreateBranchModal = ref(false)
 const showCreateTaskModal = ref(false)
+const showSelectBaseBranchModal = ref(false)
 const isEditingTask = ref(false)
 const editingTaskId = ref('')
 const newComment = ref('')
+const selectedBaseBranchForPR = ref('master')
 
 const newTask = ref<{
   title: string
@@ -4479,14 +4543,25 @@ const createGitHubBranch = async () => {
 const createPullRequest = async () => {
   if (!selectedTask.value || !selectedTask.value.github?.branch) return
   
+  // Abrir modal para seleccionar la rama base
+  selectedBaseBranchForPR.value = selectedTask.value.github.baseBranch || 'master'
+  showSelectBaseBranchModal.value = true
+}
+
+const confirmCreatePullRequest = async () => {
+  if (!selectedTask.value || !selectedTask.value.github?.branch) return
+  
   try {
     showLoading('Creando Pull Request...')
     
     const title = `[${selectedTask.value._id.slice(-4).toUpperCase()}] ${selectedTask.value.title}`
     const description = selectedTask.value.description || ''
+    const baseBranch = selectedBaseBranchForPR.value
+
+    console.log(`Creating PR from ${selectedTask.value.github.branch} to ${baseBranch}`)
     
     // Crear PR desde el backend usando el taskId
-    const result = await githubStore.createPullRequest(selectedTask.value._id, title, description)
+    const result = await githubStore.createPullRequest(selectedTask.value._id, title, description, baseBranch)
     
     // Actualizar la vista local
     if (selectedTask.value.github) {
@@ -4496,6 +4571,7 @@ const createPullRequest = async () => {
     // Refrescar tareas
     await tasksStore.fetchTasks(selectedBoardId.value)
     
+    showSelectBaseBranchModal.value = false
     closeLoading()
     await toast('Pull Request creado', 'success')
   } catch (error: any) {

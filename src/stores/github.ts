@@ -175,13 +175,18 @@ export const useGitHubStore = defineStore('github', () => {
     loading.value = true
     error.value = null
     try {
+      // El nombre de la rama puede contener slashes (ej. feature/xyz).
+      // Codificarlo para que la URL sea válida y no rompa las rutas del backend.
+      const encodedBranch = encodeURIComponent(branchName)
       const response = await axios.delete(
-        `${API_URL}/api/github/repos/${owner}/${repo}/branches/${branchName}`,
+        `${API_URL}/api/github/repos/${owner}/${repo}/branches/${encodedBranch}`,
         config.value
       )
       return response.data
     } catch (err: any) {
-      error.value = err.response?.data?.error || 'Error al eliminar rama'
+      // Mejorar el mensaje de error para depuración en UI
+      const serverMsg = err.response?.data?.error || err.response?.data?.message
+      error.value = serverMsg || `Error al eliminar rama: ${err.message || 'desconocido'}`
       console.error('Error deleting branch:', err)
       throw err
     } finally {
@@ -189,13 +194,13 @@ export const useGitHubStore = defineStore('github', () => {
     }
   }
 
-  async function createPullRequest(taskId: string, title: string, description: string) {
+  async function createPullRequest(taskId: string, title: string, description: string, base: string = 'main') {
     loading.value = true
     error.value = null
     try {
       const response = await axios.post(
         `${API_URL}/api/github/tasks/${taskId}/create-pr`,
-        { title, description },
+        { title, body: description, base },
         config.value
       )
       return response.data
