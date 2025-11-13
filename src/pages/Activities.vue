@@ -21,7 +21,6 @@
       :searchTerm="searchTerm"
       @create="openCreateModal"
       @edit="openEditModal"
-      @open-notification-settings="showNotificationSettings = true"
     />
 
     <!-- Create/Edit Modal -->
@@ -47,11 +46,7 @@
       </div>
     </div>
     
-    <!-- Modal de configuración de notificaciones -->
-    <TaskReportSettingsModal 
-      v-if="showNotificationSettings" 
-      @close="showNotificationSettings = false" 
-    />
+    <!-- Modal de configuración de notificaciones - REMOVED -->
   </div>
 </template>
 
@@ -59,13 +54,13 @@
 import { ref } from 'vue'
 import ActivitiesView from '../components/modules/ActivitiesView.vue'
 import ActivityForm from '../components/forms/ActivityForm.vue'
-import TaskReportSettingsModal from '../components/modals/TaskReportSettingsModal.vue'
+// import TaskReportSettingsModal from '../components/modals/TaskReportSettingsModal.vue' // REMOVED
 import type { ActivityData } from '../services/activityService'
 
 // Reactive state
 const searchTerm = ref('')
 const showModal = ref(false)
-const showNotificationSettings = ref(false)
+// const showNotificationSettings = ref(false) // REMOVED
 const editingActivity = ref<ActivityData | null>(null)
 const activitiesViewRef = ref()
 

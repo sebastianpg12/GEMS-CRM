@@ -15,8 +15,9 @@ import CasesView from './components/CasesView.vue'
 import ProfileView from './pages/ProfileView.vue'
 import ChatPage from './pages/ChatPage.vue'
 import ClientDetail from './pages/ClientDetail.vue'
-import TaskReportConfig from './pages/TaskReportConfig.vue'
-import TasksNotifier from './pages/TasksNotifier.vue'
+import BoardsPage from './pages/BoardsPage.vue'
+import BoardView from './pages/BoardView.vue'
+import TasksBoard from './pages/TasksBoard.vue'
 
 const routes = [
   {
@@ -107,24 +108,6 @@ const routes = [
     }
   },
   {
-    path: '/task-reports',
-    name: 'TaskReportConfig',
-    component: TaskReportConfig,
-    meta: { 
-      requiresAuth: true,
-      requiredRoles: ['admin', 'manager']
-    }
-  },
-  {
-    path: '/tasks-notifier',
-    name: 'TasksNotifier',
-    component: TasksNotifier,
-    meta: { 
-      requiresAuth: true,
-      requiredPermissions: ['send-notifications']
-    }
-  },
-  {
     path: '/profile',
     name: 'Profile',
     component: ProfileView,
@@ -138,6 +121,33 @@ const routes = [
     component: ChatPage,
     meta: { 
       requiresAuth: true
+    }
+  },
+  {
+    path: '/boards',
+    name: 'Boards',
+    component: BoardsPage,
+    meta: { 
+      requiresAuth: true,
+      requiredPermissions: ['view-activities']
+    }
+  },
+  {
+    path: '/boards/:id',
+    name: 'BoardView',
+    component: BoardView,
+    meta: { 
+      requiresAuth: true,
+      requiredPermissions: ['view-activities']
+    }
+  },
+  {
+    path: '/tasks',
+    name: 'Tasks',
+    component: TasksBoard,
+    meta: { 
+      requiresAuth: true,
+      requiredPermissions: ['view-activities']
     }
   },
   {

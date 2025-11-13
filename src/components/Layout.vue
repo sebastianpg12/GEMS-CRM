@@ -58,24 +58,53 @@
       <div class="px-4 py-4 border-t border-white/10">
         <div class="flex flex-col items-center gap-2">
           <div class="flex items-center">
-            <img 
-              src="../assets/logo.webp" 
-              alt="GEMS Logo" 
-              class="w-8 h-8 rounded-full shadow-lg" 
-            />
+            <!-- Avatar personalizado o foto personalizada -->
+            <div class="w-8 h-8 rounded-full overflow-hidden shadow-lg flex items-center justify-center bg-gray-700">
+              <!-- Foto personalizada -->
+              <img 
+                v-if="user?.photo"
+                :src="resolveImageUrl(user.photo)"
+                alt="Foto de perfil" 
+                class="w-full h-full object-cover"
+                @error="onAvatarError"
+              />
+              <!-- Avatar predefinido -->
+              <img 
+                v-else-if="user?.avatar && getAvatarById(user.avatar)"
+                :src="getAvatarById(user.avatar)?.path"
+                :alt="getAvatarById(user.avatar)?.name" 
+                class="w-full h-full object-cover"
+              />
+              <!-- Iniciales como fallback -->
+              <span v-else class="text-xs font-medium text-white">{{ getUserInitials() }}</span>
+            </div>
             <div class="ml-3">
-              <p class="text-sm font-medium text-white">Usuario</p>
-              <p class="text-xs text-gray-400">Admin</p>
+              <p class="text-sm font-medium text-white">{{ user?.name || 'Usuario' }}</p>
+              <p class="text-xs text-gray-400">{{ getRoleDisplayName() }}</p>
             </div>
           </div>
-          <!-- Minimal logout icon centered with tooltip -->
+          <!-- Configuración de perfil -->
+          <router-link
+            to="/profile"
+            class="p-2 rounded-lg hover:bg-dark-800/60 transition-colors mt-4 group"
+            aria-label="Ver perfil"
+            style="position:relative;"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 text-gray-300 hover:text-primary-400">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span class="absolute left-1/2 top-full mt-2 -translate-x-1/2 px-2 py-1 bg-black/80 text-xs text-white rounded opacity-0 pointer-events-none group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-200" style="white-space:nowrap;">Configurar Perfil</span>
+          </router-link>
+          
+          <!-- Cerrar sesión -->
           <button
             @click="$emit('logout')"
-            class="p-2 rounded-lg hover:bg-dark-800/60 transition-colors mt-4 group"
+            class="p-2 rounded-lg hover:bg-dark-800/60 transition-colors mt-2 group"
             aria-label="Cerrar sesión"
             style="position:relative;"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-7 h-7 text-gray-300 hover:text-red-400">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 text-gray-300 hover:text-red-400">
               <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1" />
             </svg>
             <span class="absolute left-1/2 top-full mt-2 -translate-x-1/2 px-2 py-1 bg-black/80 text-xs text-white rounded opacity-0 pointer-events-none group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-200" style="white-space:nowrap;">Cerrar sesión</span>
@@ -125,12 +154,7 @@
             </span>
           </router-link>
           
-          <button @click="showNotifications = !showNotifications" class="relative p-2 text-gray-400 hover:text-white transition-colors">
-            <BellIcon class="w-6 h-6" />
-            <span v-if="unreadCount > 0" class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-              {{ unreadCount }}
-            </span>
-          </button>
+          <!-- Notifications removed - Sistema de tareas tipo Azure -->
         </div>
       </header>
       
@@ -144,102 +168,50 @@
   <ChatWidget />
   <NewMessageToast />
     
-    <!-- Notifications Panel -->
-    <div v-if="showNotifications" class="fixed inset-0 z-50">
-      <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="showNotifications = false"></div>
-      <div class="absolute right-4 top-24 w-96 max-h-96 overflow-y-auto bg-gradient-to-br from-dark-800/90 to-dark-900/90 backdrop-blur-xl rounded-xl border border-white/20 shadow-2xl">
-        <div class="p-4 border-b border-white/10">
-          <h3 class="text-lg font-semibold text-white">Notificaciones</h3>
-        </div>
-        <div class="p-4 space-y-3">
-          <div v-if="notifications.length === 0" class="text-center text-gray-400 py-8">
-            No hay notificaciones
-          </div>
-          <div 
-            v-for="notification in notifications.slice(0, 10)" 
-            :key="notification._id"
-            class="p-3 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors cursor-pointer"
-            @click="markAsRead(notification._id!)"
-          >
-            <div class="flex items-start justify-between">
-              <div class="flex-1">
-                <p class="text-sm font-medium text-white">{{ notification.title }}</p>
-                <p class="text-xs text-gray-400 mt-1">{{ notification.message }}</p>
-              </div>
-              <div v-if="notification.status === 'unread'" class="w-2 h-2 bg-primary-500 rounded-full ml-2 mt-1"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- Notifications Panel - REMOVED for Azure-style task system -->
   </div>
-  
-  <!-- Modal de configuración de notificaciones -->
-  <TaskReportSettingsModal 
-    v-if="showNotificationSettings" 
-    @close="showNotificationSettings = false" 
-  />
-  
-  <!-- Modal del notificador de tareas -->
-  <TaskNotifierModal 
-    v-if="showTaskNotifier" 
-    @close="showTaskNotifier = false" 
-  />
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { useNotificationsStore } from '../stores'
+import { useAuthStore } from '../stores/auth'
 import { useChatStore } from '../stores/chatStore'
 import ChatWidget from './ChatWidget.vue'
 import OnlineUsersPopover from './OnlineUsersPopover.vue'
 import NewMessageToast from './NewMessageToast.vue'
-import TaskReportSettingsModal from './modals/TaskReportSettingsModal.vue'
-import TaskNotifierModal from './modals/TaskNotifierModal.vue'
+import { getAvatarById } from '@/utils/avatarConfig'
+import { API_CONFIG } from '@/config/api'
 import {
-  HomeIcon,
   UserGroupIcon,
   ClipboardDocumentListIcon,
   CurrencyDollarIcon,
-  PhoneIcon,
-  ExclamationTriangleIcon,
-  BellIcon,
-  DocumentIcon,
   DocumentTextIcon,
-  CogIcon,
   UsersIcon,
   FolderIcon,
-  ChatBubbleLeftRightIcon
+  ChatBubbleLeftRightIcon,
+  Squares2X2Icon
 } from '@heroicons/vue/24/outline'
 
 const route = useRoute()
-const notificationsStore = useNotificationsStore()
 const chatStore = useChatStore()
+const authStore = useAuthStore()
 
-const showNotifications = ref(false)
-const showNotificationSettings = ref(false)
-const showTaskNotifier = ref(false)
+const avatarError = ref(false)
 
-// Funciones para abrir los modales
-const openNotificationSettings = () => {
-  showNotificationSettings.value = true
-}
-
-const openTaskNotifier = () => {
-  showTaskNotifier.value = true
-}
+// Acceso al usuario actual
+const user = computed(() => authStore.user)
 
 const navigation = [
   { name: 'Dashboard', path: '/', icon: 'logo' },
   { name: 'Clientes', path: '/clients', icon: UserGroupIcon },
   { name: 'Actividades', path: '/activities', icon: ClipboardDocumentListIcon },
+  { name: 'Tableros', path: '/boards', icon: Squares2X2Icon },
   { name: 'Actividades por Equipo', path: '/team-activities', icon: UsersIcon },
   { name: 'Contabilidad', path: '/accounting', icon: CurrencyDollarIcon },
   { name: 'Gestión de Casos', path: '/cases', icon: FolderIcon },
   { name: 'Equipo', path: '/team', icon: DocumentTextIcon },
   { name: 'Chat Interno', path: '/chat', icon: ChatBubbleLeftRightIcon },
-  { name: 'Notificaciones', path: '/task-reports', icon: BellIcon },
 ]
 
 const pageTitle = computed(() => {
@@ -250,37 +222,58 @@ const pageTitle = computed(() => {
 const pageDescription = computed(() => {
   const descriptions: Record<string, string> = {
     '/': 'Panel de control principal',
+    '/boards': 'Tableros Kanban y Scrum',
     '/clients': 'Gestión de clientes',
     '/activities': 'Gestión de actividades y tareas',
     '/team-activities': 'Actividades asignadas por miembro del equipo',
     '/accounting': 'Gestión financiera unificada',
     '/cases': 'Documentos, incidencias y seguimientos',
     '/team': 'Gestión del equipo de trabajo',
-    '/chat': 'Chat interno del equipo',
-    '/task-reports': 'Configuración de notificaciones WhatsApp'
+    '/chat': 'Chat interno del equipo'
   }
   return descriptions[route.path] || ''
 })
 
-const notifications = computed(() => notificationsStore.notifications)
-const unreadCount = computed(() => 
-  notifications.value.filter(n => n.status === 'unread').length
-)
-
 // Unread chat messages (from Pinia getter)
 const chatUnread = computed(() => chatStore.getUnreadCount)
 
-const markAsRead = async (notificationId: string) => {
-  try {
-    await notificationsStore.markAsRead(notificationId)
-  } catch (error) {
-    console.error('Error marking notification as read:', error)
+// Resolver URL de imágenes
+const resolveImageUrl = (url: string | null) => {
+  if (!url) return ''
+  if (/^https?:\/\//i.test(url)) return url
+  const origin = String(API_CONFIG.BASE_URL).replace(/\/?api\/?$/i, '')
+  return `${origin.replace(/\/$/, '')}/${url.replace(/^\//, '')}`
+}
+
+// Obtener iniciales del usuario
+const getUserInitials = () => {
+  const name = user.value?.name || ''
+  if (!name) return 'U'
+  return name.split(' ').map(n => n.charAt(0)).join('').toUpperCase().substring(0, 2)
+}
+
+// Manejar error al cargar avatar
+const onAvatarError = () => {
+  avatarError.value = true
+}
+
+// Mostrar nombre del rol en español
+const getRoleDisplayName = () => {
+  const roles: Record<string, string> = {
+    'admin': 'Administrador',
+    'manager': 'Gerente',
+    'user': 'Usuario',
+    'employee': 'Empleado',
+    'viewer': 'Visualizador'
   }
+  return roles[user.value?.role || ''] || user.value?.role || 'Usuario'
 }
 
 onMounted(() => {
-  notificationsStore.fetchNotifications()
   chatStore.initializeChat()
   chatStore.loadChatRooms()
+  
+  // Resetear errores
+  avatarError.value = false
 })
 </script>

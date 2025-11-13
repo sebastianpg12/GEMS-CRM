@@ -17,6 +17,7 @@ export interface ActivityData {
   priority?: 'low' | 'medium' | 'high' | 'urgent'
   dueDate?: string
   estimatedTime?: string
+  taskId?: string // ✅ ID de la tarea del board asociada
   createdBy?: string
   createdByUser?: {
     _id: string
@@ -40,13 +41,19 @@ class ActivityService {
   private baseUrl = API_CONFIG.BASE_URL
   private endpoint = '/activities'
 
+  private getHeaders(): HeadersInit {
+    const token = localStorage.getItem('token')
+    return {
+      'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    }
+  }
+
   async getAll(): Promise<ActivityData[]> {
     try {
       const response = await fetch(`${this.baseUrl}${this.endpoint}`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this.getHeaders(),
       })
       
       if (!response.ok) {
@@ -65,9 +72,7 @@ class ActivityService {
     try {
       const response = await fetch(`${this.baseUrl}${this.endpoint}/${id}`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this.getHeaders(),
       })
       
       if (!response.ok) {
@@ -85,9 +90,7 @@ class ActivityService {
     try {
       const response = await fetch(`${this.baseUrl}${this.endpoint}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this.getHeaders(),
         body: JSON.stringify(activityData),
       })
       
@@ -106,9 +109,7 @@ class ActivityService {
     try {
       const response = await fetch(`${this.baseUrl}${this.endpoint}/${id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this.getHeaders(),
         body: JSON.stringify(activityData),
       })
       
@@ -127,9 +128,7 @@ class ActivityService {
     try {
       const response = await fetch(`${this.baseUrl}${this.endpoint}/${id}`, {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this.getHeaders(),
       })
       
       if (!response.ok) {
@@ -146,9 +145,7 @@ class ActivityService {
     try {
       const response = await fetch(`${this.baseUrl}${this.endpoint}/assigned/${userId}`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this.getHeaders(),
       })
       
       if (!response.ok) {
@@ -171,9 +168,7 @@ class ActivityService {
 
       const response = await fetch(`${this.baseUrl}${this.endpoint}?${params.toString()}`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this.getHeaders(),
       })
       
       if (!response.ok) {
@@ -192,9 +187,7 @@ class ActivityService {
     try {
       const response = await fetch(`${this.baseUrl}${this.endpoint}/${id}/status`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this.getHeaders(),
         body: JSON.stringify({ status }),
       })
       
