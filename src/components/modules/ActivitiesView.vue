@@ -4002,11 +4002,8 @@ const createTask = async () => {
     
     closeTaskModal()
     
-    // Recargar las tareas y actividades
-    await Promise.all([
-      tasksStore.fetchTasks(selectedBoardId.value),
-      loadActivities()
-    ])
+    // Solo recargar actividades del Kanban (la tarea ya se agregó al store en createTask)
+    await loadActivities()
   } catch (err) {
     showError(
       isEditingTask.value ? 'Error al actualizar tarea' : 'Error al crear tarea',
@@ -4265,11 +4262,8 @@ const confirmCascadeDelete = async () => {
     
     selectedTask.value = null
     
-    // Recargar tanto las tareas del board como las actividades del kanban
-    await Promise.all([
-      tasksStore.fetchTasks(selectedBoardId.value),
-      loadActivities()
-    ])
+    // Solo recargar actividades del Kanban (las tareas ya se eliminaron del store)
+    await loadActivities()
   } catch (error) {
     showError('Error al eliminar elementos', error instanceof Error ? error.message : 'Error desconocido')
   } finally {
@@ -4847,12 +4841,19 @@ onMounted(async () => {
         members: []
       })
       selectedBoardId.value = defaultBoard._id
+      // Cargar tareas del board recién creado
+      await tasksStore.fetchTasks(defaultBoard._id)
+      console.log('✅ Board por defecto creado y tareas cargadas')
     } catch (error) {
       console.error('Error creando tablero por defecto:', error)
     }
   } else {
-    // Si ya hay tableros, seleccionar el primero
-    selectedBoardId.value = boardsStore.myBoards[0]._id
+    // Si ya hay tableros, seleccionar el primero y cargar sus tareas
+    const firstBoardId = boardsStore.myBoards[0]._id
+    selectedBoardId.value = firstBoardId
+    // Cargar tareas del board seleccionado
+    await tasksStore.fetchTasks(firstBoardId)
+    console.log('📋 Board seleccionado y tareas cargadas:', firstBoardId)
   }
   
   // Actualizar estado de actividades vencidas
@@ -4882,6 +4883,19 @@ onMounted(async () => {
 })
 
 // Watchers
+// Watch para cargar tareas cuando cambia el board seleccionado
+watch(() => selectedBoardId.value, async (newBoardId, oldBoardId) => {
+  if (newBoardId && newBoardId !== oldBoardId) {
+    console.log('📋 Cargando tareas del board:', newBoardId)
+    try {
+      await tasksStore.fetchTasks(newBoardId)
+      console.log('✅ Tareas cargadas:', tasksStore.tasks.length)
+    } catch (error) {
+      console.error('❌ Error cargando tareas:', error)
+    }
+  }
+}) // Removido immediate: true para evitar doble carga
+
 // Watch para limpiar relaciones jerárquicas cuando cambia el tipo
 watch(() => newTask.value.type, (newType, oldType) => {
   if (newType !== oldType) {
