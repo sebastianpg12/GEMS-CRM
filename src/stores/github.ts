@@ -2,8 +2,9 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import axios from 'axios'
 import { useAuthStore } from './auth'
+import { API_CONFIG } from '../config/api'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+const API_URL = API_CONFIG.BASE_URL.replace('/api', '')
 
 export interface GitHubRepo {
   id: number
