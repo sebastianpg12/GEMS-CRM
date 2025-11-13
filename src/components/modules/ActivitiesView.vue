@@ -4002,9 +4002,15 @@ const createTask = async () => {
     }
     
     closeTaskModal()
-    
-    // Solo recargar actividades del Kanban (la tarea ya se agregó al store en createTask)
-    await loadActivities()
+
+    // Recargar solamente las tareas del tablero seleccionado para evitar
+    // recargar todos los boards y provocar parpadeos en la UI.
+    if (selectedBoardId.value) {
+      await tasksStore.fetchTasks(selectedBoardId.value)
+    } else {
+      // Fallback: si no hay tablero seleccionado, recargar actividades generales
+      await loadActivities()
+    }
   } catch (err) {
     showError(
       isEditingTask.value ? 'Error al actualizar tarea' : 'Error al crear tarea',
