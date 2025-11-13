@@ -31,7 +31,7 @@ export const isDebugMode = (): boolean => {
   return import.meta.env.VITE_DEBUG_MODE === 'true' || import.meta.env.DEV
 }
 
-// Log de configuración para debugging
+
 if (isDebugMode()) {
   console.log('🌐 API Configuration:', {
     environment: import.meta.env.DEV ? 'development' : 'production',
