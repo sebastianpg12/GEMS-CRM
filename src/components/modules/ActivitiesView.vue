@@ -2429,6 +2429,7 @@ import { useAuthStore } from '../../stores/auth'
 import { useBoardsStore } from '../../stores/boards'
 import { useTasksStore } from '../../stores/tasks'
 import { useGitHubStore } from '../../stores/github'
+import { API_CONFIG } from '../../config/api'
 import type { TeamMember } from '../../types'
 import PermissionGuard from '../PermissionGuard.vue'
 import ActivityFormModal from '../forms/ActivityFormModal.vue'
@@ -2460,7 +2461,7 @@ const tasksStore = useTasksStore()
 const githubStore = useGitHubStore()
 
 // Constants
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+const API_URL = API_CONFIG.BASE_URL.replace('/api', '')
 
 // Reactive data
 const activities = ref<ActivityData[]>([])
