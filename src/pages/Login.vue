@@ -196,8 +196,10 @@ const handleLogin = async () => {
   const result = await authStore.login(credentials.value)
   
   if (result.success) {
-    await router.push('/')
+    const redirectPath = authStore.user?.role === 'client' ? '/support' : '/';
+    await router.push(redirectPath)
   }
+
 }
 
 const handleForgotPassword = async () => {

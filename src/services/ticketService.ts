@@ -122,6 +122,21 @@ class TicketService {
       throw new Error('Error al agregar el comentario');
     }
   }
+
+  // Get ticket history for client
+  async getClientHistory(): Promise<Ticket[]> {
+    try {
+      const response = await fetch(`${this.baseUrl}${this.endpoint}/client-history`, {
+        method: 'GET',
+        headers: this.getHeaders(),
+      });
+      const result = await response.json();
+      return result.success ? result.data : [];
+    } catch (error) {
+      console.error('Error fetching ticket history:', error);
+      throw new Error('No se pudo cargar el historial de tickets');
+    }
+  }
 }
 
 export const ticketService = new TicketService();

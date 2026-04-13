@@ -182,9 +182,11 @@ router.beforeEach(async (to, _from, next) => {
   if (to.path === '/login' || to.path === '/support') {
     // If already authenticated and trying to access login, redirect to dashboard
     if (to.path === '/login' && authStore.isAuthenticated) {
-      next('/')
+      const redirectPath = authStore.user?.role === 'client' ? '/support' : '/';
+      next(redirectPath)
       return
     }
+
     next()
     return
   }
@@ -235,10 +237,12 @@ router.beforeEach(async (to, _from, next) => {
     })
     
     if (!hasPermission) {
-      // Redirect to dashboard if user doesn't have permission
-      next('/')
+      // If client hits unauthorized page (like /dashboard), redirect to /support
+      const redirectPath = authStore.isClient ? '/support' : '/';
+      next(redirectPath)
       return
     }
+
   }
   
   next()

@@ -1,23 +1,6 @@
 <template>
-  <div class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden relative">
-    
-    <!-- Decorative top accent -->
-    <div class="h-2 bg-gradient-to-r from-primary-600 via-indigo-600 to-primary-400"></div>
-
-    <div v-if="!submitted" class="p-8 md:p-12 space-y-8 animate-fade-in">
-      
-      <!-- Logo/Header -->
-      <div class="text-center">
-        <div class="w-16 h-16 bg-primary-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-primary-100 shadow-sm relative group overflow-hidden">
-          <div class="absolute inset-0 bg-primary-600 opacity-0 group-hover:opacity-10 transition-opacity"></div>
-          <i class="fas fa-headset text-primary-600 text-2xl group-hover:scale-110 transition-transform"></i>
-        </div>
-        <h2 class="text-2xl font-black text-slate-800 tracking-tight">Portal de Soporte</h2>
-        <p class="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1.5 flex items-center justify-center gap-2">
-           <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
-           Estamos en línea para ayudarte
-        </p>
-      </div>
+  <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden relative">
+    <div v-if="!submitted" class="p-4 md:p-6 space-y-4 animate-fade-in">
 
       <!-- Form -->
       <form @submit.prevent="handleSubmit" class="space-y-6">
@@ -29,11 +12,13 @@
               <input 
                 v-model="formData.name"
                 required 
+                :readonly="!!authStore.user"
                 type="text" 
                 placeholder="Ej. Juan Pérez"
-                class="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all shadow-sm"
+                class="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all shadow-sm read-only:opacity-60 read-only:cursor-not-allowed"
               />
             </div>
+
           </div>
 
           <div class="space-y-2">
@@ -43,11 +28,13 @@
               <input 
                 v-model="formData.email"
                 required 
+                :readonly="!!authStore.user"
                 type="email" 
                 placeholder="tu@email.com"
-                class="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all shadow-sm"
+                class="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all shadow-sm read-only:opacity-60 read-only:cursor-not-allowed"
               />
             </div>
+
           </div>
         </div>
 
@@ -164,11 +151,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { ticketService } from '../../services/ticketService'
 import { useNotifications } from '../../composables/useNotifications'
+import { useAuthStore } from '../../stores/auth'
 
 const { showError, showSuccess } = useNotifications()
+const authStore = useAuthStore()
 
 const loading = ref(false)
 const submitted = ref(false)
@@ -190,10 +179,24 @@ const priorities = [
   { id: 'urgent', label: 'Urgente', activeClass: 'bg-rose-500 text-white shadow-sm' }
 ]
 
+onMounted(() => {
+  // Auto-fill if user is logged in
+  if (authStore.isAuthenticated && authStore.user) {
+    formData.value.name = authStore.user.name
+    formData.value.email = authStore.user.email
+  }
+})
+
 const handleSubmit = async () => {
   loading.value = true
   try {
-    const response = await ticketService.createPublic(formData.value)
+    // Include userId if authenticated
+    const submissionData = {
+      ...formData.value,
+      userId: authStore.user?._id
+    }
+    
+    const response = await ticketService.createPublic(submissionData)
     if (response.success && response.data) {
       ticketId.value = response.data.ticketNumber
       submitted.value = true
@@ -210,8 +213,8 @@ const handleSubmit = async () => {
 
 const resetForm = () => {
   formData.value = {
-    name: '',
-    email: '',
+    name: authStore.user?.name || '',
+    email: authStore.user?.email || '',
     subject: '',
     description: '',
     category: 'technical',
@@ -220,6 +223,7 @@ const resetForm = () => {
   submitted.value = false
 }
 </script>
+
 
 <style scoped>
 @keyframes fade-in {
