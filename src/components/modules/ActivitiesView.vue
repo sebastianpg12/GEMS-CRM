@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="space-y-6">
     <!-- Header con controles -->
   <div class="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
@@ -6,13 +6,13 @@
       
   <div class="flex items-center gap-3 flex-wrap">
         <!-- Toggle vista -->
-        <div class="flex bg-gray-700 rounded-lg p-1">
+        <div class="flex bg-slate-100 placeholder-slate-200 rounded-lg p-1 border border-slate-200 shadow-inner">
           <button
             @click="currentView = 'kanban'"
             :class="currentView === 'kanban' 
-              ? 'bg-purple-600 text-white' 
-              : 'text-gray-400 hover:text-white'"
-            class="px-3 py-1 rounded-md text-sm font-medium transition-colors"
+              ? 'bg-white text-primary-600 shadow-sm font-bold border-slate-200' 
+              : 'text-slate-500 hover:text-slate-800'"
+            class="px-3 py-1.5 rounded-md text-sm font-medium transition-all"
           >
             <i class="fas fa-columns mr-2"></i>
             Kanban
@@ -20,9 +20,9 @@
           <button
             @click="currentView = 'tasks'"
             :class="currentView === 'tasks' 
-              ? 'bg-purple-600 text-white' 
-              : 'text-gray-400 hover:text-white'"
-            class="px-3 py-1 rounded-md text-sm font-medium transition-colors"
+              ? 'bg-white text-primary-600 shadow-sm font-bold border-slate-200' 
+              : 'text-slate-500 hover:text-slate-800'"
+            class="px-3 py-1.5 rounded-md text-sm font-medium transition-all"
           >
             <i class="fas fa-tasks mr-2"></i>
             Tasks
@@ -30,9 +30,9 @@
           <button
             @click="currentView = 'calendar'"
             :class="currentView === 'calendar' 
-              ? 'bg-purple-600 text-white' 
-              : 'text-gray-400 hover:text-white'"
-            class="px-3 py-1 rounded-md text-sm font-medium transition-colors"
+              ? 'bg-white text-primary-600 shadow-sm font-bold border-slate-200' 
+              : 'text-slate-500 hover:text-slate-800'"
+            class="px-3 py-1.5 rounded-md text-sm font-medium transition-all"
           >
             <i class="fas fa-calendar-alt mr-2"></i>
             Calendario
@@ -43,7 +43,7 @@
         <PermissionGuard :permissions="['create-activities']" :fallback="false">
           <button
             @click="showCreateModal = true"
-            class="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 flex items-center gap-2"
+            class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-bold flex items-center gap-2 shadow-sm text-sm"
           >
             <i class="fas fa-plus"></i>
             Nueva Actividad
@@ -57,15 +57,15 @@
     <!-- Barra de tarea rápida (solo en Kanban y Calendario) -->
     <div 
       v-if="currentView !== 'tasks'"
-      class="bg-gradient-to-r from-yellow-600/20 to-orange-600/20 backdrop-blur-sm rounded-xl p-4 border border-yellow-500/30 relative"
+      class="bg-indigo-50 rounded-xl p-3 border border-indigo-100 shadow-sm relative"
     >
       <div class="flex items-center gap-4">
-        <div class="flex items-center gap-2 text-yellow-300">
-          <i class="fas fa-lightning-bolt"></i>
-          <span class="font-medium">Tarea Rápida</span>
+        <div class="flex items-center gap-2 text-indigo-700">
+          <i class="fas fa-bolt"></i>
+          <span class="font-bold text-sm tracking-wide uppercase">Tarea Rápida</span>
           <!-- Indicador de configuración -->
-          <div class="flex items-center text-xs bg-yellow-600/20 px-2 py-1 rounded">
-            <i class="fas fa-timer mr-1"></i>
+          <div class="flex items-center text-[10px] bg-indigo-200/50 text-indigo-800 font-bold px-2 py-1 rounded">
+            <i class="fas fa-clock mr-1"></i>
             <span>{{ quickTaskSettings.dueDays }}d</span>
             <span class="mx-1">·</span>
             <span>{{ quickTaskSettings.priority === 'low' ? 'Baja' : quickTaskSettings.priority === 'medium' ? 'Media' : quickTaskSettings.priority === 'high' ? 'Alta' : 'Urgente' }}</span>
@@ -83,18 +83,17 @@
             @blur="setTimeout(() => showQuickTaskHints = false, 200)"
             type="text"
             placeholder="¿Qué necesitas hacer? (Enter para crear, Esc para limpiar)"
-            class="w-full px-3 py-2 bg-gray-800/50 border border-yellow-500/30 rounded-md text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-200"
+            class="w-full px-4 py-2 bg-white border border-indigo-200 rounded-lg text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none font-medium text-sm shadow-sm"
           />
           
           <!-- Hints para atajos de teclado -->
           <div 
             v-if="showQuickTaskHints && quickTaskTitle"
-            class="absolute top-full left-0 right-0 mt-1 bg-gray-900 border border-gray-700 rounded-md p-2 text-xs text-gray-400 z-20"
+            class="absolute top-full left-0 mt-1 bg-slate-800 border border-slate-700 shadow-xl rounded-lg p-2 text-xs text-white z-20 font-medium"
           >
-            <div class="flex gap-4">
-              <span><kbd class="bg-gray-800 px-1 rounded">Enter</kbd> Crear tarea</span>
-              <span><kbd class="bg-gray-800 px-1 rounded">Esc</kbd> Limpiar</span>
-              <span><kbd class="bg-gray-800 px-1 rounded">Ctrl+E</kbd> Editar después</span>
+            <div class="flex gap-3">
+              <span><kbd class="bg-slate-700 text-white border border-slate-600 px-1.5 py-0.5 rounded shadow-sm mr-1">Enter</kbd>Crear</span>
+              <span><kbd class="bg-slate-700 text-white border border-slate-600 px-1.5 py-0.5 rounded shadow-sm mr-1">Esc</kbd>Limpiar</span>
             </div>
           </div>
         </div>
@@ -102,7 +101,7 @@
         <button
           @click="createQuickTaskNow"
           :disabled="!quickTaskTitle.trim()"
-          class="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          class="px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-bold text-sm shadow-sm disabled:opacity-50"
         >
           <i class="fas fa-bolt mr-1"></i>
           Crear
@@ -112,7 +111,7 @@
         <div class="relative">
           <button
             @click="showQuickSettings = !showQuickSettings"
-            class="p-2 text-yellow-300 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
+            class="p-2 text-indigo-400 hover:text-indigo-600 hover:bg-indigo-100/50 rounded-lg transition-colors"
             title="Configuración rápida"
           >
             <i class="fas fa-cog"></i>
@@ -124,17 +123,17 @@
     <!-- Filtros (solo en Kanban y Calendario) -->
     <div 
       v-if="currentView !== 'tasks'"
-      class="bg-gray-800/50 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-gray-700/50"
+      class="bg-white rounded-xl p-3 sm:p-4 border border-slate-200 shadow-sm"
     >
       <div class="flex flex-wrap gap-3 sm:gap-4 items-center">
         <!-- Filtro por miembro del equipo -->
-        <div class="flex-1 min-w-64">
-          <label class="block text-sm font-medium text-gray-300 mb-2">
-            Filtrar por miembro del equipo
+        <div class="flex-1 min-w-[200px]">
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+            Miembro del equipo
           </label>
           <select
             v-model="selectedTeamMember"
-            class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             <option value="">Todos los miembros</option>
             <option value="unassigned">Sin asignar</option>
@@ -145,13 +144,13 @@
         </div>
 
         <!-- Filtro por estado -->
-        <div class="flex-1 min-w-48">
-          <label class="block text-sm font-medium text-gray-300 mb-2">
-            Filtrar por estado
+        <div class="flex-1 min-w-[200px]">
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+            Estado
           </label>
           <select
             v-model="selectedStatus"
-            class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             <option value="">Todos los estados</option>
             <option value="pending">Pendiente</option>
@@ -160,12 +159,12 @@
         </div>
 
         <!-- Botón para limpiar filtros -->
-        <div class="flex items-end">
+        <div class="flex items-end self-end h-full">
           <button
             @click="clearFilters"
-            class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+            class="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors font-bold text-sm"
           >
-            <i class="fas fa-filter-circle-xmark mr-2"></i>
+            <i class="fas fa-filter-circle-xmark mr-1"></i>
             Limpiar
           </button>
         </div>
@@ -184,18 +183,18 @@
     </div>
 
     <!-- Vista de Tasks (Azure DevOps Style) - Lista y Panel -->
-    <div v-else-if="currentView === 'tasks'" class="flex gap-4 h-[calc(100vh-280px)]">
+    <div v-else-if="currentView === 'tasks'" class="flex gap-4 h-full">
       <!-- Panel Principal - Lista de Tareas -->
-      <div class="flex-1 space-y-4 overflow-hidden">
+      <div class="flex-1 space-y-4 overflow-hidden flex flex-col">
         <!-- Toolbar Superior -->
-        <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl p-3 border border-gray-700/50">
+        <div class="bg-white rounded-xl p-3 border border-slate-200 shadow-sm flex-shrink-0">
           <div class="flex items-center justify-between gap-4">
-            <div class="flex items-center gap-3 flex-1">
+            <div class="flex items-center gap-3 flex-1 flex-wrap">
               <!-- Board Selector -->
               <select
                 v-model="selectedBoardId"
                 @change="handleBoardChange"
-                class="px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm focus:ring-2 focus:ring-blue-500"
+                class="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 font-medium"
               >
                 <option value="">Seleccionar tablero...</option>
                 <option v-for="board in boardsStore.myBoards" :key="board._id" :value="board._id">
@@ -206,10 +205,10 @@
               <!-- Botón Nuevo Tablero -->
               <button
                 @click="showCreateBoardModal = true"
-                class="px-3 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-md hover:from-purple-700 hover:to-pink-700 text-sm font-medium flex items-center gap-2"
+                class="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 hover:text-slate-900 border border-slate-200 text-sm font-bold flex items-center gap-2 transition-colors"
                 title="Crear nuevo tablero"
               >
-                <i class="fas fa-plus"></i>
+                <i class="fas fa-plus text-xs"></i>
                 <span class="hidden sm:inline">Nuevo Tablero</span>
               </button>
 
@@ -217,10 +216,10 @@
               <button
                 v-if="selectedBoardId && boardsStore.myBoards.length > 1"
                 @click="confirmDeleteBoard"
-                class="px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm font-medium flex items-center gap-2"
+                class="px-3 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 text-sm font-bold flex items-center gap-2 transition-colors border border-red-100"
                 title="Eliminar tablero actual"
               >
-                <i class="fas fa-trash"></i>
+                <i class="fas fa-trash text-xs"></i>
                 <span class="hidden sm:inline">Eliminar</span>
               </button>
 
@@ -229,7 +228,7 @@
                 v-if="selectedBoard && selectedBoard.type === 'scrum'"
                 v-model="selectedSprintId"
                 @change="filterBySprint"
-                class="px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm focus:ring-2 focus:ring-blue-500"
+                class="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
               >
                 <option value="">Todos los sprints</option>
                 <option value="backlog">Backlog</option>
@@ -242,10 +241,10 @@
               <button
                 v-if="selectedBoard && selectedBoard.type === 'scrum'"
                 @click="showSprintsModal = true"
-                class="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-medium flex items-center gap-2"
+                class="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 text-sm font-bold flex items-center gap-2 border border-blue-100"
                 title="Gestionar sprints"
               >
-                <i class="fas fa-running"></i>
+                <i class="fas fa-running text-xs"></i>
                 <span class="hidden sm:inline">Sprints</span>
               </button>
 
@@ -254,12 +253,12 @@
                 <button 
                   @click="toggleTaskFilters"
                   ref="filterButton"
-                  class="px-3 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 text-sm"
-                  :class="{ 'bg-purple-600': showTaskFilters || hasActiveTaskFilters }"
+                  class="px-3 py-1.5 text-sm font-bold rounded-lg border transition-colors flex items-center"
+                  :class="showTaskFilters || hasActiveTaskFilters ? 'bg-primary-50 text-primary-600 border-primary-200' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'"
                 >
-                  <i class="fas fa-filter mr-2"></i>
+                  <i class="fas fa-filter mr-2 text-xs"></i>
                   Filtros
-                  <span v-if="hasActiveTaskFilters" class="ml-1 text-xs bg-white text-purple-600 rounded-full px-1.5">
+                  <span v-if="hasActiveTaskFilters" class="ml-1 text-[10px] bg-primary-600 text-white rounded-full px-1.5 py-0.5">
                     {{ activeFiltersCount }}
                   </span>
                 </button>
@@ -271,54 +270,54 @@
               <button
                 v-if="selectedBoardId"
                 @click="openCreateTaskModal()"
-                class="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-md hover:from-green-700 hover:to-emerald-700 text-sm font-medium flex items-center gap-2"
+                class="px-4 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-bold flex items-center gap-2 shadow-sm transition-colors"
               >
-                <i class="fas fa-plus"></i>
+                <i class="fas fa-plus text-xs"></i>
                 <span>Nueva Tarea</span>
               </button>
               <button
                 v-if="selectedBoardId"
                 @click="refreshTasks"
-                class="px-3 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600"
+                class="px-3 py-1.5 bg-white border border-slate-200 text-slate-500 hover:text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
               >
-                <i class="fas fa-sync-alt"></i>
+                <i class="fas fa-sync-alt text-xs"></i>
               </button>
             </div>
           </div>
         </div>
 
         <!-- Lista de Tareas -->
-        <div v-if="selectedBoardId" class="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700/50 overflow-hidden">
+        <div v-if="selectedBoardId" class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex-1 flex flex-col min-h-0">
           <!-- Body scrolleable -->
-          <div class="p-4 overflow-y-auto max-h-[calc(100vh-420px)]">
+          <div class="p-4 overflow-y-auto h-full bg-slate-50/50">
             <!-- Vista Jerárquica Minimalista: Épica → Feature → User Story → Task -->
             <div v-for="epic in getEpics()" :key="epic._id" class="mb-3">
               <!-- Épica -->
-              <div class="group hover:bg-purple-500/5 rounded transition-colors">
-                <div class="flex items-center gap-2 py-2 px-3 border-l-2 border-purple-500">
-                  <button @click="toggleEpic(epic._id)" class="p-1 hover:bg-gray-700 rounded">
-                    <i :class="isEpicCollapsed(epic._id) ? 'fas fa-chevron-right' : 'fas fa-chevron-down'" class="text-xs text-gray-400"></i>
+              <div class="group hover:bg-white rounded-lg transition-colors shadow-sm hover:shadow-md border border-transparent hover:border-purple-100">
+                <div class="flex items-center gap-2 py-2 px-3 border-l-4 border-purple-500 rounded-l-md">
+                  <button @click="toggleEpic(epic._id)" class="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-600 transition-colors">
+                    <i :class="isEpicCollapsed(epic._id) ? 'fas fa-chevron-right' : 'fas fa-chevron-down'" class="text-[10px]"></i>
                   </button>
-                  <i class="fas fa-mountain text-purple-400 text-sm"></i>
-                  <span class="text-xs font-mono text-purple-300">{{ epic._id.slice(-4).toUpperCase() }}</span>
+                  <i class="fas fa-mountain text-purple-600 text-xs"></i>
+                  <span class="text-[10px] font-mono font-bold text-slate-400">{{ epic._id.slice(-4).toUpperCase() }}</span>
                   <div class="flex-1 min-w-0">
-                    <span class="text-sm font-medium text-white">{{ epic.title }}</span>
+                    <span class="text-sm font-bold text-slate-800">{{ epic.title }}</span>
                   </div>
-                  <div class="flex items-center gap-3 text-xs text-gray-400">
+                  <div class="flex items-center gap-3 text-xs font-bold text-slate-400">
                     <span>{{ getEpicFeatures(epic._id).length }} features</span>
                     <span>{{ getEpicTasks(epic._id).length }} tasks</span>
                   </div>
-                  <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100">
-                    <button @click="selectTask(epic)" class="p-1 text-gray-400 hover:bg-blue-500/20 rounded" title="Ver">
+                  <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button @click="selectTask(epic)" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded" title="Ver">
                       <i class="fas fa-eye text-xs"></i>
                     </button>
-                    <button @click="editTaskFromCard(epic)" class="p-1 text-gray-400 hover:bg-purple-500/20 rounded" title="Editar">
+                    <button @click="editTaskFromCard(epic)" class="p-1.5 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded" title="Editar">
                       <i class="fas fa-edit text-xs"></i>
                     </button>
-                    <button @click="deleteTask(epic._id)" class="p-1 text-gray-400 hover:bg-red-500/20 rounded" title="Eliminar">
+                    <button @click="deleteTask(epic._id)" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded" title="Eliminar">
                       <i class="fas fa-trash text-xs"></i>
                     </button>
-                    <button @click="openCreateFeatureModal(epic._id)" class="p-1 text-green-400 hover:bg-green-500/20 rounded" title="Nueva Feature">
+                    <button @click="openCreateFeatureModal(epic._id)" class="p-1.5 text-slate-400 hover:text-green-600 hover:bg-green-50 rounded" title="Nueva Feature">
                       <i class="fas fa-plus text-xs"></i>
                     </button>
                   </div>
@@ -326,32 +325,32 @@
               </div>
 
               <!-- Features de la épica -->
-              <div v-if="!isEpicCollapsed(epic._id)" class="ml-6">
+              <div v-if="!isEpicCollapsed(epic._id)" class="ml-6 mt-1 border-l border-slate-200 pl-2">
                 <div v-for="feature in getEpicFeatures(epic._id)" :key="feature._id" class="mb-2">
-                  <div class="group hover:bg-blue-500/5 rounded transition-colors">
-                    <div class="flex items-center gap-2 py-1.5 px-3 border-l-2 border-blue-500">
-                      <button @click="toggleFeature(feature._id)" class="p-1 hover:bg-gray-700 rounded">
-                        <i :class="isFeatureCollapsed(feature._id) ? 'fas fa-chevron-right' : 'fas fa-chevron-down'" class="text-xs text-gray-400"></i>
+                  <div class="group hover:bg-white rounded transition-colors border border-transparent hover:border-blue-100 hover:shadow-sm">
+                    <div class="flex items-center gap-2 py-1.5 px-2 border-l-2 border-blue-500">
+                      <button @click="toggleFeature(feature._id)" class="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-600">
+                        <i :class="isFeatureCollapsed(feature._id) ? 'fas fa-chevron-right' : 'fas fa-chevron-down'" class="text-[10px]"></i>
                       </button>
-                      <i class="fas fa-layer-group text-blue-400 text-xs"></i>
-                      <span class="text-xs font-mono text-blue-300">{{ feature._id.slice(-4).toUpperCase() }}</span>
+                      <i class="fas fa-layer-group text-blue-500 text-xs"></i>
+                      <span class="text-[10px] font-mono font-bold text-slate-400">{{ feature._id.slice(-4).toUpperCase() }}</span>
                       <div class="flex-1 min-w-0">
-                        <span class="text-sm text-gray-200">{{ feature.title }}</span>
+                        <span class="text-sm font-medium text-slate-700">{{ feature.title }}</span>
                       </div>
-                      <div class="flex items-center gap-2 text-xs text-gray-400">
+                      <div class="flex items-center gap-2 text-xs font-bold text-slate-400">
                         <span>{{ getFeatureUserStories(feature._id).length }} stories</span>
                       </div>
                       <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100">
-                        <button @click="selectTask(feature)" class="p-1 text-gray-400 hover:bg-blue-500/20 rounded" title="Ver">
+                        <button @click="selectTask(feature)" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded" title="Ver">
                           <i class="fas fa-eye text-xs"></i>
                         </button>
-                        <button @click="editTaskFromCard(feature)" class="p-1 text-gray-400 hover:bg-purple-500/20 rounded" title="Editar">
+                        <button @click="editTaskFromCard(feature)" class="p-1.5 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded" title="Editar">
                           <i class="fas fa-edit text-xs"></i>
                         </button>
-                        <button @click="deleteTask(feature._id)" class="p-1 text-gray-400 hover:bg-red-500/20 rounded" title="Eliminar">
+                        <button @click="deleteTask(feature._id)" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded" title="Eliminar">
                           <i class="fas fa-trash text-xs"></i>
                         </button>
-                        <button @click="openCreateUserStoryModal(feature._id)" class="p-1 text-green-400 hover:bg-green-500/20 rounded" title="Nueva User Story">
+                        <button @click="openCreateUserStoryModal(feature._id)" class="p-1.5 text-slate-400 hover:text-green-600 hover:bg-green-50 rounded" title="Nueva User Story">
                           <i class="fas fa-plus text-xs"></i>
                         </button>
                       </div>
@@ -359,32 +358,32 @@
                   </div>
 
                   <!-- User Stories de la feature -->
-                  <div v-if="!isFeatureCollapsed(feature._id)" class="ml-6">
-                    <div v-for="story in getFeatureUserStories(feature._id)" :key="story._id" class="mb-2">
-                      <div class="group hover:bg-green-500/5 rounded transition-colors">
-                        <div class="flex items-center gap-2 py-1.5 px-3 border-l-2 border-green-500">
-                          <button @click="toggleStory(story._id)" class="p-1 hover:bg-gray-700 rounded">
-                            <i :class="isStoryCollapsed(story._id) ? 'fas fa-chevron-right' : 'fas fa-chevron-down'" class="text-xs text-gray-400"></i>
+                  <div v-if="!isFeatureCollapsed(feature._id)" class="ml-6 mt-1 border-l border-slate-200 pl-2">
+                    <div v-for="story in getFeatureUserStories(feature._id)" :key="story._id" class="mb-1.5">
+                      <div class="group hover:bg-white rounded transition-colors border border-transparent hover:border-emerald-100 hover:shadow-sm">
+                        <div class="flex items-center gap-2 py-1.5 px-2 border-l-2 border-emerald-500">
+                          <button @click="toggleStory(story._id)" class="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-600">
+                            <i :class="isStoryCollapsed(story._id) ? 'fas fa-chevron-right' : 'fas fa-chevron-down'" class="text-[10px]"></i>
                           </button>
-                          <i class="fas fa-book-open text-green-400 text-xs"></i>
-                          <span class="text-xs font-mono text-green-300">{{ story._id.slice(-4).toUpperCase() }}</span>
+                          <i class="fas fa-book-open text-emerald-500 text-xs"></i>
+                          <span class="text-[10px] font-mono font-bold text-slate-400">{{ story._id.slice(-4).toUpperCase() }}</span>
                           <div class="flex-1 min-w-0">
-                            <span class="text-sm text-gray-200">{{ story.title }}</span>
+                            <span class="text-sm text-slate-700">{{ story.title }}</span>
                           </div>
-                          <div class="flex items-center gap-2 text-xs text-gray-400">
+                          <div class="flex items-center gap-2 text-xs font-bold text-slate-400">
                             <span>{{ getUserStoryTasks(story._id).length }} tasks</span>
                           </div>
                           <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100">
-                            <button @click="selectTask(story)" class="p-1 text-gray-400 hover:bg-blue-500/20 rounded" title="Ver">
+                            <button @click="selectTask(story)" class="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded">
                               <i class="fas fa-eye text-xs"></i>
                             </button>
-                            <button @click="editTaskFromCard(story)" class="p-1 text-gray-400 hover:bg-purple-500/20 rounded" title="Editar">
+                            <button @click="editTaskFromCard(story)" class="p-1 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded">
                               <i class="fas fa-edit text-xs"></i>
                             </button>
-                            <button @click="deleteTask(story._id)" class="p-1 text-gray-400 hover:bg-red-500/20 rounded" title="Eliminar">
+                            <button @click="deleteTask(story._id)" class="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded">
                               <i class="fas fa-trash text-xs"></i>
                             </button>
-                            <button @click="openCreateTaskModal(story._id)" class="p-1 text-green-400 hover:bg-green-500/20 rounded" title="Nueva Task">
+                            <button @click="openCreateTaskModal(story._id)" class="p-1 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded">
                               <i class="fas fa-plus text-xs"></i>
                             </button>
                           </div>
@@ -392,26 +391,26 @@
                       </div>
 
                       <!-- Tasks de la user story -->
-                      <div v-if="!isStoryCollapsed(story._id)" class="ml-6">
+                      <div v-if="!isStoryCollapsed(story._id)" class="ml-6 mt-1 border-l border-slate-100 pl-2">
                         <div v-for="task in getUserStoryTasks(story._id)" :key="task._id" class="mb-1">
-                          <div class="group hover:bg-gray-500/5 rounded transition-colors">
-                            <div class="flex items-center gap-2 py-1 px-3 border-l border-gray-500">
-                              <i class="fas fa-tasks text-gray-400 text-xs"></i>
-                              <span class="text-xs font-mono text-gray-400">{{ task._id.slice(-4).toUpperCase() }}</span>
+                          <div class="group hover:bg-white rounded transition-colors border border-transparent hover:border-slate-300">
+                            <div class="flex items-center gap-2 py-1 px-2 border-l border-slate-300">
+                              <i class="fas fa-tasks text-slate-400 text-xs"></i>
+                              <span class="text-[10px] font-mono font-bold text-slate-400">{{ task._id.slice(-4).toUpperCase() }}</span>
                               <div class="flex-1 min-w-0">
-                                <span class="text-sm text-gray-300">{{ task.title }}</span>
+                                <span class="text-xs text-slate-600">{{ task.title }}</span>
                               </div>
-                              <span :class="getStatusBadgeClass(task.boardStatus)" class="text-xs px-2 py-0.5 rounded">
+                              <span :class="getStatusBadgeClass(task.boardStatus)" class="text-[9px] font-bold px-1.5 py-0.5 rounded border">
                                 {{ getStatusLabel(task.boardStatus) }}
                               </span>
                               <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100">
-                                <button @click="selectTask(task)" class="p-1 text-gray-400 hover:bg-blue-500/20 rounded" title="Ver">
+                                <button @click="selectTask(task)" class="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded">
                                   <i class="fas fa-eye text-xs"></i>
                                 </button>
-                                <button @click="editTaskFromCard(task)" class="p-1 text-gray-400 hover:bg-purple-500/20 rounded" title="Editar">
+                                <button @click="editTaskFromCard(task)" class="p-1 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded">
                                   <i class="fas fa-edit text-xs"></i>
                                 </button>
-                                <button @click="deleteTask(task._id)" class="p-1 text-gray-400 hover:bg-red-500/20 rounded" title="Eliminar">
+                                <button @click="deleteTask(task._id)" class="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded">
                                   <i class="fas fa-trash text-xs"></i>
                                 </button>
                               </div>
@@ -426,31 +425,31 @@
             </div>
 
             <!-- Tareas sin jerarquía (independientes) -->
-            <div v-if="getIndependentTasks().length > 0" class="mb-4">
+            <div v-if="getIndependentTasks().length > 0" class="mb-4 mt-6 border-t border-slate-200 pt-4">
               <div class="flex items-center gap-2 mb-3 px-2">
-                <i class="fas fa-tasks text-gray-400 text-sm"></i>
-                <h3 class="text-sm font-medium text-gray-400">Tareas Independientes</h3>
-                <span class="text-xs text-gray-500">{{ getIndependentTasks().length }}</span>
+                <i class="fas fa-tasks text-slate-400 text-sm"></i>
+                <h3 class="text-sm font-bold text-slate-700">Tareas Independientes</h3>
+                <span class="text-xs font-bold text-slate-400 bg-slate-200 px-1.5 rounded">{{ getIndependentTasks().length }}</span>
               </div>
               <div class="space-y-1">
-                <div v-for="task in getIndependentTasks()" :key="task._id" class="group hover:bg-gray-500/5 rounded transition-colors">
-                  <div class="flex items-center gap-2 py-1.5 px-3 border-l border-gray-500">
-                    <i class="fas fa-tasks text-gray-400 text-xs"></i>
-                    <span class="text-xs font-mono text-gray-400">{{ task._id.slice(-4).toUpperCase() }}</span>
+                <div v-for="task in getIndependentTasks()" :key="task._id" class="group hover:bg-white rounded transition-colors border border-transparent hover:border-slate-300">
+                  <div class="flex items-center gap-2 py-1.5 px-3 border-l-2 border-slate-300">
+                    <i class="fas fa-tasks text-slate-400 text-xs"></i>
+                    <span class="text-[10px] font-mono font-bold text-slate-400">{{ task._id.slice(-4).toUpperCase() }}</span>
                     <div class="flex-1 min-w-0">
-                      <span class="text-sm text-gray-300">{{ task.title }}</span>
+                      <span class="text-xs text-slate-700 font-medium">{{ task.title }}</span>
                     </div>
-                    <span :class="getStatusBadgeClass(task.boardStatus)" class="text-xs px-2 py-0.5 rounded">
+                    <span :class="getStatusBadgeClass(task.boardStatus)" class="text-[9px] font-bold px-1.5 py-0.5 rounded border">
                       {{ getStatusLabel(task.boardStatus) }}
                     </span>
                     <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100">
-                      <button @click="selectTask(task)" class="p-1 text-gray-400 hover:bg-blue-500/20 rounded" title="Ver">
+                      <button @click="selectTask(task)" class="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded">
                         <i class="fas fa-eye text-xs"></i>
                       </button>
-                      <button @click="editTaskFromCard(task)" class="p-1 text-gray-400 hover:bg-purple-500/20 rounded" title="Editar">
+                      <button @click="editTaskFromCard(task)" class="p-1 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded">
                         <i class="fas fa-edit text-xs"></i>
                       </button>
-                      <button @click="deleteTask(task._id)" class="p-1 text-gray-400 hover:bg-red-500/20 rounded" title="Eliminar">
+                      <button @click="deleteTask(task._id)" class="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded">
                         <i class="fas fa-trash text-xs"></i>
                       </button>
                     </div>
@@ -462,16 +461,18 @@
         </div>
 
         <!-- Empty State -->
-        <div v-else class="bg-gray-800/50 backdrop-blur-sm rounded-xl p-12 border border-gray-700/50 text-center">
-          <i class="fas fa-tasks text-gray-600 text-6xl mb-4"></i>
-          <h3 class="text-xl font-bold text-gray-300 mb-2">No hay tablero seleccionado</h3>
-          <p class="text-gray-400 mb-6">Selecciona un tablero para ver y gestionar las tareas</p>
+        <div v-else class="bg-slate-50 rounded-xl p-12 border border-slate-200 border-dashed text-center flex-1 flex flex-col items-center justify-center">
+          <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm border border-slate-100">
+            <i class="fas fa-tasks text-slate-300 text-3xl"></i>
+          </div>
+          <h3 class="text-lg font-black text-slate-800 mb-2">Aún no hay tablero configurado</h3>
+          <p class="text-slate-500 text-sm mb-6 font-medium">Selecciona un proyecto existente o crea tu primer tablero personal</p>
           <button
             @click="showCreateBoardModal = true"
-            class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-md hover:from-purple-700 hover:to-pink-700 font-medium"
+            class="px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 shadow-sm font-bold flex items-center gap-2 transition-colors text-sm"
           >
-            <i class="fas fa-plus mr-2"></i>
-            Crear primer tablero
+            <i class="fas fa-plus"></i>
+            Crear Tablero
           </button>
         </div>
       </div>
@@ -481,54 +482,54 @@
     <Teleport to="body">
       <div
         v-if="selectedTask"
-        class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+        class="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4"
         @click.self="selectedTask = null"
       >
-        <div class="bg-gray-800 rounded-2xl w-full max-w-2xl max-h-[90vh] shadow-2xl border border-blue-500/20 flex flex-col overflow-hidden"
+        <div class="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] shadow-xl border border-slate-200 flex flex-col overflow-hidden animate-fade-in"
         >
         <!-- Header -->
-        <div class="p-4 border-b border-gray-700/50 flex items-center justify-between bg-gray-900/50">
+        <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
           <div class="flex items-center gap-3">
             <i :class="getTypeIcon(selectedTask.type)" class="text-lg"></i>
-            <span class="text-sm font-medium text-blue-400">{{ selectedTask._id.slice(-4).toUpperCase() }}</span>
+            <span class="text-sm font-bold text-primary-600">{{ selectedTask._id.slice(-4).toUpperCase() }}</span>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-1.5">
             <button
               @click="showEditTaskModal"
-              class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-md text-xs flex items-center gap-1"
+              class="px-3 py-1.5 bg-primary-50 text-primary-600 hover:bg-primary-100 rounded-md text-xs flex items-center gap-1 font-medium transition-colors"
               title="Editar tarea"
             >
               <i class="fas fa-edit"></i>
             </button>
             <button
               @click="deleteTask(selectedTask._id)"
-              class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-md text-xs flex items-center gap-1"
+              class="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-md text-xs flex items-center gap-1 font-medium transition-colors"
               title="Eliminar tarea"
             >
               <i class="fas fa-trash"></i>
             </button>
-            <button @click="selectedTask = null" class="text-gray-400 hover:text-white">
-              <i class="fas fa-times"></i>
+            <button @click="selectedTask = null" class="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-md transition-colors ml-1">
+              <i class="fas fa-times text-lg"></i>
             </button>
           </div>
         </div>
 
         <!-- Body Scrolleable -->
-        <div class="flex-1 overflow-y-auto p-4 space-y-4">
+        <div class="flex-1 overflow-y-auto p-5 space-y-5">
           <!-- Título -->
           <div>
-            <h3 class="text-lg font-bold text-white mb-2">{{ selectedTask.title }}</h3>
-            <p class="text-sm text-gray-400">{{ selectedTask.description || 'Sin descripción' }}</p>
+            <h3 class="text-xl font-black text-slate-800 mb-1">{{ selectedTask.title }}</h3>
+            <p class="text-sm text-slate-500 font-medium">{{ selectedTask.description || 'Sin descripción' }}</p>
           </div>
 
           <!-- Estado y Prioridad -->
-          <div class="grid grid-cols-2 gap-3">
+          <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="text-xs font-medium text-gray-400 mb-1 block">Estado</label>
+              <label class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 block">Estado</label>
               <select
                 v-model="selectedTask.boardStatus"
                 @change="updateTaskStatus"
-                class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm"
+                class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
                 <option value="backlog">Backlog</option>
                 <option value="todo">To Do</option>
@@ -539,11 +540,11 @@
               </select>
             </div>
             <div>
-              <label class="text-xs font-medium text-gray-400 mb-1 block">Prioridad</label>
+              <label class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 block">Prioridad</label>
               <select
                 v-model="selectedTask.priority"
                 @change="updateTaskPriority"
-                class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm"
+                class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
@@ -555,57 +556,57 @@
 
           <!-- Asignado -->
           <div>
-            <label class="text-xs font-medium text-gray-400 mb-2 block">Persona asignada</label>
-            <div v-if="getFirstAssigned(selectedTask.assignedTo)" class="flex items-center gap-3 p-3 bg-gray-700/50 rounded-lg">
-              <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium">
+            <label class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 block">Persona asignada</label>
+            <div v-if="getFirstAssigned(selectedTask.assignedTo)" class="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
+              <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 font-black">
                 {{ getFirstAssigned(selectedTask.assignedTo)?.name?.charAt(0) || '?' }}
               </div>
               <div>
-                <div class="text-sm font-medium text-white">{{ getFirstAssigned(selectedTask.assignedTo)?.name || 'Sin nombre' }}</div>
-                <div class="text-xs text-gray-400">{{ getFirstAssigned(selectedTask.assignedTo)?.email || '' }}</div>
+                <div class="text-sm font-bold text-slate-800">{{ getFirstAssigned(selectedTask.assignedTo)?.name || 'Sin nombre' }}</div>
+                <div class="text-xs text-slate-500">{{ getFirstAssigned(selectedTask.assignedTo)?.email || '' }}</div>
               </div>
             </div>
-            <div v-else class="text-sm text-gray-500 p-3 bg-gray-700/30 rounded-lg">Sin asignar</div>
+            <div v-else class="text-sm text-slate-500 p-3 bg-slate-50/50 rounded-lg border border-slate-100 border-dashed text-center">Sin asignar</div>
           </div>
 
           <!-- Fechas -->
-          <div class="grid grid-cols-2 gap-3">
+          <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="text-xs font-medium text-gray-400 mb-1 block">Fecha inicio</label>
+              <label class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 block">Fecha inicio</label>
               <input
                 type="date"
                 v-model="selectedTask.startDate"
-                class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm"
+                class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
             </div>
             <div>
-              <label class="text-xs font-medium text-gray-400 mb-1 block">Fecha límite</label>
+              <label class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 block">Fecha límite</label>
               <input
                 type="date"
                 v-model="selectedTask.dueDate"
-                class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm"
+                class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
             </div>
           </div>
 
           <!-- Estimación -->
           <div>
-            <label class="text-xs font-medium text-gray-400 mb-1 block">Estimación original</label>
+            <label class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 block">Estimación original</label>
             <input
               type="text"
               v-model="selectedTask.estimatedTime"
               placeholder="4h"
-              class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm"
+              class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
           </div>
 
           <!-- Sprint -->
           <div v-if="selectedBoard?.type === 'scrum'">
-            <label class="text-xs font-medium text-gray-400 mb-2 block">Sprint</label>
+            <label class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 block">Sprint</label>
             <select
               v-model="selectedTask.sprint"
               @change="updateTaskSprint"
-              class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm"
+              class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
               <option value="">Backlog</option>
               <option v-for="sprint in selectedBoard.sprints" :key="sprint._id" :value="sprint._id">
@@ -614,25 +615,25 @@
             </select>
           </div>
           <div v-else>
-            <label class="text-xs font-medium text-gray-400 mb-2 block">Sprint</label>
-            <div class="text-sm text-blue-400">{{ getTaskSprintName(selectedTask) }}</div>
+            <label class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 block">Sprint</label>
+            <div class="text-sm font-bold text-primary-600 bg-primary-50 inline-block px-2 py-1 rounded">{{ getTaskSprintName(selectedTask) }}</div>
           </div>
 
           <!-- GitHub Integration -->
-          <div class="border-t border-gray-700/50 pt-4">
+          <div class="border-t border-slate-200 pt-5">
             <div class="flex items-center justify-between mb-3">
-              <label class="text-xs font-medium text-gray-400">Desarrollo</label>
-              <i class="fab fa-github text-gray-500"></i>
+              <label class="text-xs font-bold text-slate-700 uppercase tracking-wider">Desarrollo</label>
+              <i class="fab fa-github text-slate-500"></i>
             </div>
 
             <!-- Rama actual -->
             <div v-if="selectedTask.github?.branch" class="mb-3">
-              <div class="flex items-center gap-2 p-3 bg-green-900/20 border border-green-500/30 rounded-lg">
-                <i class="fas fa-code-branch text-green-400"></i>
-                <span class="text-sm text-green-300 flex-1">{{ selectedTask.github.branch }}</span>
+              <div class="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                <i class="fas fa-code-branch text-emerald-600"></i>
+                <span class="text-sm text-emerald-700 font-medium flex-1">{{ selectedTask.github.branch }}</span>
                 <button
                   @click="deleteGitHubBranch"
-                  class="px-2 py-1 text-xs bg-red-600/20 text-red-300 border border-red-500/30 rounded hover:bg-red-600/30 transition-colors"
+                  class="p-2 text-xs bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors"
                   title="Eliminar rama"
                 >
                   <i class="fas fa-trash"></i>
@@ -644,7 +645,7 @@
             <div v-if="!selectedTask.github?.branch" class="space-y-3">
               <button
                 @click="openCreateBranchModal"
-                class="w-full px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 text-sm"
+                class="w-full px-4 py-2.5 bg-slate-800 text-white font-bold rounded-lg hover:bg-slate-900 text-sm shadow-sm transition-colors"
               >
                 <i class="fas fa-code-branch mr-2"></i>
                 Crear rama
@@ -656,17 +657,17 @@
               <a
                 :href="selectedTask.github.pr"
                 target="_blank"
-                class="flex items-center gap-2 p-3 bg-purple-900/20 border border-purple-500/30 rounded-lg hover:bg-purple-900/30 transition-colors"
+                class="flex items-center gap-2 p-3 bg-primary-50 border border-primary-200 rounded-lg hover:bg-primary-100 transition-colors"
               >
-                <i class="fas fa-code-pull-request text-purple-400"></i>
-                <span class="text-sm text-purple-300 flex-1">Ver Pull Request</span>
-                <i class="fas fa-external-link-alt text-purple-400 text-xs"></i>
+                <i class="fas fa-code-pull-request text-primary-600"></i>
+                <span class="text-sm text-primary-700 font-medium flex-1">Ver Pull Request</span>
+                <i class="fas fa-external-link-alt text-primary-600 text-xs"></i>
               </a>
               
               <!-- Botón para sincronizar estado del PR -->
               <button
                 @click="syncPullRequestStatus"
-                class="w-full px-3 py-2 text-xs bg-purple-600/20 text-purple-300 border border-purple-500/30 rounded-lg hover:bg-purple-600/30 transition-colors flex items-center justify-center gap-2"
+                class="w-full px-3 py-2 text-xs bg-slate-100 text-slate-600 font-bold border border-slate-200 rounded-lg hover:bg-slate-200 transition-colors flex items-center justify-center gap-2"
                 title="Actualizar estado del PR desde GitHub"
               >
                 <i class="fas fa-sync-alt"></i>
@@ -676,7 +677,7 @@
             <button
               v-else-if="selectedTask.github?.branch"
               @click="createPullRequest"
-              class="w-full mt-3 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 text-sm"
+              class="w-full mt-3 px-4 py-2.5 bg-primary-600 text-white font-bold rounded-lg hover:bg-primary-700 shadow-sm text-sm"
             >
               <i class="fas fa-code-pull-request mr-2"></i>
               Crear Pull Request
@@ -684,22 +685,22 @@
           </div>
 
           <!-- Comentarios -->
-          <div class="border-t border-gray-700/50 pt-4">
-            <label class="text-xs font-medium text-gray-400 mb-3 block">Comentarios</label>
+          <div class="border-t border-slate-200 pt-5">
+            <label class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 block">Comentarios</label>
             <div class="space-y-3 mb-3">
               <div
                 v-for="comment in selectedTask.comments"
                 :key="comment._id"
-                class="p-3 bg-gray-700/50 rounded-lg"
+                class="p-4 bg-slate-50 border border-slate-100 rounded-lg shadow-sm"
               >
                 <div class="flex items-center gap-2 mb-2">
-                  <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-xs text-white">
+                  <div class="w-6 h-6 bg-primary-100 rounded-full flex items-center justify-center text-xs font-bold text-primary-600">
                     {{ comment.user?.name?.charAt(0) }}
                   </div>
-                  <span class="text-xs font-medium text-white">{{ comment.user?.name }}</span>
-                  <span class="text-xs text-gray-500">{{ formatDate(comment.createdAt) }}</span>
+                  <span class="text-xs font-bold text-slate-800">{{ comment.user?.name }}</span>
+                  <span class="text-xs font-medium text-slate-400">{{ formatDate(comment.createdAt) }}</span>
                 </div>
-                <p class="text-sm text-gray-300">{{ comment.text }}</p>
+                <p class="text-sm text-slate-600 leading-relaxed">{{ comment.text }}</p>
               </div>
             </div>
             <div class="flex gap-2">
@@ -707,12 +708,13 @@
                 v-model="newComment"
                 @keyup.enter="addComment"
                 type="text"
-                placeholder="Añadir comentario..."
-                class="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm"
+                placeholder="Escribe un comentario..."
+                class="flex-1 px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 shadow-sm"
               />
               <button
                 @click="addComment"
-                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                class="px-4 py-2 bg-primary-600 text-white font-bold rounded-lg hover:bg-primary-700 shadow-sm transition-colors"
+                title="Enviar"
               >
                 <i class="fas fa-paper-plane"></i>
               </button>
@@ -727,22 +729,22 @@
     <Teleport to="body">
       <div
         v-if="showCreateBranchModal && selectedTask"
-        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[10000]"
+        class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-[10000]"
         @click.self="showCreateBranchModal = false"
       >
-        <div class="bg-gray-800 rounded-xl border border-gray-700 p-6 max-w-md w-full mx-4">
-        <h3 class="text-xl font-bold text-white mb-4">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xl p-6 max-w-md w-full mx-4 animate-fade-in">
+        <h3 class="text-xl font-black text-slate-800 mb-5">
           <i class="fab fa-github mr-2"></i>
           Crear rama
         </h3>
 
-        <div class="space-y-4">
+        <div class="space-y-5">
           <!-- Repositorio -->
           <div>
-            <label class="text-sm font-medium text-gray-300 mb-2 block">Repositorio</label>
+            <label class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 block">Repositorio</label>
             <select
               v-model="branchForm.repository"
-              class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white"
+              class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 font-medium"
             >
               <option value="">Seleccionar...</option>
               <option v-for="repo in githubStore.repositories" :key="repo.name" :value="repo.full_name">
@@ -753,10 +755,10 @@
 
           <!-- Tipo -->
           <div>
-            <label class="text-sm font-medium text-gray-300 mb-2 block">Tipo</label>
+            <label class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 block">Tipo</label>
             <select
               v-model="branchForm.type"
-              class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white"
+              class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 font-medium"
             >
               <option value="feature">Feature</option>
               <option value="bugfix">Bugfix</option>
@@ -767,10 +769,10 @@
 
           <!-- Rama base -->
           <div>
-            <label class="text-sm font-medium text-gray-300 mb-2 block">Desde rama</label>
+            <label class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 block">Desde rama</label>
             <select
               v-model="branchForm.baseBranch"
-              class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white"
+              class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 font-medium"
             >
               <option value="master">master</option>
               <option value="main">main</option>
@@ -780,12 +782,12 @@
 
           <!-- Nombre de la rama (editable) -->
           <div>
-            <label class="text-sm font-medium text-gray-300 mb-2 block">
+            <label class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 block">
               Nombre de la rama
               <button
                 @click="branchForm.customName = generateBranchName()"
                 type="button"
-                class="ml-2 text-xs text-blue-400 hover:text-blue-300"
+                class="ml-2 text-xs text-primary-600 hover:text-primary-700"
                 title="Regenerar nombre"
               >
                 <i class="fas fa-sync-alt"></i>
@@ -795,39 +797,39 @@
               v-model="branchForm.customName"
               type="text"
               placeholder="feature/task-123-titulo"
-              class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-slate-800 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-500 shadow-sm"
               @focus="() => { if (!branchForm.customName) branchForm.customName = generateBranchName() }"
             />
-            <p class="text-xs text-gray-500 mt-1">Puedes personalizar el nombre de la rama</p>
+            <p class="text-xs text-slate-500 mt-1.5 font-medium">Puedes personalizar el nombre de la rama</p>
           </div>
 
           <!-- Diagrama visual -->
-          <div class="py-4 flex items-center justify-center gap-4">
+          <div class="py-4 flex items-center justify-center gap-4 bg-slate-50 rounded-lg border border-slate-100 mt-2">
             <div class="flex flex-col items-center">
-              <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
-              <div class="text-xs text-gray-400 mt-2">{{ branchForm.baseBranch }}</div>
+              <div class="w-3 h-3 bg-blue-500 rounded-full shadow-sm"></div>
+              <div class="text-[10px] font-bold text-slate-500 mt-2 uppercase">{{ branchForm.baseBranch }}</div>
             </div>
-            <div class="flex-1 h-0.5 bg-blue-500"></div>
+            <div class="flex-1 h-0.5 bg-slate-300"></div>
             <div class="flex flex-col items-center">
-              <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-              <div class="text-xs text-gray-400 mt-2 text-center max-w-[120px] truncate">
+              <div class="w-3 h-3 bg-green-500 rounded-full shadow-sm"></div>
+              <div class="text-[10px] font-bold text-slate-500 mt-2 text-center max-w-[120px] truncate uppercase">
                 {{ branchForm.customName || generateBranchName() }}
               </div>
             </div>
           </div>
         </div>
 
-        <div class="flex gap-3 mt-6">
+        <div class="flex gap-3 mt-8">
           <button
             @click="createGitHubBranch"
             :disabled="!branchForm.repository"
-            class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            class="flex-1 px-4 py-2.5 bg-slate-800 text-white rounded-lg hover:bg-slate-900 disabled:opacity-50 disabled:cursor-not-allowed font-bold transition-colors shadow-sm text-sm"
           >
-            Crear
+            Crear Rama
           </button>
           <button
             @click="showCreateBranchModal = false"
-            class="px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600"
+            class="px-5 py-2.5 bg-white text-slate-600 font-bold border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors shadow-sm text-sm"
           >
             Cancelar
           </button>
@@ -838,21 +840,21 @@
 
     <!-- Loading state -->
     <div v-if="loading" class="flex items-center justify-center py-12">
-      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
     </div>
 
     <!-- Error state -->
-    <div v-else-if="error" class="bg-red-500/20 border border-red-500/50 rounded-lg p-4">
+    <div v-else-if="error" class="bg-red-50 border border-red-200 rounded-xl p-5 mx-4 shadow-sm">
       <div class="flex items-center gap-3">
-        <i class="fas fa-exclamation-triangle text-red-400"></i>
+        <i class="fas fa-exclamation-triangle text-red-500 text-xl"></i>
         <div>
-          <h3 class="text-red-300 font-medium">Error al cargar actividades</h3>
-          <p class="text-red-400 text-sm">{{ error }}</p>
+          <h3 class="text-red-800 font-bold">Error al cargar actividades</h3>
+          <p class="text-red-600 text-sm mt-0.5 font-medium">{{ error }}</p>
         </div>
       </div>
       <button 
         @click="loadActivities"
-        class="mt-3 px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
+        class="mt-4 px-4 py-2 bg-red-600 text-white text-sm font-bold rounded-lg hover:bg-red-700 shadow-sm transition-colors"
       >
         Reintentar
       </button>
@@ -864,21 +866,21 @@
   class="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 xl:grid-cols-4"
     >
     <!-- Columna Pendiente -->
-  <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-yellow-500/20 w-full snap-start">
+  <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 sm:p-4 w-full snap-start flex flex-col h-full shadow-sm">
         <div class="flex items-center gap-3 mb-4">
-          <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
-            <i class="fas fa-clock text-white text-sm"></i>
+          <div class="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center border border-amber-200">
+            <i class="fas fa-clock text-amber-500 text-sm"></i>
           </div>
-          <h2 class="text-xl font-bold text-white">Pendiente</h2>
-          <span class="bg-yellow-500/20 text-yellow-300 px-2 py-1 rounded-full text-xs font-medium">
+          <h2 class="text-lg font-black text-slate-800">Pendiente</h2>
+          <span class="bg-amber-100 border border-amber-200 text-amber-600 px-2.5 py-0.5 rounded text-xs font-bold shadow-sm">
             {{ pendingActivities.length }}
           </span>
         </div>
         
         <div 
           :class="[
-            'space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto overflow-x-hidden pr-1 sm:pr-2 transition-all duration-300',
-            isDragging && draggedActivity?.status !== 'pending' ? 'drop-zone-highlight' : ''
+            'space-y-3 flex-1 overflow-y-auto overflow-x-hidden pr-1 sm:pr-2 transition-all duration-300 min-h-0',
+            isDragging && draggedActivity?.status !== 'pending' ? 'ring-2 ring-amber-400/50 rounded-lg bg-amber-50/50' : ''
           ]"
           @drop="onDrop($event, 'pending')"
           @dragover.prevent
@@ -887,7 +889,7 @@
           <div
             v-for="activity in pendingActivities"
             :key="activity._id"
-            class="bg-gray-900/50 rounded-lg p-3 sm:p-4 border border-gray-700 hover:border-yellow-500/40 transition-all duration-200 group cursor-move overflow-hidden"
+            class="bg-white rounded-lg p-3 sm:p-4 border border-slate-200 hover:border-amber-400 hover:shadow-md shadow-sm transition-all duration-200 group cursor-move overflow-hidden"
             draggable="true"
             @dragstart="onDragStart($event, activity)"
             @dragend="onDragEnd"
@@ -895,8 +897,8 @@
             <!-- Header de la tarjeta -->
             <div class="flex items-start justify-between gap-2 mb-3 min-w-0">
               <div class="flex flex-wrap items-center gap-2 flex-1 min-w-0">
-                <i class="fas fa-grip-vertical text-gray-500 text-xs opacity-50 group-hover:opacity-100 transition-opacity"></i>
-                <h3 class="text-white font-semibold text-[13px] sm:text-sm leading-tight flex-1 min-w-0 break-words whitespace-normal">{{ activity.title }}</h3>
+                <i class="fas fa-grip-vertical text-slate-300 text-xs opacity-50 group-hover:opacity-100 transition-opacity"></i>
+                <h3 class="text-slate-800 font-bold text-[13px] sm:text-sm leading-tight flex-1 min-w-0 break-words whitespace-normal">{{ activity.title }}</h3>
                 
                 <!-- Indicador de prioridad -->
                 <span 
@@ -911,7 +913,7 @@
               <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                 <button
                   @click="markAsCompleted(activity._id!)"
-                  class="p-1 text-gray-400 hover:text-green-400 hover:bg-green-500/20 rounded transition-all duration-200"
+                  class="p-1 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-all duration-200"
                   title="Marcar como completada"
                 >
                   <i class="fas fa-check text-xs"></i>
@@ -938,10 +940,10 @@
             </div>
 
             <!-- Cliente -->
-            <p class="text-gray-400 text-xs mb-2">{{ getClientName(activity.clientId) }}</p>
+            <p class="text-slate-500 font-medium text-xs mb-2">{{ getClientName(activity.clientId) }}</p>
 
             <!-- Descripción -->
-            <p class="text-gray-300 text-[13px] sm:text-sm mb-3 line-clamp-2">{{ activity.description }}</p>
+            <p class="text-slate-600 text-[13px] sm:text-sm mb-3 line-clamp-2 leading-relaxed">{{ activity.description }}</p>
 
             <!-- Asignados -->
             <div class="flex items-center gap-2 mb-3 flex-wrap">
@@ -963,7 +965,7 @@
                 <button
                   v-if="!activity.assignedTo"
                   @click="showAssignModal(activity)"
-                  class="ml-auto text-xs text-purple-400 hover:text-purple-300 transition-colors"
+                  class="ml-auto text-xs text-primary-500 hover:text-primary-700 transition-colors font-bold"
                   title="Asignar actividad"
                 >
                   <i class="fas fa-user-plus"></i>
@@ -972,7 +974,7 @@
             </div>
 
             <!-- Fecha y tiempo estimado -->
-            <div class="flex items-center justify-between text-xs text-gray-400">
+            <div class="flex items-center justify-between text-xs text-slate-500 font-medium">
               <div class="flex items-center gap-1">
                 <i class="fas fa-calendar"></i>
                 <span>{{ formatDate(activity.date) }}</span>
@@ -997,39 +999,39 @@
 
           <!-- Estado vacío para pendientes -->
           <div v-if="pendingActivities.length === 0" class="text-center py-8">
-            <i class="fas fa-clock text-3xl text-gray-600 mb-2"></i>
-            <p class="text-gray-400 text-sm">No hay actividades pendientes</p>
+            <i class="fas fa-clock text-3xl text-slate-300 mb-2"></i>
+            <p class="text-slate-500 text-sm font-medium">No hay actividades pendientes</p>
           </div>
         </div>
 
         <!-- Botón de tarea rápida al final de la columna pendientes -->
-        <div class="mt-3 px-2">
+        <div class="mt-3">
           <button
             @click="createQuickTaskForStatus('pending')"
-            class="w-full py-2 border border-dashed border-yellow-500/30 rounded-lg text-yellow-300 hover:text-yellow-200 hover:border-yellow-400/50 hover:bg-yellow-500/5 transition-all duration-200 text-sm"
+            class="w-full py-2 bg-white border border-dashed border-amber-300 rounded-lg text-amber-600 font-bold hover:bg-amber-50 hover:border-amber-400 transition-all duration-200 text-sm shadow-sm"
           >
-            <i class="fas fa-plus mr-2"></i>
+            <i class="fas fa-plus mr-1"></i>
             Agregar tarea rápida
           </button>
         </div>
       </div>
 
     <!-- Columna En Proceso -->
-  <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-blue-500/20 w-full snap-start">
+  <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 sm:p-4 w-full snap-start flex flex-col h-full shadow-sm">
         <div class="flex items-center gap-3 mb-4">
-          <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-            <i class="fas fa-play text-white text-sm"></i>
+          <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center border border-blue-200">
+            <i class="fas fa-play text-blue-500 text-sm"></i>
           </div>
-          <h2 class="text-xl font-bold text-white">En Proceso</h2>
-          <span class="bg-blue-500/20 text-blue-300 px-2 py-1 rounded-full text-xs font-medium">
+          <h2 class="text-lg font-black text-slate-800">En Proceso</h2>
+          <span class="bg-blue-100 border border-blue-200 text-blue-600 px-2.5 py-0.5 rounded text-xs font-bold shadow-sm">
             {{ inProgressActivities.length }}
           </span>
         </div>
         
         <div 
           :class="[
-            'space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto overflow-x-hidden pr-1 sm:pr-2 transition-all duration-300',
-            isDragging && draggedActivity?.status !== 'in-progress' ? 'drop-zone-highlight' : ''
+            'space-y-3 flex-1 overflow-y-auto overflow-x-hidden pr-1 sm:pr-2 transition-all duration-300 min-h-0',
+            isDragging && draggedActivity?.status !== 'in-progress' ? 'ring-2 ring-blue-400/50 rounded-lg bg-blue-50/50' : ''
           ]"
           @drop="onDrop($event, 'in-progress')"
           @dragover.prevent
@@ -1038,7 +1040,7 @@
           <div
             v-for="activity in inProgressActivities"
             :key="activity._id"
-            class="bg-gray-900/50 rounded-lg p-3 sm:p-4 border border-gray-700 hover:border-blue-500/40 transition-all duration-200 group cursor-move overflow-hidden"
+            class="bg-white rounded-lg p-3 sm:p-4 border border-slate-200 hover:border-blue-400 hover:shadow-md shadow-sm transition-all duration-200 group cursor-move overflow-hidden"
             draggable="true"
             @dragstart="onDragStart($event, activity)"
             @dragend="onDragEnd"
@@ -1046,8 +1048,8 @@
             <!-- Header de la tarjeta -->
             <div class="flex items-start justify-between gap-2 mb-3 min-w-0">
               <div class="flex flex-wrap items-center gap-2 flex-1 min-w-0">
-                <i class="fas fa-grip-vertical text-gray-500 text-xs opacity-50 group-hover:opacity-100 transition-opacity"></i>
-                <h3 class="text-white font-semibold text-[13px] sm:text-sm leading-tight flex-1 min-w-0 break-words whitespace-normal">{{ activity.title }}</h3>
+                <i class="fas fa-grip-vertical text-slate-300 text-xs opacity-50 group-hover:opacity-100 transition-opacity"></i>
+                <h3 class="text-slate-800 font-bold text-[13px] sm:text-sm leading-tight flex-1 min-w-0 break-words whitespace-normal">{{ activity.title }}</h3>
                 
                 <!-- Indicador de prioridad -->
                 <span 
@@ -1062,7 +1064,7 @@
               <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                 <button
                   @click="markAsCompleted(activity._id!)"
-                  class="p-1 text-gray-400 hover:text-green-400 hover:bg-green-500/20 rounded transition-all duration-200"
+                  class="p-1 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-all duration-200"
                   title="Marcar como completada"
                 >
                   <i class="fas fa-check text-xs"></i>
@@ -1070,7 +1072,7 @@
                 <PermissionGuard :permissions="['edit-activities']" :fallback="false">
                   <button
                     @click="editActivity(activity)"
-                    class="p-1 text-gray-400 hover:text-purple-400 hover:bg-purple-500/20 rounded transition-all duration-200"
+                    class="p-1 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded transition-all duration-200"
                     title="Editar"
                   >
                     <i class="fas fa-edit text-xs"></i>
@@ -1079,7 +1081,7 @@
                 <PermissionGuard :permissions="['delete-activities']" :fallback="false">
                   <button
                     @click="deleteActivity(activity._id!)"
-                    class="p-1 text-gray-400 hover:text-red-400 hover:bg-red-500/20 rounded transition-all duration-200"
+                    class="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-all duration-200"
                     title="Eliminar"
                   >
                     <i class="fas fa-trash text-xs"></i>
@@ -1089,10 +1091,10 @@
             </div>
 
             <!-- Cliente -->
-            <p class="text-gray-400 text-xs mb-2">{{ getClientName(activity.clientId) }}</p>
+            <p class="text-slate-500 font-medium text-xs mb-2">{{ getClientName(activity.clientId) }}</p>
 
             <!-- Descripción -->
-            <p class="text-gray-300 text-[13px] sm:text-sm mb-3 line-clamp-2">{{ activity.description }}</p>
+            <p class="text-slate-600 text-[13px] sm:text-sm mb-3 line-clamp-2 leading-relaxed">{{ activity.description }}</p>
 
             <!-- Asignado a -->
             <div class="flex items-center gap-2 mb-3">
@@ -1114,7 +1116,7 @@
                 <button
                   v-if="!Array.isArray(activity.assignedTo) || activity.assignedTo.length === 0"
                   @click="showAssignModal(activity)"
-                  class="ml-auto text-xs text-purple-400 hover:text-purple-300 transition-colors"
+                  class="ml-auto text-xs text-primary-500 hover:text-primary-700 transition-colors font-bold"
                   title="Asignar actividad"
                 >
                   <i class="fas fa-user-plus"></i>
@@ -1123,7 +1125,7 @@
             </div>
 
             <!-- Fecha y tiempo estimado -->
-            <div class="flex items-center justify-between text-xs text-gray-400">
+            <div class="flex items-center justify-between text-xs text-slate-500 font-medium">
               <div class="flex items-center gap-1">
                 <i class="fas fa-calendar"></i>
                 <span>{{ formatDate(activity.date) }}</span>
@@ -1148,39 +1150,39 @@
 
           <!-- Estado vacío para en proceso -->
           <div v-if="inProgressActivities.length === 0" class="text-center py-8">
-            <i class="fas fa-play text-3xl text-gray-600 mb-2"></i>
-            <p class="text-gray-400 text-sm">No hay actividades en proceso</p>
+            <i class="fas fa-play text-3xl text-slate-300 mb-2"></i>
+            <p class="text-slate-500 text-sm font-medium">No hay actividades en proceso</p>
           </div>
         </div>
 
         <!-- Botón de tarea rápida al final de la columna en proceso -->
-        <div class="mt-3 px-2">
+        <div class="mt-3">
           <button
             @click="createQuickTaskForStatus('in-progress')"
-            class="w-full py-2 border border-dashed border-blue-500/30 rounded-lg text-blue-300 hover:text-blue-200 hover:border-blue-400/50 hover:bg-blue-500/5 transition-all duration-200 text-sm"
+            class="w-full py-2 bg-white border border-dashed border-blue-300 rounded-lg text-blue-600 font-bold hover:bg-blue-50 hover:border-blue-400 transition-all duration-200 text-sm shadow-sm"
           >
-            <i class="fas fa-plus mr-2"></i>
+            <i class="fas fa-plus mr-1"></i>
             Agregar tarea rápida
           </button>
         </div>
       </div>
 
     <!-- Columna Completada -->
-  <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-green-500/20 w-full snap-start">
+  <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 sm:p-4 w-full snap-start flex flex-col h-full shadow-sm">
         <div class="flex items-center gap-3 mb-4">
-          <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-            <i class="fas fa-check text-white text-sm"></i>
+          <div class="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center border border-emerald-200">
+            <i class="fas fa-check text-emerald-500 text-sm"></i>
           </div>
-          <h2 class="text-xl font-bold text-white">Completada</h2>
-          <span class="bg-green-500/20 text-green-300 px-2 py-1 rounded-full text-xs font-medium">
+          <h2 class="text-lg font-black text-slate-800">Completada</h2>
+          <span class="bg-emerald-100 border border-emerald-200 text-emerald-600 px-2.5 py-0.5 rounded text-xs font-bold shadow-sm">
             {{ completedActivities.length }}
           </span>
         </div>
         
         <div 
           :class="[
-            'space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto overflow-x-hidden pr-1 sm:pr-2 transition-all duration-300',
-            isDragging && draggedActivity?.status !== 'completed' ? 'drop-zone-highlight' : ''
+            'space-y-3 flex-1 overflow-y-auto overflow-x-hidden pr-1 sm:pr-2 transition-all duration-300 min-h-0',
+            isDragging && draggedActivity?.status !== 'completed' ? 'ring-2 ring-emerald-400/50 rounded-lg bg-emerald-50/50' : ''
           ]"
           @drop="onDrop($event, 'completed')"
           @dragover.prevent
@@ -1189,7 +1191,7 @@
           <div
             v-for="activity in completedActivities"
             :key="activity._id"
-            class="bg-gray-900/50 rounded-lg p-3 sm:p-4 border border-gray-700 hover:border-green-500/40 transition-all duration-200 group cursor-move overflow-hidden"
+            class="bg-white rounded-lg p-3 sm:p-4 border border-slate-200 hover:border-emerald-400 hover:shadow-md shadow-sm transition-all duration-200 group cursor-move overflow-hidden opacity-75 hover:opacity-100"
             draggable="true"
             @dragstart="onDragStart($event, activity)"
             @dragend="onDragEnd"
@@ -1197,8 +1199,8 @@
             <!-- Header de la tarjeta -->
             <div class="flex items-start justify-between gap-2 mb-3 min-w-0">
               <div class="flex flex-wrap items-center gap-2 flex-1 min-w-0">
-                <i class="fas fa-grip-vertical text-gray-500 text-xs opacity-50 group-hover:opacity-100 transition-opacity"></i>
-                <h3 class="text-white font-semibold text-[13px] sm:text-sm leading-tight flex-1 min-w-0 break-words whitespace-normal">{{ activity.title }}</h3>
+                <i class="fas fa-grip-vertical text-slate-300 text-xs opacity-50 group-hover:opacity-100 transition-opacity"></i>
+                <h3 class="text-slate-500 font-bold text-[13px] sm:text-sm leading-tight flex-1 min-w-0 break-words whitespace-normal line-through decoration-slate-300">{{ activity.title }}</h3>
                 
                 <!-- Indicador de prioridad -->
                 <span 
@@ -1240,10 +1242,10 @@
             </div>
 
             <!-- Cliente -->
-            <p class="text-gray-400 text-xs mb-2">{{ getClientName(activity.clientId) }}</p>
+            <p class="text-slate-400 font-medium text-xs mb-2">{{ getClientName(activity.clientId) }}</p>
 
             <!-- Descripción -->
-            <p class="text-gray-300 text-[13px] sm:text-sm mb-3 line-clamp-2">{{ activity.description }}</p>
+            <p class="text-slate-400 text-[13px] sm:text-sm mb-3 line-clamp-2 leading-relaxed">{{ activity.description }}</p>
 
             <!-- Asignado a -->
             <div class="flex items-center gap-2 mb-3">
@@ -1280,29 +1282,29 @@
 
           <!-- Estado vacío para completadas -->
           <div v-if="completedActivities.length === 0" class="text-center py-8">
-            <i class="fas fa-check-circle text-3xl text-gray-600 mb-2"></i>
-            <p class="text-gray-400 text-sm">No hay actividades completadas</p>
+            <i class="fas fa-check-circle text-3xl text-slate-300 mb-2"></i>
+            <p class="text-slate-500 text-sm font-medium">No hay actividades completadas</p>
           </div>
         </div>
       </div>
 
 
     <!-- Columna Vencida -->
-  <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-red-600/30 w-full snap-start">
+  <div class="bg-red-50 border border-red-200 rounded-xl p-3 sm:p-4 w-full snap-start flex flex-col h-full shadow-sm">
         <div class="flex items-center gap-3 mb-4">
-          <div class="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
-            <i class="fas fa-exclamation-triangle text-white text-sm"></i>
+          <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center border border-red-200">
+            <i class="fas fa-exclamation-triangle text-red-600 text-sm"></i>
           </div>
-          <h2 class="text-xl font-bold text-white">Vencida</h2>
-          <span class="bg-red-600/20 text-red-300 px-2 py-1 rounded-full text-xs font-medium">
+          <h2 class="text-lg font-black text-red-800">Vencida</h2>
+          <span class="bg-red-100 border border-red-200 text-red-600 px-2.5 py-0.5 rounded text-xs font-bold shadow-sm">
             {{ overdueActivities.length }}
           </span>
         </div>
         
         <div 
           :class="[
-            'space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto overflow-x-hidden pr-1 sm:pr-2 transition-all duration-300',
-            isDragging && draggedActivity?.status !== 'overdue' ? 'drop-zone-highlight' : ''
+            'space-y-3 flex-1 overflow-y-auto overflow-x-hidden pr-1 sm:pr-2 transition-all duration-300 min-h-0',
+            isDragging && draggedActivity?.status !== 'overdue' ? 'ring-2 ring-red-400/50 rounded-lg bg-red-100/50' : ''
           ]"
           @drop="onDrop($event, 'overdue')"
           @dragover.prevent
@@ -1311,7 +1313,7 @@
           <div
             v-for="activity in overdueActivities"
             :key="activity._id"
-            class="bg-red-900/20 rounded-lg p-3 sm:p-4 border border-red-500/40 hover:border-red-500/60 transition-all duration-200 group cursor-move overflow-hidden"
+            class="bg-white rounded-lg p-3 sm:p-4 border border-red-300 hover:border-red-500 hover:shadow-md shadow-sm transition-all duration-200 group cursor-move overflow-hidden"
             draggable="true"
             @dragstart="onDragStart($event, activity)"
             @dragend="onDragEnd"
@@ -1319,8 +1321,8 @@
             <!-- Header de la tarjeta -->
             <div class="flex items-start justify-between gap-2 mb-3 min-w-0">
               <div class="flex flex-wrap items-center gap-2 flex-1 min-w-0">
-                <i class="fas fa-grip-vertical text-gray-500 text-xs opacity-50 group-hover:opacity-100 transition-opacity"></i>
-                <h3 class="text-white font-semibold text-[13px] sm:text-sm leading-tight flex-1 min-w-0 break-words whitespace-normal">{{ activity.title }}</h3>
+                <i class="fas fa-grip-vertical text-red-300 text-xs opacity-50 group-hover:opacity-100 transition-opacity"></i>
+                <h3 class="text-red-900 font-bold text-[13px] sm:text-sm leading-tight flex-1 min-w-0 break-words whitespace-normal">{{ activity.title }}</h3>
                 
                 <!-- Indicador de prioridad -->
                 <span 
@@ -1369,10 +1371,10 @@
             </div>
 
             <!-- Cliente -->
-            <p class="text-gray-400 text-xs mb-2">{{ getClientName(activity.clientId) }}</p>
+            <p class="text-red-500 font-medium text-xs mb-2">{{ getClientName(activity.clientId) }}</p>
 
             <!-- Descripción -->
-            <p class="text-gray-300 text-[13px] sm:text-sm mb-3 line-clamp-2">{{ activity.description }}</p>
+            <p class="text-slate-700 text-[13px] sm:text-sm mb-3 line-clamp-2 leading-relaxed">{{ activity.description }}</p>
 
             <!-- Asignado a -->
             <div class="flex items-center gap-2 mb-3">
@@ -1428,26 +1430,28 @@
 
           <!-- Estado vacío para vencidas -->
           <div v-if="overdueActivities.length === 0" class="text-center py-8">
-            <i class="fas fa-exclamation-triangle text-3xl text-gray-600 mb-2"></i>
-            <p class="text-gray-400 text-sm">No hay actividades vencidas</p>
-            <p class="text-gray-500 text-xs mt-1">¡Excelente gestión del tiempo!</p>
+            <i class="fas fa-exclamation-triangle text-3xl text-red-300/50 mb-2"></i>
+            <p class="text-red-500/70 text-sm font-bold">No hay actividades vencidas</p>
+            <p class="text-red-400/60 text-xs mt-1 font-medium">¡Excelente gestión del tiempo!</p>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Estado vacío general -->
-    <div v-if="!loading && !error && activities.length === 0" class="text-center py-12">
-      <div class="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 border border-purple-500/20">
-        <i class="fas fa-tasks text-6xl text-gray-600 mb-4"></i>
-        <h3 class="text-xl font-bold text-white mb-2">No hay actividades</h3>
-        <p class="text-gray-400 mb-6">
-          {{ props.searchTerm ? 'No se encontraron actividades que coincidan con tu búsqueda' : 'Comienza agregando tu primera actividad' }}
+    <div v-if="!loading && !error && activities.length === 0" class="text-center py-16">
+      <div class="bg-slate-50 rounded-2xl p-8 border border-slate-200 border-dashed max-w-lg mx-auto shadow-sm">
+        <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-200">
+          <i class="fas fa-tasks text-3xl text-slate-400"></i>
+        </div>
+        <h3 class="text-xl font-black text-slate-800 mb-2">No hay actividades</h3>
+        <p class="text-slate-500 font-medium mb-6">
+          {{ props.searchTerm ? 'No se encontraron actividades que coincidan con tu búsqueda' : 'Comienza agregando tu primera actividad para gestionar tus tareas' }}
         </p>
         <PermissionGuard :permissions="['create-activities']" :fallback="false">
           <button
             @click="showCreateModal = true"
-            class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200"
+            class="px-6 py-3 bg-primary-600 text-white font-bold rounded-lg hover:bg-primary-700 transition-all duration-200 shadow-sm"
           >
             <i class="fas fa-plus mr-2"></i>
             Crear Primera Actividad
@@ -1495,29 +1499,29 @@
       >
         <!-- Overlay -->
         <div 
-          class="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+          class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"
           @click="showQuickSettings = false"
         ></div>
         
         <!-- Modal -->
         <div class="flex min-h-full items-center justify-center p-4">
-          <div class="relative bg-gray-800 rounded-2xl shadow-2xl border border-gray-600 w-full max-w-md transform transition-all">
+          <div class="relative bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md transform transition-all animate-fade-in">
             <!-- Header del modal -->
-            <div class="flex items-center justify-between p-6 border-b border-gray-700">
+            <div class="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50 rounded-t-2xl">
               <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-yellow-600 rounded-xl flex items-center justify-center">
-                  <i class="fas fa-cog text-white"></i>
+                <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center border border-amber-200 shadow-sm">
+                  <i class="fas fa-cog text-amber-500 text-lg"></i>
                 </div>
                 <div>
-                  <h3 class="text-xl font-bold text-white">Configuración</h3>
-                  <p class="text-sm text-gray-400">Tareas rápidas por defecto</p>
+                  <h3 class="text-xl font-black text-slate-800">Configuración</h3>
+                  <p class="text-sm font-medium text-slate-500">Tareas rápidas por defecto</p>
                 </div>
               </div>
               <button
                 @click="showQuickSettings = false"
-                class="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-all duration-200"
+                class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-lg transition-all duration-200"
               >
-                <i class="fas fa-times"></i>
+                <i class="fas fa-times text-lg"></i>
               </button>
             </div>
 
@@ -1525,8 +1529,8 @@
             <div class="p-6 space-y-6">
               <!-- Días de vencimiento -->
               <div>
-                <label class="flex items-center gap-2 text-sm font-medium text-gray-200 mb-3">
-                  <i class="fas fa-calendar-day text-yellow-400"></i>
+                <label class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-700 mb-3">
+                  <i class="fas fa-calendar-day text-amber-500"></i>
                   Días hasta vencimiento
                 </label>
                 <div class="grid grid-cols-4 gap-2">
@@ -1535,10 +1539,10 @@
                     :key="day"
                     @click="quickTaskSettings.dueDays = day"
                     :class="[
-                      'px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200',
+                      'px-3 py-2 rounded-lg text-sm font-bold transition-all duration-200 relative',
                       quickTaskSettings.dueDays === day 
-                        ? 'bg-yellow-600 text-white shadow-lg' 
-                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        ? 'bg-amber-100 text-amber-700 border-2 border-amber-400 shadow-sm' 
+                        : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'
                     ]"
                   >
                     {{ day === 7 ? '1 sem' : `${day} día${day > 1 ? 's' : ''}` }}
@@ -1548,28 +1552,28 @@
 
               <!-- Prioridad por defecto -->
               <div>
-                <label class="flex items-center gap-2 text-sm font-medium text-gray-200 mb-3">
-                  <i class="fas fa-flag text-yellow-400"></i>
+                <label class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-700 mb-3">
+                  <i class="fas fa-flag text-amber-500"></i>
                   Prioridad por defecto
                 </label>
                 <div class="grid grid-cols-2 gap-2">
                   <button
                     v-for="priority in [
                       { value: 'low', label: 'Baja', color: 'green' },
-                      { value: 'medium', label: 'Media', color: 'yellow' },
+                      { value: 'medium', label: 'Media', color: 'amber' },
                       { value: 'high', label: 'Alta', color: 'orange' },
                       { value: 'urgent', label: 'Urgente', color: 'red' }
                     ]"
                     :key="priority.value"
                     @click="quickTaskSettings.priority = priority.value"
                     :class="[
-                      'px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2',
+                      'px-3 py-2 rounded-lg text-sm font-bold transition-all duration-200 flex items-center justify-center gap-2 relative',
                       quickTaskSettings.priority === priority.value 
-                        ? `bg-${priority.color}-600 text-white shadow-lg` 
-                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        ? `bg-${priority.color}-50 text-${priority.color}-700 border-2 border-${priority.color}-400 shadow-sm` 
+                        : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'
                     ]"
                   >
-                    <i :class="`fas fa-circle text-${priority.color}-400 text-xs`"></i>
+                    <i :class="`fas fa-circle text-${priority.color}-500 text-[10px]`"></i>
                     {{ priority.label }}
                   </button>
                 </div>
@@ -1577,8 +1581,8 @@
 
               <!-- Tiempo estimado -->
               <div>
-                <label class="flex items-center gap-2 text-sm font-medium text-gray-200 mb-3">
-                  <i class="fas fa-clock text-yellow-400"></i>
+                <label class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-700 mb-3">
+                  <i class="fas fa-clock text-amber-500"></i>
                   Tiempo estimado
                 </label>
                 <div class="grid grid-cols-3 gap-2">
@@ -1587,10 +1591,10 @@
                     :key="time"
                     @click="quickTaskSettings.estimatedTime = time"
                     :class="[
-                      'px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200',
+                      'px-3 py-2 rounded-lg text-sm font-bold transition-all duration-200 relative',
                       quickTaskSettings.estimatedTime === time 
-                        ? 'bg-yellow-600 text-white shadow-lg' 
-                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        ? 'bg-amber-100 text-amber-700 border-2 border-amber-400 shadow-sm' 
+                        : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'
                     ]"
                   >
                     {{ time }}
@@ -1599,8 +1603,8 @@
               </div>
 
               <!-- Auto-asignación -->
-              <div class="bg-gray-750 rounded-xl p-4 border border-gray-600">
-                <label class="flex items-center gap-3 cursor-pointer">
+              <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 shadow-sm">
+                <label class="flex items-center gap-4 cursor-pointer">
                   <div class="relative">
                     <input
                       v-model="quickTaskSettings.autoAssign"
@@ -1608,28 +1612,28 @@
                       class="sr-only"
                     >
                     <div :class="[
-                      'w-12 h-6 rounded-full transition-all duration-200',
-                      quickTaskSettings.autoAssign ? 'bg-yellow-600' : 'bg-gray-600'
+                      'w-11 h-6 rounded-full transition-all duration-200 border border-transparent shadow-inner',
+                      quickTaskSettings.autoAssign ? 'bg-amber-500' : 'bg-slate-300'
                     ]">
                       <div :class="[
-                        'w-5 h-5 bg-white rounded-full transition-transform duration-200 mt-0.5',
-                        quickTaskSettings.autoAssign ? 'translate-x-6 ml-1' : 'translate-x-0 ml-1'
+                        'w-5 h-5 bg-white rounded-full transition-transform duration-200 mt-[1px] ml-[1px] shadow-sm',
+                        quickTaskSettings.autoAssign ? 'translate-x-[20px]' : 'translate-x-0'
                       ]"></div>
                     </div>
                   </div>
                   <div>
-                    <span class="text-white font-medium">Auto-asignación</span>
-                    <p class="text-xs text-gray-400">Asignarme automáticamente las tareas rápidas</p>
+                    <span class="text-slate-800 font-bold text-sm block">Auto-asignación</span>
+                    <p class="text-xs text-slate-500 font-medium">Asignarme automáticamente las tareas rápidas</p>
                   </div>
                 </label>
               </div>
             </div>
 
             <!-- Footer del modal -->
-            <div class="flex items-center justify-between gap-3 p-6 border-t border-gray-700 bg-gray-750 rounded-b-2xl">
+            <div class="flex items-center justify-between gap-3 p-6 border-t border-slate-100 bg-slate-50 rounded-b-2xl">
               <button
                 @click="resetQuickSettings"
-                class="px-4 py-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-all duration-200 text-sm font-medium"
+                class="px-4 py-2.5 text-slate-600 hover:text-slate-800 font-bold hover:bg-slate-200 rounded-lg transition-all duration-200 text-sm flex items-center"
               >
                 <i class="fas fa-undo mr-2"></i>
                 Restablecer
@@ -1637,13 +1641,13 @@
               <div class="flex gap-3">
                 <button
                   @click="showQuickSettings = false"
-                  class="px-6 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition-all duration-200 text-sm font-medium"
+                  class="px-5 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-lg transition-all duration-200 shadow-sm text-sm"
                 >
                   Cancelar
                 </button>
                 <button
                   @click="showQuickSettings = false"
-                  class="px-6 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-all duration-200 text-sm font-medium shadow-lg"
+                  class="px-5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-lg transition-all duration-200 shadow-sm text-sm"
                 >
                   <i class="fas fa-save mr-2"></i>
                   Guardar
@@ -1659,47 +1663,53 @@
     <Teleport to="body">
       <div
         v-if="showCreateTaskModal"
-        class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+        class="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4"
         @click.self="closeTaskModal"
       >
-        <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-2xl shadow-2xl border border-green-500/20 max-h-[90vh] overflow-y-auto">
-          <h2 class="text-xl font-bold text-white mb-4">
-            <i class="fas fa-tasks mr-2"></i>
-            {{ isEditingTask ? 'Editar Tarea' : 'Nueva Tarea' }}
-          </h2>
+        <div class="bg-white rounded-2xl w-full max-w-2xl shadow-xl border border-slate-200 max-h-[90vh] overflow-hidden flex flex-col pt-0 animate-fade-in relative mt-4 sm:mt-0">
+          <div class="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50 relative z-10 shrink-0">
+            <h2 class="text-xl font-black text-slate-800">
+              <i class="fas fa-tasks mr-2 text-primary-500"></i>
+              {{ isEditingTask ? 'Editar Tarea' : 'Nueva Tarea' }}
+            </h2>
+            <button @click="closeTaskModal" class="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-md transition-colors">
+              <i class="fas fa-times text-lg"></i>
+            </button>
+          </div>
           
+          <div class="flex-1 overflow-y-auto p-6 scroll-smooth">
           <form @submit.prevent="createTask">
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-2 gap-5">
               <!-- Título -->
               <div class="col-span-2">
-                <label class="block text-sm font-medium text-gray-300 mb-2">Título *</label>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Título *</label>
                 <input
                   v-model="newTask.title"
                   type="text"
                   required
-                  class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-slate-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-500 shadow-sm"
                   placeholder="Título de la tarea"
                 />
               </div>
 
               <!-- Descripción -->
               <div class="col-span-2">
-                <label class="block text-sm font-medium text-gray-300 mb-2">Descripción</label>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Descripción</label>
                 <textarea
                   v-model="newTask.description"
                   rows="3"
-                  class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-slate-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-500 shadow-sm"
                   placeholder="Describe la tarea..."
                 ></textarea>
               </div>
 
               <!-- Tipo -->
               <div>
-                <label class="block text-sm font-medium text-gray-300 mb-2">Tipo *</label>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Tipo *</label>
                 <select
                   v-model="newTask.type"
                   required
-                  class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-500"
                 >
                   <option value="epic">Épica</option>
                   <option value="feature">Feature</option>
@@ -1711,14 +1721,14 @@
 
               <!-- Relación Jerárquica: Épica (solo para Features) -->
               <div v-if="newTask.type === 'feature'">
-                <label class="block text-sm font-medium text-gray-300 mb-2">
-                  <i class="fas fa-mountain text-purple-400 mr-1"></i>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                  <i class="fas fa-mountain text-primary-500 mr-1"></i>
                   Épica *
                 </label>
                 <select
                   v-model="newTask.epicId"
                   required
-                  class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-500"
                 >
                   <option value="">Selecciona una épica</option>
                   <option v-for="epic in getEpics()" :key="epic._id" :value="epic._id">
@@ -1729,14 +1739,14 @@
 
               <!-- Relación Jerárquica: Feature (solo para User Stories) -->
               <div v-if="newTask.type === 'user-story'">
-                <label class="block text-sm font-medium text-gray-300 mb-2">
-                  <i class="fas fa-layer-group text-blue-400 mr-1"></i>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                  <i class="fas fa-layer-group text-blue-500 mr-1"></i>
                   Feature *
                 </label>
                 <select
                   v-model="newTask.featureId"
                   required
-                  class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-500"
                 >
                   <option value="">Selecciona una feature</option>
                   <option v-for="feature in tasksStore.tasks.filter(t => t.type === 'feature')" :key="feature._id" :value="feature._id">
@@ -1747,13 +1757,13 @@
 
               <!-- Relación Jerárquica: User Story (solo para Tasks) -->
               <div v-if="newTask.type === 'task'">
-                <label class="block text-sm font-medium text-gray-300 mb-2">
-                  <i class="fas fa-book-open text-green-400 mr-1"></i>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                  <i class="fas fa-book-open text-emerald-500 mr-1"></i>
                   User Story (opcional)
                 </label>
                 <select
                   v-model="newTask.userStoryId"
-                  class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-500"
                 >
                   <option value="">Sin User Story (tarea independiente)</option>
                   <option v-for="story in tasksStore.tasks.filter(t => t.type === 'user-story')" :key="story._id" :value="story._id">
@@ -1764,11 +1774,11 @@
 
               <!-- Prioridad -->
               <div>
-                <label class="block text-sm font-medium text-gray-300 mb-2">Prioridad *</label>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Prioridad *</label>
                 <select
                   v-model="newTask.priority"
                   required
-                  class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-500"
                 >
                   <option value="low">Baja</option>
                   <option value="medium">Media</option>
@@ -1779,11 +1789,11 @@
 
               <!-- Estado del Board -->
               <div>
-                <label class="block text-sm font-medium text-gray-300 mb-2">Estado *</label>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Estado *</label>
                 <select
                   v-model="newTask.boardStatus"
                   required
-                  class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-500"
                 >
                   <option v-for="column in selectedBoard?.columns" :key="column.id" :value="column.mappedStatus">
                     {{ column.name }}
@@ -1793,10 +1803,10 @@
 
               <!-- Sprint -->
               <div v-if="selectedBoard?.type === 'scrum'">
-                <label class="block text-sm font-medium text-gray-300 mb-2">Sprint</label>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Sprint</label>
                 <select
                   v-model="newTask.sprint"
-                  class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-500"
                 >
                   <option value="">Backlog</option>
                   <option v-for="sprint in selectedBoard?.sprints" :key="sprint._id" :value="sprint._id">
@@ -1807,10 +1817,10 @@
 
               <!-- Asignado a -->
               <div>
-                <label class="block text-sm font-medium text-gray-300 mb-2">Asignar a</label>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Asignar a</label>
                 <select
                   v-model="newTask.assignedTo"
-                  class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-500"
                 >
                   <option value="">Sin asignar</option>
                   <option v-for="member in teamMembers" :key="member._id" :value="member._id">
@@ -1821,22 +1831,22 @@
 
               <!-- Story Points -->
               <div v-if="selectedBoard?.type === 'scrum'">
-                <label class="block text-sm font-medium text-gray-300 mb-2">Story Points</label>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Story Points</label>
                 <input
                   v-model.number="newTask.storyPoints"
                   type="number"
                   min="0"
-                  class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-slate-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-500 shadow-sm"
                   placeholder="0"
                 />
               </div>
 
               <!-- Estimación -->
               <div class="col-span-2">
-                <label class="block text-sm font-medium text-gray-300 mb-2">Estimación de tiempo</label>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Estimación de tiempo</label>
                 <select
                   v-model="newTask.estimatedTime"
-                  class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-500"
                 >
                   <option value="">Sin estimación</option>
                   <option value="15m">15 minutos</option>
@@ -1855,34 +1865,35 @@
 
               <!-- Etiquetas -->
               <div class="col-span-2">
-                <label class="block text-sm font-medium text-gray-300 mb-2">Etiquetas</label>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Etiquetas</label>
                 <input
                   v-model="newTask.tags"
                   type="text"
-                  class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-slate-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-500 shadow-sm"
                   placeholder="frontend, backend, api (separadas por comas)"
                 />
               </div>
             </div>
 
-            <div class="flex justify-end space-x-3 mt-6">
+            <div class="flex justify-end space-x-3 mt-8 pt-6 border-t border-slate-100">
               <button
                 type="button"
                 @click="closeTaskModal"
-                class="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700 border border-gray-600 rounded-lg hover:bg-gray-600"
+                class="px-5 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 shadow-sm transition-colors"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 :disabled="!newTask.title || !newTask.type || !newTask.boardStatus"
-                class="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-green-600 to-emerald-600 rounded-lg hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                class="px-5 py-2.5 text-sm font-bold text-white bg-primary-600 rounded-lg hover:bg-primary-700 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <i :class="isEditingTask ? 'fas fa-save' : 'fas fa-plus'" class="mr-2"></i>
                 {{ isEditingTask ? 'Guardar Cambios' : 'Crear Tarea' }}
               </button>
             </div>
           </form>
+          </div>
         </div>
       </div>
     </Teleport>
@@ -1891,118 +1902,104 @@
     <Teleport to="body">
       <div
         v-if="showCreateBoardModal"
-        class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+        class="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4"
         @click.self="showCreateBoardModal = false"
       >
-        <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-md shadow-2xl border border-purple-500/20">
-          <h2 class="text-xl font-bold text-white mb-4">
-            <i class="fas fa-plus-circle mr-2 text-purple-400"></i>
+        <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl border border-slate-200 animate-fade-in relative mt-4 sm:mt-0">
+          <h2 class="text-xl font-black text-slate-800 mb-6">
+            <i class="fas fa-layer-group mr-2 text-primary-500"></i>
             Crear Nuevo Tablero
           </h2>
 
           <!-- Debug Info (remover en producción) -->
-          <div v-if="clients.length > 0" class="mb-3 p-2 bg-green-500/10 border border-green-500/30 rounded text-xs text-green-400">
-            <i class="fas fa-check-circle mr-1"></i>
+          <div v-if="clients.length > 0" class="mb-4 p-2 bg-emerald-50 border border-emerald-200 rounded text-xs font-bold text-emerald-700">
+            <i class="fas fa-check-circle mr-1 text-emerald-500"></i>
             {{ clients.length }} cliente(s) disponible(s)
           </div>
           
           <form @submit.prevent="createBoard">
-            <div class="mb-4">
-              <label class="block text-sm font-medium text-gray-300 mb-2">
-                <i class="fas fa-tag text-purple-400 mr-1"></i>
+            <div class="mb-5">
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                <i class="fas fa-tag text-slate-400 mr-1"></i>
                 Nombre *
               </label>
               <input
                 v-model="newBoard.name"
                 type="text"
                 required
-                class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-slate-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-500 shadow-sm"
                 placeholder="Ej: Desarrollo App Móvil"
               />
             </div>
 
-            <div class="mb-4">
-              <label class="block text-sm font-medium text-gray-300 mb-2">
-                <i class="fas fa-user-tie text-blue-400 mr-1"></i>
+            <div class="mb-5">
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                <i class="fas fa-user-tie text-slate-400 mr-1"></i>
                 Cliente / Proyecto *
               </label>
               
               <!-- Mensaje si no hay clientes -->
-              <div v-if="clients.length === 0" class="mb-3 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-                <div class="flex items-start gap-2">
-                  <i class="fas fa-exclamation-triangle text-yellow-500 mt-0.5"></i>
-                  <div class="flex-1">
-                    <p class="text-xs text-yellow-200">
-                      No hay clientes disponibles. Debes crear un cliente primero.
-                    </p>
-                    <button
-                      type="button"
-                      @click="redirectToClients"
-                      class="mt-2 text-xs text-blue-400 hover:text-blue-300 underline"
-                    >
-                      <i class="fas fa-external-link-alt mr-1"></i>
-                      Ir a crear cliente
-                    </button>
-                  </div>
-                </div>
+              <div v-if="clients.length === 0" class="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-xs font-medium">
+                <i class="fas fa-exclamation-triangle mr-1"></i>
+                No hay clientes disponibles. Debes crear un cliente primero.
               </div>
               
               <select
                 v-model="newBoard.clientId"
                 required
                 :disabled="clients.length === 0"
-                class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
               >
                 <option value="">{{ clients.length === 0 ? 'No hay clientes disponibles' : 'Selecciona un cliente' }}</option>
                 <option v-for="client in clients" :key="client._id" :value="client._id">
                   {{ client.name }}{{ client.company ? ` - ${client.company}` : '' }}
                 </option>
               </select>
-              <p class="text-xs text-gray-400 mt-1">
-                <i class="fas fa-info-circle mr-1"></i>
+              <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1.5 flex items-center gap-1">
+                <i class="fas fa-info-circle"></i>
                 El tablero se asociará a este cliente/proyecto
               </p>
             </div>
 
-            <div class="mb-4">
-              <label class="block text-sm font-medium text-gray-300 mb-2">
-                <i class="fas fa-align-left text-gray-400 mr-1"></i>
+            <div class="mb-5">
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                <i class="fas fa-align-left text-slate-400 mr-1"></i>
                 Descripción
               </label>
               <textarea
                 v-model="newBoard.description"
                 rows="3"
-                class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-slate-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-500 shadow-sm"
                 placeholder="Descripción del proyecto..."
               ></textarea>
             </div>
 
-            <div class="mb-6">
-              <label class="block text-sm font-medium text-gray-300 mb-2">
-                <i class="fas fa-layer-group text-purple-400 mr-1"></i>
+            <div class="mb-8">
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                <i class="fas fa-layer-group text-slate-400 mr-1"></i>
                 Tipo de Tablero
               </label>
-              <div class="flex items-center p-4 border-2 border-purple-500 bg-purple-500/10 rounded-lg">
+              <div class="flex items-center p-4 border-2 border-primary-500 bg-primary-50 rounded-xl">
                 <div class="flex-1">
-                  <div class="font-medium text-white">Scrum</div>
-                  <div class="text-xs text-gray-400">Tablero con sprints para gestión ágil</div>
+                  <div class="font-bold text-primary-900">Scrum</div>
+                  <div class="text-xs text-primary-600 font-medium">Tablero con sprints para gestión ágil</div>
                 </div>
-                <i class="fas fa-check-circle text-purple-500 text-xl"></i>
+                <i class="fas fa-check-circle text-primary-500 text-xl"></i>
               </div>
             </div>
 
-            <div class="flex justify-end space-x-3">
+            <div class="flex justify-end space-x-3 pt-6 border-t border-slate-100">
               <button
                 type="button"
                 @click="showCreateBoardModal = false"
-                class="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700 border border-gray-600 rounded-lg hover:bg-gray-600"
+                class="px-5 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 shadow-sm transition-colors"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 :disabled="!newBoard.name || !newBoard.clientId"
-                class="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                class="px-5 py-2.5 text-sm font-bold text-white bg-primary-600 rounded-lg hover:bg-primary-700 shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <i class="fas fa-plus mr-2"></i>
                 Crear Tablero
@@ -2017,98 +2014,96 @@
     <Teleport to="body">
       <div
         v-if="showSprintsModal"
-        class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+        class="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4"
         @click.self="showSprintsModal = false"
       >
-        <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-2xl shadow-2xl border border-blue-500/20 max-h-[90vh] overflow-y-auto">
-          <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-bold text-white">
-              <i class="fas fa-running mr-2 text-blue-400"></i>
+        <div class="bg-white rounded-2xl w-full max-w-2xl shadow-xl border border-slate-200 max-h-[90vh] overflow-hidden flex flex-col pt-0 animate-fade-in relative mt-4 sm:mt-0">
+          <div class="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50 relative z-10 shrink-0">
+            <h2 class="text-xl font-black text-slate-800">
+              <i class="fas fa-running mr-2 text-primary-500"></i>
               Gestionar Sprints
             </h2>
-            <button
-              @click="showSprintsModal = false"
-              class="text-gray-400 hover:text-white"
-            >
-              <i class="fas fa-times"></i>
+            <button @click="showSprintsModal = false" class="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-md transition-colors">
+              <i class="fas fa-times text-lg"></i>
             </button>
           </div>
 
+          <div class="flex-1 overflow-y-auto p-6 scroll-smooth">
           <!-- Información del Tablero y Cliente -->
-          <div v-if="selectedBoard" class="mb-6 p-4 bg-gray-700/30 rounded-lg border border-gray-600/50">
+          <div v-if="selectedBoard" class="mb-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
             <div class="flex items-start justify-between">
               <div>
                 <div class="flex items-center gap-2 mb-2">
-                  <i class="fas fa-layer-group text-purple-400"></i>
-                  <span class="font-medium text-white">{{ selectedBoard.name }}</span>
+                  <i class="fas fa-layer-group text-primary-500"></i>
+                  <span class="font-bold text-slate-800">{{ selectedBoard.name }}</span>
                 </div>
-                <div v-if="selectedBoard.client" class="flex items-center gap-2 text-sm text-gray-300">
-                  <i class="fas fa-user-tie text-blue-400"></i>
+                <div v-if="selectedBoard.client" class="flex items-center gap-2 text-sm text-slate-600 font-medium">
+                  <i class="fas fa-user-tie text-blue-500 text-xs"></i>
                   <span>{{ selectedBoard.client.name }}</span>
-                  <span v-if="selectedBoard.client.company" class="text-gray-400">
+                  <span v-if="selectedBoard.client.company" class="text-slate-400">
                     - {{ selectedBoard.client.company }}
                   </span>
                 </div>
               </div>
               <div class="text-right">
-                <div class="text-xs text-gray-400">Total Sprints</div>
-                <div class="text-2xl font-bold text-blue-400">{{ selectedBoard.sprints?.length || 0 }}</div>
+                <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Total Sprints</div>
+                <div class="text-2xl font-black text-primary-600 leading-none mt-1">{{ selectedBoard.sprints?.length || 0 }}</div>
               </div>
             </div>
           </div>
 
           <!-- Formulario Crear Nuevo Sprint -->
-          <div class="mb-6 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-            <h3 class="text-sm font-medium text-blue-400 mb-3">
-              <i class="fas fa-plus-circle mr-2"></i>
+          <div class="mb-6 p-5 bg-primary-50/50 border border-primary-100 rounded-xl">
+            <h3 class="text-sm font-bold text-primary-700 uppercase tracking-wider mb-4 flex items-center">
+              <i class="fas fa-plus-circle mr-2 text-primary-500"></i>
               Crear Nuevo Sprint
             </h3>
-            <form @submit.prevent="createSprint" class="space-y-3">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <form @submit.prevent="createSprint" class="space-y-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-xs font-medium text-gray-300 mb-1">Nombre del Sprint *</label>
+                  <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Nombre del Sprint *</label>
                   <input
                     v-model="newSprint.name"
                     type="text"
                     required
-                    class="w-full px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white text-sm placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 text-sm font-medium placeholder-slate-400 focus:ring-2 focus:ring-primary-500 shadow-sm"
                     placeholder="Sprint 1"
                   />
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-gray-300 mb-1">Objetivo</label>
+                  <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Objetivo</label>
                   <input
                     v-model="newSprint.goal"
                     type="text"
-                    class="w-full px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white text-sm placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 text-sm font-medium placeholder-slate-400 focus:ring-2 focus:ring-primary-500 shadow-sm"
                     placeholder="Implementar autenticación"
                   />
                 </div>
               </div>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-xs font-medium text-gray-300 mb-1">Fecha Inicio *</label>
+                  <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Fecha Inicio *</label>
                   <input
                     v-model="newSprint.startDate"
                     type="date"
                     required
-                    class="w-full px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 text-sm font-medium focus:ring-2 focus:ring-primary-500 shadow-sm"
                   />
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-gray-300 mb-1">Fecha Fin *</label>
+                  <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Fecha Fin *</label>
                   <input
                     v-model="newSprint.endDate"
                     type="date"
                     required
-                    class="w-full px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 text-sm font-medium focus:ring-2 focus:ring-primary-500 shadow-sm"
                   />
                 </div>
               </div>
               <button
                 type="submit"
                 :disabled="!newSprint.name || !newSprint.startDate || !newSprint.endDate"
-                class="w-full px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg hover:from-blue-700 hover:to-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                class="w-full px-4 py-2.5 text-sm font-bold text-white bg-primary-600 rounded-lg hover:bg-primary-700 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <i class="fas fa-plus mr-2"></i>
                 Crear Sprint
@@ -2117,55 +2112,55 @@
           </div>
 
           <!-- Lista de Sprints -->
-          <div class="space-y-3">
-            <h3 class="text-sm font-medium text-gray-300">
-              <i class="fas fa-list mr-2"></i>
+          <div class="space-y-4 pt-2">
+            <h3 class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+              <i class="fas fa-list mr-1"></i>
               Sprints Existentes
             </h3>
             
-            <div v-if="!selectedBoard?.sprints || selectedBoard.sprints.length === 0" class="text-center py-8 text-gray-400">
-              <i class="fas fa-inbox text-4xl mb-3 opacity-50"></i>
-              <p>No hay sprints creados</p>
-              <p class="text-xs mt-1">Crea tu primer sprint usando el formulario arriba</p>
+            <div v-if="!selectedBoard?.sprints || selectedBoard.sprints.length === 0" class="text-center py-10 bg-slate-50 border border-slate-200 border-dashed rounded-xl">
+              <i class="fas fa-inbox text-3xl mb-3 text-slate-300"></i>
+              <p class="text-slate-500 font-medium text-sm">No hay sprints creados</p>
+              <p class="text-xs text-slate-400 mt-1">Crea tu primer sprint usando el formulario arriba</p>
             </div>
 
-            <div v-else class="space-y-2">
+            <div v-else class="space-y-3">
               <div
                 v-for="sprint in selectedBoard.sprints"
                 :key="sprint._id"
-                class="p-4 bg-gray-700/30 border border-gray-600/50 rounded-lg hover:border-blue-500/50 transition-colors"
+                class="p-4 bg-white border border-slate-200 rounded-xl hover:border-primary-400 hover:shadow-md transition-all shadow-sm"
               >
-                <div class="flex items-start justify-between mb-2">
+                <div class="flex items-start justify-between">
                   <div class="flex-1">
-                    <div class="flex items-center gap-2 mb-1">
-                      <h4 class="font-medium text-white">{{ sprint.name }}</h4>
+                    <div class="flex items-center gap-3 mb-1.5">
+                      <h4 class="font-bold text-slate-800 text-sm">{{ sprint.name }}</h4>
                       <span
                         :class="{
-                          'bg-green-500/20 text-green-400 border-green-500/30': sprint.status === 'active',
-                          'bg-gray-500/20 text-gray-400 border-gray-500/30': sprint.status === 'planned',
-                          'bg-blue-500/20 text-blue-400 border-blue-500/30': sprint.status === 'completed'
+                          'bg-emerald-100 text-emerald-700 border-emerald-200 shadow-sm': sprint.status === 'active',
+                          'bg-slate-100 text-slate-600 border-slate-200 shadow-sm': sprint.status === 'planned',
+                          'bg-blue-100 text-blue-700 border-blue-200 shadow-sm': sprint.status === 'completed'
                         }"
-                        class="text-xs px-2 py-0.5 rounded-full border"
+                        class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-md border"
                       >
                         {{ sprint.status === 'active' ? 'Activo' : sprint.status === 'planned' ? 'Planeado' : 'Completado' }}
                       </span>
                     </div>
-                    <p v-if="sprint.goal" class="text-sm text-gray-400 mb-2">{{ sprint.goal }}</p>
-                    <div class="flex items-center gap-4 text-xs text-gray-400">
-                      <span>
-                        <i class="fas fa-calendar-alt mr-1"></i>
+                    <p v-if="sprint.goal" class="text-sm font-medium text-slate-600 mb-2.5">{{ sprint.goal }}</p>
+                    <div class="flex items-center gap-4 text-xs font-medium text-slate-500">
+                      <span class="flex items-center">
+                        <i class="fas fa-calendar-alt mr-1.5 text-slate-400"></i>
                         {{ formatDate(sprint.startDate) }} - {{ formatDate(sprint.endDate) }}
                       </span>
-                      <span v-if="sprint.velocity">
-                        <i class="fas fa-tachometer-alt mr-1"></i>
-                        Velocity: {{ sprint.velocity }}
+                      <span v-if="sprint.velocity" class="flex items-center bg-slate-100 px-2 py-0.5 rounded-md text-slate-600 border border-slate-200">
+                        <i class="fas fa-tachometer-alt mr-1.5 text-slate-400"></i>
+                        Velocity: <strong>{{ sprint.velocity }}</strong>
                       </span>
                     </div>
                   </div>
                   <div class="flex items-center gap-2">
                     <button
                       @click="deleteSprint(sprint._id)"
-                      class="p-2 text-red-400 hover:bg-red-500/20 rounded transition-colors"
+                      class="p-2 w-8 h-8 flex items-center justify-center text-red-500 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors border border-transparent hover:border-red-200"
                       title="Eliminar sprint"
                     >
                       <i class="fas fa-trash text-sm"></i>
@@ -2175,11 +2170,12 @@
               </div>
             </div>
           </div>
+          </div>
 
-          <div class="mt-6 flex justify-end">
+          <div class="p-6 border-t border-slate-100 bg-slate-50 flex justify-end">
             <button
               @click="showSprintsModal = false"
-              class="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700 border border-gray-600 rounded-lg hover:bg-gray-600"
+              class="px-5 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 shadow-sm transition-colors"
             >
               Cerrar
             </button>
@@ -2198,13 +2194,13 @@
         <div
           :style="filterPanelStyle"
           @click.stop
-          class="fixed w-80 bg-gray-800 border border-gray-700 rounded-lg shadow-2xl p-4 space-y-3"
+          class="fixed w-80 bg-white border border-slate-200 rounded-xl shadow-2xl p-5 space-y-4 animate-fade-in"
         >
-          <div class="flex items-center justify-between mb-3">
-            <h3 class="text-sm font-semibold text-white">Filtros de Tareas</h3>
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-sm font-black text-slate-800 uppercase tracking-wider">Filtros de Tareas</h3>
             <button 
               @click="clearTaskFilters"
-              class="text-xs text-purple-400 hover:text-purple-300"
+              class="text-xs font-bold text-primary-500 hover:text-primary-600 transition-colors"
             >
               Limpiar todo
             </button>
@@ -2212,12 +2208,12 @@
 
           <!-- Filtro por Estado del Board -->
           <div>
-            <label class="block text-xs font-medium text-gray-400 mb-1">
+            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
               Estado en Tablero
             </label>
             <select
               v-model="taskFilters.boardStatus"
-              class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm focus:ring-2 focus:ring-purple-500"
+              class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-500 shadow-sm"
             >
               <option value="">Todos los estados</option>
               <option value="backlog">📋 Backlog</option>
@@ -2230,12 +2226,12 @@
 
           <!-- Filtro por Prioridad -->
           <div>
-            <label class="block text-xs font-medium text-gray-400 mb-1">
+            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
               Prioridad
             </label>
             <select
               v-model="taskFilters.priority"
-              class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm focus:ring-2 focus:ring-purple-500"
+              class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-500 shadow-sm"
             >
               <option value="">Todas las prioridades</option>
               <option value="critical">🔴 Crítica</option>
@@ -2247,12 +2243,12 @@
 
           <!-- Filtro por Tipo -->
           <div>
-            <label class="block text-xs font-medium text-gray-400 mb-1">
+            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
               Tipo de Tarea
             </label>
             <select
               v-model="taskFilters.type"
-              class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm focus:ring-2 focus:ring-purple-500"
+              class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-500 shadow-sm"
             >
               <option value="">Todos los tipos</option>
               <option value="epic">🎯 Epic</option>
@@ -2265,12 +2261,12 @@
 
           <!-- Filtro por Asignado -->
           <div>
-            <label class="block text-xs font-medium text-gray-400 mb-1">
+            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
               Asignado a
             </label>
             <select
               v-model="taskFilters.assignedTo"
-              class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white text-sm focus:ring-2 focus:ring-purple-500"
+              class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-500 shadow-sm"
             >
               <option value="">Todos los miembros</option>
               <option value="unassigned">Sin asignar</option>
@@ -2282,18 +2278,18 @@
 
           <!-- Filtro por Tags -->
           <div v-if="availableTags.length > 0">
-            <label class="block text-xs font-medium text-gray-400 mb-1">
+            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
               Etiquetas
             </label>
-            <div class="flex flex-wrap gap-1 max-h-24 overflow-y-auto">
+            <div class="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
               <button
                 v-for="tag in availableTags"
                 :key="tag"
                 @click="toggleTagFilter(tag)"
-                class="px-2 py-1 text-xs rounded-md transition-colors"
+                class="px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider rounded-md transition-colors border shadow-sm"
                 :class="taskFilters.tags.includes(tag) 
-                  ? 'bg-purple-600 text-white' 
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'"
+                  ? 'bg-primary-500 text-white border-primary-500' 
+                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:border-slate-300'"
               >
                 #{{ tag }}
               </button>
@@ -2301,12 +2297,14 @@
           </div>
 
           <!-- Botón Aplicar -->
-          <button
-            @click="applyTaskFilters"
-            class="w-full px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 text-sm font-medium"
-          >
-            Aplicar Filtros
-          </button>
+          <div class="pt-2">
+            <button
+              @click="applyTaskFilters"
+              class="w-full px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-bold shadow-sm transition-colors"
+            >
+              Aplicar Filtros
+            </button>
+          </div>
         </div>
       </div>
     </Teleport>
@@ -2315,80 +2313,80 @@
     <Teleport to="body">
       <div
         v-if="showCascadeDeleteModal"
-        class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+        class="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4"
         @click.self="cancelCascadeDelete"
       >
-        <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-md shadow-2xl border border-red-500/30 max-h-[90vh] overflow-y-auto">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl border border-slate-200 animate-fade-in relative mt-4 sm:mt-0">
           <!-- Header con icono -->
           <div class="flex flex-col items-center text-center mb-6">
-            <div class="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mb-4">
+            <div class="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mb-4 border border-red-100 shadow-sm">
               <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
             </div>
-            <h2 class="text-xl font-bold text-white mb-2">¿Estás seguro?</h2>
-            <p class="text-gray-300 text-sm">
+            <h2 class="text-xl font-black text-slate-800 mb-2">¿Estás seguro?</h2>
+            <p class="text-slate-500 font-medium text-sm">
               Esta acción eliminará permanentemente
             </p>
-            <p class="text-red-400 font-semibold text-base mt-2 break-words max-w-full">
+            <p class="text-red-600 font-bold text-base mt-2 break-words max-w-full bg-red-50 px-3 py-1 rounded-lg border border-red-100">
               "{{ cascadeDeleteInfo.taskTitle }}"
             </p>
           </div>
 
           <!-- Detalles de elementos a borrar (solo si hay cascada) -->
-          <div v-if="cascadeDeleteInfo.total > 0" class="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-4">
-            <p class="text-white font-medium mb-3 text-center">Esta acción eliminará en cascada:</p>
-            <div class="space-y-2.5">
-              <div v-if="cascadeDeleteInfo.features > 0" class="flex items-center justify-between bg-gray-900/50 rounded px-3 py-2">
+          <div v-if="cascadeDeleteInfo.total > 0" class="bg-slate-50 border border-slate-200 shadow-sm rounded-xl p-4 mb-5">
+            <p class="text-slate-700 font-bold text-sm mb-3 text-center uppercase tracking-wider">Esta acción eliminará en cascada:</p>
+            <div class="space-y-2">
+              <div v-if="cascadeDeleteInfo.features > 0" class="flex items-center justify-between bg-white border border-slate-200 shadow-sm rounded-lg px-3 py-2">
                 <div class="flex items-center gap-2">
-                  <i class="fas fa-layer-group text-blue-400"></i>
-                  <span class="text-gray-200 text-sm">Features</span>
+                  <i class="fas fa-layer-group text-blue-500"></i>
+                  <span class="text-slate-600 text-sm font-bold">Features</span>
                 </div>
-                <span class="text-white font-semibold">{{ cascadeDeleteInfo.features }}</span>
+                <span class="text-slate-800 font-black">{{ cascadeDeleteInfo.features }}</span>
               </div>
-              <div v-if="cascadeDeleteInfo.stories > 0" class="flex items-center justify-between bg-gray-900/50 rounded px-3 py-2">
+              <div v-if="cascadeDeleteInfo.stories > 0" class="flex items-center justify-between bg-white border border-slate-200 shadow-sm rounded-lg px-3 py-2">
                 <div class="flex items-center gap-2">
-                  <i class="fas fa-book-open text-green-400"></i>
-                  <span class="text-gray-200 text-sm">User Stories</span>
+                  <i class="fas fa-book-open text-emerald-500"></i>
+                  <span class="text-slate-600 text-sm font-bold">User Stories</span>
                 </div>
-                <span class="text-white font-semibold">{{ cascadeDeleteInfo.stories }}</span>
+                <span class="text-slate-800 font-black">{{ cascadeDeleteInfo.stories }}</span>
               </div>
-              <div v-if="cascadeDeleteInfo.tasks > 0" class="flex items-center justify-between bg-gray-900/50 rounded px-3 py-2">
+              <div v-if="cascadeDeleteInfo.tasks > 0" class="flex items-center justify-between bg-white border border-slate-200 shadow-sm rounded-lg px-3 py-2">
                 <div class="flex items-center gap-2">
-                  <i class="fas fa-tasks text-gray-400"></i>
-                  <span class="text-gray-200 text-sm">Tasks</span>
+                  <i class="fas fa-tasks text-slate-400"></i>
+                  <span class="text-slate-600 text-sm font-bold">Tasks</span>
                 </div>
-                <span class="text-white font-semibold">{{ cascadeDeleteInfo.tasks }}</span>
+                <span class="text-slate-800 font-black">{{ cascadeDeleteInfo.tasks }}</span>
               </div>
-              <div class="border-t border-red-500/30 pt-3 mt-3">
-                <div class="flex items-center justify-between font-bold bg-red-500/20 rounded px-3 py-2">
+              <div class="pt-2 mt-2 border-t border-slate-200">
+                <div class="flex items-center justify-between font-bold bg-red-50 border border-red-200 shadow-sm rounded-lg px-3 py-2">
                   <div class="flex items-center gap-2">
-                    <i class="fas fa-trash text-red-400"></i>
-                    <span class="text-white">Total</span>
+                    <i class="fas fa-trash text-red-500"></i>
+                    <span class="text-red-700 uppercase tracking-wider text-[11px]">Total</span>
                   </div>
-                  <span class="text-red-400 text-lg">{{ cascadeDeleteInfo.total + 1 }}</span>
+                  <span class="text-red-600 font-black text-lg">{{ cascadeDeleteInfo.total + 1 }}</span>
                 </div>
               </div>
             </div>
           </div>
 
           <!-- Advertencia -->
-          <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 mb-4">
+          <div class="bg-amber-50 border border-amber-200 shadow-sm rounded-xl p-3 mb-4">
             <div class="flex items-start gap-2">
-              <i class="fas fa-info-circle text-yellow-500 mt-0.5 flex-shrink-0"></i>
-              <p class="text-yellow-200 text-xs leading-relaxed">
+              <i class="fas fa-info-circle text-amber-500 mt-0.5 flex-shrink-0"></i>
+              <p class="text-amber-800 font-medium text-xs leading-relaxed">
                 Esta acción no se puede deshacer. {{ cascadeDeleteInfo.total > 0 ? 'Todos los elementos hijos se eliminarán junto con el elemento principal.' : 'La tarea se eliminará permanentemente.' }}
               </p>
             </div>
           </div>
 
           <!-- 🌿 Advertencia de ramas de GitHub -->
-          <div class="bg-green-500/10 border border-green-500/30 rounded-lg p-3 mb-6">
+          <div class="bg-emerald-50 border border-emerald-200 shadow-sm rounded-xl p-3 mb-6">
             <div class="flex items-start gap-2">
-              <i class="fab fa-github text-green-400 mt-0.5 flex-shrink-0"></i>
+              <i class="fab fa-github text-emerald-500 mt-0.5 flex-shrink-0 text-sm"></i>
               <div class="flex-1">
-                <p class="text-green-200 text-xs font-semibold mb-1">
+                <p class="text-emerald-800 text-[11px] uppercase tracking-wider font-bold mb-1">
                   Ramas de GitHub
                 </p>
-                <p class="text-green-200/80 text-xs leading-relaxed">
+                <p class="text-emerald-700 font-medium text-[11px] leading-relaxed">
                   Las ramas asociadas a estas tareas (sin PR abierto) también se eliminarán automáticamente de GitHub.
                 </p>
               </div>
@@ -2400,16 +2398,16 @@
             <button
               type="button"
               @click="cancelCascadeDelete"
-              class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-300 bg-gray-700 border border-gray-600 rounded-lg hover:bg-gray-600 transition-colors"
+              class="flex-1 px-4 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 shadow-sm transition-colors"
             >
               Cancelar
             </button>
             <button
               type="button"
               @click="confirmCascadeDelete"
-              class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-red-600 to-red-700 rounded-lg hover:from-red-700 hover:to-red-800 transition-all"
+              class="flex-1 px-4 py-2.5 text-sm font-bold text-white bg-red-600 rounded-lg hover:bg-red-700 shadow-sm transition-colors flex items-center justify-center gap-1"
             >
-              Sí, eliminar<span v-if="cascadeDeleteInfo.total > 0" class="ml-1 font-normal text-xs">({{ cascadeDeleteInfo.total + 1 }})</span>
+              Sí, eliminar<span v-if="cascadeDeleteInfo.total > 0" class="font-bold text-[11px] bg-red-700 px-1.5 py-0.5 rounded-md ml-1">{{ cascadeDeleteInfo.total + 1 }}</span>
             </button>
           </div>
         </div>

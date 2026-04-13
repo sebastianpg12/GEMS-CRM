@@ -1,22 +1,22 @@
 <template>
-  <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50">
+  <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
     <!-- Header del calendario -->
     <div class="flex items-center justify-between mb-6">
       <div class="flex items-center gap-4">
         <button
           @click="previousMonth"
-          class="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
+          class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors"
         >
           <i class="fas fa-chevron-left"></i>
         </button>
         
-        <h2 class="text-2xl font-bold text-white">
+        <h2 class="text-2xl font-black text-slate-800">
           {{ currentMonthName }} {{ currentYear }}
         </h2>
         
         <button
           @click="nextMonth"
-          class="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
+          class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors"
         >
           <i class="fas fa-chevron-right"></i>
         </button>
@@ -26,7 +26,7 @@
         <!-- Botón para ir al mes actual -->
         <button
           @click="goToCurrentMonth"
-          class="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm"
+          class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors text-sm font-bold shadow-sm flex items-center"
         >
           <i class="fas fa-calendar-day mr-2"></i>
           Hoy
@@ -35,7 +35,7 @@
         <!-- Botón para alternar vista -->
         <button
           @click="toggleView"
-          class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm"
+          class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-bold shadow-sm flex items-center"
         >
           <i class="fas fa-eye mr-2"></i>
           {{ showTasks ? 'Ocultar Tareas' : 'Ver Tareas' }}
@@ -48,7 +48,7 @@
       <div
         v-for="day in weekDays"
         :key="day"
-        class="p-3 text-center text-sm font-medium text-gray-400 border-b border-gray-700"
+        class="p-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200"
       >
         {{ day }}
       </div>
@@ -59,14 +59,14 @@
       <div
         v-for="(day, index) in calendarDays"
         :key="index"
-        class="min-h-[120px] border border-gray-700/30 rounded-lg p-2 relative"
+        class="min-h-[120px] border border-slate-200 rounded-lg p-2 relative transition-colors"
         :class="getDayClasses(day)"
       >
         <!-- Número del día -->
         <div class="flex justify-between items-start mb-2">
           <span
-            class="text-sm font-medium"
-            :class="day.isCurrentMonth ? 'text-white' : 'text-gray-500'"
+            class="text-sm"
+            :class="day.isCurrentMonth ? 'text-slate-800 font-bold' : 'text-slate-400 font-medium'"
           >
             {{ day.date.getDate() }}
           </span>
@@ -83,14 +83,14 @@
           <div
             v-for="activity in getActivitiesForDay(day.date)"
             :key="activity._id"
-            class="px-2 py-1 rounded text-xs cursor-pointer"
+            class="px-2 py-1 rounded text-xs cursor-pointer shadow-sm border"
             :class="getActivityClasses(activity)"
             @click="viewActivity(activity)"
             :title="`${activity.title} - ${getClientName(activity.clientId)}`"
           >
-            <div class="truncate font-medium">{{ activity.title }}</div>
-            <div class="flex items-center gap-1 text-xs opacity-75">
-              <i class="fas fa-user" style="font-size: 8px;"></i>
+            <div class="truncate font-bold">{{ activity.title }}</div>
+            <div class="flex items-center gap-1 text-[10px] mt-0.5 font-medium opacity-90">
+              <i class="fas fa-user"></i>
               <span>{{ getAssignedToName(activity) }}</span>
             </div>
           </div>
@@ -99,7 +99,7 @@
           <button
             v-if="day.isCurrentMonth"
             @click="addQuickTask(day.date)"
-            class="w-full mt-1 py-1 text-xs text-gray-400 hover:text-white hover:bg-gray-700/50 rounded border border-dashed border-gray-600 hover:border-gray-500 transition-all duration-200"
+            class="w-full mt-1 py-1 text-xs text-slate-400 hover:text-primary-600 hover:bg-primary-50 font-bold rounded border border-dashed border-slate-300 hover:border-primary-300 transition-all duration-200"
             title="Agregar tarea rápida"
           >
             <i class="fas fa-plus mr-1"></i>
@@ -112,7 +112,7 @@
           v-else-if="!showTasks && day.isCurrentMonth && getActivitiesForDay(day.date).length > 0"
           class="absolute bottom-2 right-2"
         >
-          <span class="bg-purple-600 text-white text-xs px-2 py-1 rounded-full">
+          <span class="bg-primary-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-sm">
             {{ getActivitiesForDay(day.date).length }}
           </span>
         </div>
@@ -120,22 +120,22 @@
     </div>
 
     <!-- Leyenda -->
-    <div class="flex flex-wrap gap-4 mt-6 pt-4 border-t border-gray-700">
+    <div class="flex flex-wrap gap-4 mt-6 pt-4 border-t border-slate-100">
       <div class="flex items-center gap-2">
-        <div class="w-3 h-3 bg-yellow-500 rounded"></div>
-        <span class="text-sm text-gray-300">Pendiente</span>
+        <div class="w-3 h-3 bg-amber-500 rounded"></div>
+        <span class="text-xs font-bold text-slate-600 tracking-wide uppercase">Pendiente</span>
       </div>
       <div class="flex items-center gap-2">
-        <div class="w-3 h-3 bg-green-500 rounded"></div>
-        <span class="text-sm text-gray-300">Completada</span>
+        <div class="w-3 h-3 bg-emerald-500 rounded"></div>
+        <span class="text-xs font-bold text-slate-600 tracking-wide uppercase">Completada</span>
       </div>
       <div class="flex items-center gap-2">
-        <div class="w-3 h-3 bg-red-500 rounded"></div>
-        <span class="text-sm text-gray-300">Cancelada</span>
+        <div class="w-3 h-3 bg-rose-500 rounded"></div>
+        <span class="text-xs font-bold text-slate-600 tracking-wide uppercase">Cancelada</span>
       </div>
       <div class="flex items-center gap-2">
         <div class="w-3 h-3 bg-orange-500 rounded"></div>
-        <span class="text-sm text-gray-300">Vencida</span>
+        <span class="text-xs font-bold text-slate-600 tracking-wide uppercase">Vencida</span>
       </div>
     </div>
   </div>
@@ -235,13 +235,15 @@ const getDayClasses = (day: any) => {
   const classes = []
   
   if (!day.isCurrentMonth) {
-    classes.push('opacity-30')
+    classes.push('opacity-50 bg-slate-50 border-transparent')
+  } else {
+    classes.push('bg-white')
   }
   
   if (isToday(day.date)) {
-    classes.push('bg-blue-900/30 border-blue-500/50')
-  } else {
-    classes.push('hover:bg-gray-700/30')
+    classes.push('ring-2 ring-primary-500 ring-inset border-transparent')
+  } else if (day.isCurrentMonth) {
+    classes.push('hover:border-primary-200 hover:shadow-sm')
   }
   
   return classes.join(' ')
@@ -255,20 +257,20 @@ const getActivitiesForDay = (date: Date): Activity[] => {
 }
 
 const getActivityClasses = (activity: Activity) => {
-  const baseClasses = 'transition-colors'
+  const baseClasses = 'transition-colors text-white'
   
   switch (activity.status) {
     case 'pending':
       const isOverdue = new Date(activity.dueDate || activity.date) < new Date()
       return isOverdue 
-        ? `${baseClasses} bg-orange-600/80 text-white border-l-2 border-orange-400`
-        : `${baseClasses} bg-yellow-600/80 text-white border-l-2 border-yellow-400`
+        ? `${baseClasses} bg-orange-500 hover:bg-orange-600 border-orange-600`
+        : `${baseClasses} bg-amber-500 hover:bg-amber-600 border-amber-600`
     case 'completed':
-      return `${baseClasses} bg-green-600/80 text-white border-l-2 border-green-400`
+      return `${baseClasses} bg-emerald-500 hover:bg-emerald-600 border-emerald-600`
     case 'cancelled':
-      return `${baseClasses} bg-red-600/80 text-white border-l-2 border-red-400`
+      return `${baseClasses} bg-rose-500 hover:bg-rose-600 border-rose-600`
     default:
-      return `${baseClasses} bg-gray-600/80 text-white border-l-2 border-gray-400`
+      return `${baseClasses} bg-slate-500 hover:bg-slate-600 border-slate-600`
   }
 }
 

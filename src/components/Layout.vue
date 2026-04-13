@@ -1,19 +1,18 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-dark-950 via-dark-900 to-dark-950">
+  <div class="min-h-screen bg-slate-50 text-slate-800">
     <!-- Sidebar -->
-    <div class="fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-dark-900/90 to-dark-950/90 backdrop-blur-xl border-r border-white/10">
+    <div class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200">
       <!-- Logo -->
-      <div class="flex items-center justify-center h-20 border-b border-white/10">
+      <div class="flex items-center justify-center h-20 border-b border-slate-200">
         <div class="flex items-center">
-          <!-- Logo GEMS -->
+          <!-- Logo Customer CRM -->
           <img 
-            src="../assets/logo.webp" 
-            alt="GEMS Logo" 
-            class="w-12 h-12 mr-3 rounded-lg shadow-lg"
-            style="box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);"
+            src="/ct-logo.svg" 
+            alt="Customer CRM Logo" 
+            class="w-10 h-10 mr-3"
           />
-          <div class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
-            GEMS CRM
+          <div class="text-xl font-bold text-slate-800">
+            Customer CRM
           </div>
         </div>
       </div>
@@ -21,23 +20,21 @@
       <!-- Navigation -->
       <nav class="flex-1 px-4 py-6 space-y-2 flex flex-col justify-between h-full">
         <div>
-          <router-link
-            v-for="item in navigation"
-            :key="item.name"
-            :to="item.path"
-            class="nav-item"
-            :class="{ 'active': $route.path === item.path }"
-          >
-            <img 
-              v-if="item.icon === 'logo'"
-              src="../assets/logo.webp" 
-              alt="GEMS Logo" 
-              class="w-5 h-5 mr-3 rounded"
-            />
-            <component v-else :is="item.icon" class="w-5 h-5 mr-3" />
-            <span>{{ item.name }}</span>
-          </router-link>
-        </div>
+            <router-link
+              v-for="item in navigation"
+              :key="item.name"
+              :to="item.path"
+              class="flex items-center px-4 py-3 mb-1 rounded-lg text-sm font-medium transition-colors outline-none"
+              :class="[
+                $route.path === item.path 
+                  ? 'bg-primary-50 text-primary-600' 
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+              ]"
+            >
+              <component :is="item.icon" class="w-5 h-5 mr-3" :class="$route.path === item.path ? 'text-primary-500' : 'text-slate-400'" />
+              <span>{{ item.name }}</span>
+            </router-link>
+          </div>
         <!-- Minimal logout icon at bottom with tooltip -->
         <div class="flex justify-center mt-8 mb-2">
           <button
@@ -55,7 +52,7 @@
       </nav>
       
       <!-- User Profile -->
-      <div class="px-4 py-4 border-t border-white/10">
+      <div class="px-4 py-4 border-t border-slate-200">
         <div class="flex flex-col items-center gap-2">
           <div class="flex items-center">
             <!-- Avatar personalizado o foto personalizada -->
@@ -76,11 +73,11 @@
                 class="w-full h-full object-cover"
               />
               <!-- Iniciales como fallback -->
-              <span v-else class="text-xs font-medium text-white">{{ getUserInitials() }}</span>
+              <span v-else class="text-xs font-medium text-slate-700">{{ getUserInitials() }}</span>
             </div>
             <div class="ml-3">
-              <p class="text-sm font-medium text-white">{{ user?.name || 'Usuario' }}</p>
-              <p class="text-xs text-gray-400">{{ getRoleDisplayName() }}</p>
+              <p class="text-sm font-semibold text-slate-900">{{ user?.name || 'Usuario' }}</p>
+              <p class="text-xs text-slate-500">{{ getRoleDisplayName() }}</p>
             </div>
           </div>
           <!-- Configuración de perfil -->
@@ -116,30 +113,23 @@
     <!-- Main Content -->
     <div class="ml-64">
       <!-- Header -->
-      <header class="min-h-[64px] bg-gradient-to-r from-dark-800/50 to-dark-900/50 backdrop-blur-sm border-b border-white/10 flex flex-wrap items-center px-3 sm:px-8 justify-between relative z-30 gap-2 sm:gap-0">
+      <header class="min-h-[64px] bg-white border-b border-slate-200 flex flex-wrap items-center px-4 sm:px-8 justify-between relative z-30">
         <div class="flex items-center flex-1 min-w-0">
           <!-- Menu Button (hamburger icon) -->
           <button
-            class="flex-shrink-0 mr-2 sm:mr-4 p-2 rounded-lg bg-dark-900/70 hover:bg-dark-800/80 focus:outline-none z-30"
+            class="flex-shrink-0 mr-2 sm:mr-4 p-2 rounded-lg text-slate-500 hover:bg-slate-100 focus:outline-none z-30 lg:hidden"
             @click="$emit('toggleSidebar')"
             aria-label="Abrir menú"
-            style="min-width:40px; min-height:40px;"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-7 h-7 text-white">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 text-slate-600">
               <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <!-- Logo -->
-          <img 
-            src="../assets/logo.webp" 
-            alt="GEMS Logo" 
-            class="w-10 h-10 mr-2 sm:mr-4 rounded-lg shadow-lg z-20 flex-shrink-0"
-            style="box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);"
-          />
+          
           <!-- Título y descripción -->
-          <div class="flex flex-col justify-center min-w-0 ml-2 sm:ml-4">
-            <h1 class="text-base sm:text-xl font-bold text-white text-shadow whitespace-nowrap truncate">{{ pageTitle }}</h1>
-            <p class="text-gray-400 text-[11px] sm:text-xs truncate">{{ pageDescription }}</p>
+          <div class="flex flex-col justify-center min-w-0">
+            <h1 class="text-xl font-bold text-slate-800 whitespace-nowrap truncate">{{ pageTitle }}</h1>
+            <p class="text-slate-500 text-xs truncate">{{ pageDescription }}</p>
           </div>
         </div>
         <!-- Notifications -->
@@ -190,7 +180,8 @@ import {
   UsersIcon,
   FolderIcon,
   ChatBubbleLeftRightIcon,
-  Squares2X2Icon
+  Squares2X2Icon,
+  TicketIcon
 } from '@heroicons/vue/24/outline'
 
 const route = useRoute()
@@ -205,6 +196,7 @@ const user = computed(() => authStore.user)
 const navigation = [
   { name: 'Dashboard', path: '/', icon: 'logo' },
   { name: 'Clientes', path: '/clients', icon: UserGroupIcon },
+  { name: 'Tickets', path: '/tickets', icon: TicketIcon },
   { name: 'Actividades', path: '/activities', icon: ClipboardDocumentListIcon },
   { name: 'Tableros', path: '/boards', icon: Squares2X2Icon },
   { name: 'Actividades por Equipo', path: '/team-activities', icon: UsersIcon },

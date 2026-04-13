@@ -1,138 +1,123 @@
 <template>
-  <div class="space-y-6">
-    <!-- Tabs for Clientes and Prospectos -->
-    <div class="mb-6">
-      <div class="flex gap-2">
+  <div class="flex flex-col h-full min-h-0 relative">
+    <!-- Unified Header Toolbar -->
+    <div class="flex flex-col lg:flex-row justify-between gap-4 mb-4 flex-shrink-0">
+      <!-- Tabs (Left) -->
+      <div class="flex bg-slate-100 p-1 rounded-lg self-start">
         <button
-          :class="[activeTab === 'clientes' ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' : 'bg-gray-800 text-gray-300', 'px-6 py-2 rounded-lg font-medium transition-colors']"
+          :class="[activeTab === 'clientes' ? 'bg-white shadow-sm text-primary-600' : 'text-slate-500 hover:text-slate-700', 'px-6 py-1.5 rounded-md text-sm font-bold transition-all']"
           @click="activeTab = 'clientes'"
-        >Clientes</button>
+        >Directorio</button>
         <button
-          :class="[activeTab === 'prospectos' ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' : 'bg-gray-800 text-gray-300', 'px-6 py-2 rounded-lg font-medium transition-colors']"
+          :class="[activeTab === 'prospectos' ? 'bg-white shadow-sm text-primary-600' : 'text-slate-500 hover:text-slate-700', 'px-6 py-1.5 rounded-md text-sm font-bold transition-all']"
           @click="activeTab = 'prospectos'"
-        >Prospectos</button>
+        >Prospectos IA</button>
       </div>
-    </div>
-    <div v-if="activeTab === 'prospectos'">
-      <ProspectAIForm />
-    </div>
-  <div v-else>
-    <!-- Header: Botón alineado a la derecha -->
-    <div class="flex justify-end mb-4">
-      <PermissionGuard :permissions="['create-clients']" :fallback="false">
-        <button 
-          @click="showModal = true; editingClient = null; resetForm()" 
-          class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 flex items-center gap-2 font-medium transform hover:scale-105 shadow-lg shadow-purple-500/25"
-        >
-          <PlusIcon class="w-5 h-5" />
-          Nuevo Cliente
-        </button>
-      </PermissionGuard>
-    </div>
-    
-    <!-- Search and Filters -->
-    <div class="bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-purple-500/20">
-      <div class="flex flex-col sm:flex-row gap-4">
-        <div class="flex-1 relative">
-          <MagnifyingGlassIcon class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+
+      <!-- Actions (Right) IF Directory -->
+      <div v-if="activeTab === 'clientes'" class="flex flex-col sm:flex-row gap-2 flex-1 justify-end">
+        <div class="relative w-full sm:max-w-xs">
+          <MagnifyingGlassIcon class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             v-model="searchTerm"
             type="text"
-            placeholder="Buscar clientes por nombre, email, empresa..."
-            class="w-full bg-gray-700/50 border border-gray-600/50 rounded-lg px-10 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors"
+            placeholder="Buscar clientes..."
+            class="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-4 py-1.5 text-sm text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-shadow"
           />
         </div>
         <select 
           v-model="sortBy" 
-          class="bg-gray-700/50 border border-gray-600/50 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          class="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-700 focus:ring-2 focus:ring-primary-500 outline-none cursor-pointer"
         >
-          <option value="name">Ordenar por Nombre</option>
-          <option value="company">Ordenar por Empresa</option>
-          <option value="email">Ordenar por Email</option>
-          <option value="createdAt">Ordenar por Fecha</option>
+          <option value="name">Nombre</option>
+          <option value="company">Empresa</option>
+          <option value="createdAt">Registro</option>
         </select>
+        
+        <PermissionGuard :permissions="['create-clients']" :fallback="false">
+          <button 
+            @click="showModal = true; editingClient = null; resetForm()" 
+            class="px-4 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center justify-center gap-2 text-sm font-bold shadow-sm"
+          >
+            <PlusIcon class="w-4 h-4" />
+            Nuevo
+          </button>
+        </PermissionGuard>
       </div>
     </div>
-    
-    <!-- Clients Table/Cards -->
-    <div class="bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-lg border border-purple-500/20 overflow-hidden">
-      <div v-if="loading" class="flex items-center justify-center py-12">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+
+    <!-- MAIN CONTENT AREA -->
+    <div class="flex-1 min-h-0 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col">
+      <div v-if="activeTab === 'prospectos'" class="h-full overflow-y-auto bg-slate-50">
+        <ProspectAIForm />
       </div>
+          
+      <div v-else class="flex-1 flex flex-col h-full bg-white relative">
+        <div v-if="loading" class="flex items-center justify-center absolute inset-0 z-10 bg-white/50 backdrop-blur-sm">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+        </div>
       
       <div v-else-if="error" class="text-center py-12">
-        <div class="bg-red-500/20 border border-red-500/50 rounded-lg p-6 mx-6">
+        <div class="bg-red-50 border border-red-200 rounded-lg p-6 mx-6">
           <div class="flex items-center justify-center gap-3 mb-4">
-            <ExclamationTriangleIcon class="w-8 h-8 text-red-400" />
-            <h3 class="text-red-300 font-medium text-lg">Error al cargar clientes</h3>
+            <ExclamationTriangleIcon class="w-8 h-8 text-red-500" />
+            <h3 class="text-red-800 font-bold text-lg">Error al cargar clientes</h3>
           </div>
-          <p class="text-red-400 mb-4">{{ error }}</p>
-          <button @click="fetchClients" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+          <p class="text-red-600 mb-4">{{ error }}</p>
+          <button @click="fetchClients" class="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors font-bold text-sm">
             Reintentar
           </button>
         </div>
       </div>
       
-      <div v-else>
+      <div v-else class="flex-1 overflow-y-auto">
         <!-- Desktop Table View -->
         <div class="hidden md:block overflow-x-auto">
-          <table class="min-w-full">
-            <thead class="bg-gray-900/50">
+          <table class="min-w-full divide-y divide-slate-200">
+            <thead class="bg-slate-50 sticky top-0 z-10 shadow-sm shadow-slate-200/50">
               <tr>
-                <th class="px-6 py-4 text-left text-xs font-medium text-purple-300 uppercase tracking-wider">
-                  Cliente
-                </th>
-                <th class="px-6 py-4 text-left text-xs font-medium text-purple-300 uppercase tracking-wider">
-                  Empresa
-                </th>
-                <th class="px-6 py-4 text-left text-xs font-medium text-purple-300 uppercase tracking-wider">
-                  Contacto
-                </th>
-                <th class="px-6 py-4 text-left text-xs font-medium text-purple-300 uppercase tracking-wider">
-                  Fecha Registro
-                </th>
-                <th class="px-6 py-4 text-right text-xs font-medium text-purple-300 uppercase tracking-wider">
-                  Acciones
-                </th>
+                <th class="px-6 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-wider">Cliente</th>
+                <th class="px-6 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-wider">Empresa</th>
+                <th class="px-6 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-wider">Contacto</th>
+                <th class="px-6 py-3 text-center text-[10px] font-black text-slate-500 uppercase tracking-wider">Fecha Registro</th>
+                <th class="px-6 py-3 text-right text-[10px] font-black text-slate-500 uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-gray-700/50">
+            <tbody class="bg-white divide-y divide-slate-100">
               <tr 
                 v-for="client in filteredClients" 
                 :key="client._id"
-                class="hover:bg-gray-700/30 transition-colors"
+                class="hover:bg-slate-50 transition-colors group"
               >
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="px-6 py-2 whitespace-nowrap">
                   <div class="flex items-center">
-                    <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
-                      <span class="text-white text-lg font-bold">
-                        {{ client.name.charAt(0).toUpperCase() }}
-                      </span>
+                    <div class="w-8 h-8 bg-primary-50 rounded-full flex items-center justify-center text-primary-600 font-bold text-xs ring-1 ring-primary-100">
+                      {{ client.name.charAt(0).toUpperCase() }}
                     </div>
-                    <div class="ml-4">
-                      <div class="text-white font-medium">{{ client.name }}</div>
+                    <div class="ml-3">
+                      <div class="text-slate-800 font-bold text-sm group-hover:text-primary-600 transition-colors">{{ client.name }}</div>
                     </div>
                   </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-gray-300">{{ client.company }}</div>
+                <td class="px-6 py-2 whitespace-nowrap">
+                  <div class="text-slate-600 text-sm font-medium">{{ client.company }}</div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-gray-300">{{ client.email }}</div>
-                  <div class="text-gray-400 text-sm">{{ client.phone }}</div>
+                <td class="px-6 py-2 whitespace-nowrap">
+                  <div class="text-slate-700 text-sm flex items-center gap-1.5 font-medium"><i class="fas fa-envelope text-slate-400 text-xs"></i> {{ client.email }}</div>
+                  <div class="text-slate-500 text-xs flex items-center gap-1.5 mt-0.5"><i class="fas fa-phone text-slate-400 text-xs"></i> {{ client.phone }}</div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-gray-300">
+                <td class="px-6 py-2 whitespace-nowrap text-slate-500 text-sm text-center font-medium">
                   {{ formatDate(client.createdAt) }}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right">
-                  <div class="flex items-center justify-end gap-2">
-                    <router-link :to="`/clients/${client._id}`" class="p-2 text-purple-300 hover:text-white hover:bg-purple-600/20 rounded-lg transition-colors" title="Ver detalle">
-                      <i class="fas fa-eye"></i>
+                <td class="px-6 py-2 whitespace-nowrap text-right">
+                  <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <router-link :to="`/clients/${client._id}`" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="Ver detalle">
+                      <i class="fas fa-eye text-sm"></i>
                     </router-link>
                     <PermissionGuard :permissions="['edit-clients']" :fallback="false">
                       <button
                         @click="editClient(client)"
-                        class="p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 rounded-lg transition-colors"
+                        class="p-1.5 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-md transition-colors"
                         title="Editar cliente"
                       >
                         <PencilIcon class="w-4 h-4" />
@@ -141,7 +126,7 @@
                     <PermissionGuard :permissions="['delete-clients']" :fallback="false">
                       <button
                         @click="confirmDelete(client)"
-                        class="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded-lg transition-colors"
+                        class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
                         title="Eliminar cliente"
                       >
                         <TrashIcon class="w-4 h-4" />
@@ -155,27 +140,27 @@
         </div>
 
         <!-- Mobile Card View -->
-        <div class="md:hidden p-4 space-y-4">
+        <div class="md:hidden p-4 space-y-3">
           <div 
             v-for="client in filteredClients" 
             :key="client._id"
-            class="bg-gray-700/30 rounded-xl p-4 border border-gray-600/20 hover:bg-gray-700/50 transition-colors"
+            class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm"
           >
-            <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-3">
               <div class="flex items-center">
-                <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                  <span class="text-white font-bold">{{ client.name.charAt(0).toUpperCase() }}</span>
+                <div class="w-8 h-8 bg-primary-50 rounded-full flex items-center justify-center text-primary-600 font-bold text-xs">
+                  {{ client.name.charAt(0).toUpperCase() }}
                 </div>
                 <div class="ml-3">
-                  <h3 class="text-white font-medium">{{ client.name }}</h3>
-                  <p class="text-gray-400 text-sm">{{ client.company }}</p>
+                  <h3 class="text-slate-800 font-bold text-sm">{{ client.name }}</h3>
+                  <p class="text-slate-500 text-xs font-medium">{{ client.company }}</p>
                 </div>
               </div>
-              <div class="flex gap-2">
+              <div class="flex gap-1">
                 <PermissionGuard :permissions="['edit-clients']" :fallback="false">
                   <button
                     @click="editClient(client)"
-                    class="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
+                    class="p-2 text-slate-400 hover:bg-slate-50 hover:text-primary-600 rounded-md transition-colors"
                   >
                     <PencilIcon class="w-4 h-4" />
                   </button>
@@ -183,130 +168,135 @@
                 <PermissionGuard :permissions="['delete-clients']" :fallback="false">
                   <button
                     @click="confirmDelete(client)"
-                    class="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
+                    class="p-2 text-slate-400 hover:bg-red-50 hover:text-red-600 rounded-md transition-colors"
                   >
                     <TrashIcon class="w-4 h-4" />
                   </button>
                 </PermissionGuard>
               </div>
             </div>
-            <div class="space-y-1 text-sm">
-              <p class="text-gray-300">{{ client.email }}</p>
-              <p class="text-gray-400">{{ client.phone }}</p>
-              <p class="text-gray-500">Registrado: {{ formatDate(client.createdAt) }}</p>
-                <router-link :to="`/clients/${client._id}`" class="inline-flex items-center gap-2 text-purple-300 hover:text-white mt-2">
-                  <i class="fas fa-eye"></i> Ver detalle
+            <div class="space-y-1.5 text-xs">
+              <p class="text-slate-600 font-medium flex items-center gap-1.5"><i class="fas fa-envelope text-slate-400"></i> {{ client.email }}</p>
+              <p class="text-slate-600 font-medium flex items-center gap-1.5"><i class="fas fa-phone text-slate-400"></i> {{ client.phone }}</p>
+              <p class="text-slate-500 mt-2 pt-2 border-t border-slate-100">Registrado: <span class="font-bold">{{ formatDate(client.createdAt) }}</span></p>
+                <router-link :to="`/clients/${client._id}`" class="mt-2 block w-full text-center py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-md font-bold transition-colors">
+                  Ver perfil completo
                 </router-link>
             </div>
           </div>
         </div>
         
         <!-- Empty State -->
-        <div v-if="filteredClients.length === 0" class="text-center py-12">
-          <UserGroupIcon class="mx-auto h-16 w-16 text-gray-500 mb-4" />
-          <h3 class="text-xl font-medium text-gray-300 mb-2">
-            {{ searchTerm ? 'No se encontraron clientes' : 'No hay clientes registrados' }}
+        <div v-if="filteredClients.length === 0" class="text-center py-12 flex flex-col items-center justify-center">
+          <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+            <UserGroupIcon class="h-8 w-8 text-slate-400" />
+          </div>
+          <h3 class="text-base font-bold text-slate-800 mb-1">
+            {{ searchTerm ? 'No se encontraron clientes' : 'Sin clientes aún' }}
           </h3>
-          <p class="text-gray-400 mb-6">
-            {{ searchTerm ? 'Intenta con una búsqueda diferente' : 'Comienza agregando tu primer cliente' }}
+          <p class="text-slate-500 text-sm mb-4">
+            {{ searchTerm ? 'Intenta con otros términos' : 'Construye tu lista de contactos' }}
           </p>
-          <button @click="showModal = true; editingClient = null; resetForm()" class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 flex items-center gap-2 mx-auto font-medium transform hover:scale-105 shadow-lg shadow-purple-500/25">
-            <PlusIcon class="w-5 h-5" />
-            Nuevo Cliente
+          <button @click="showModal = true; editingClient = null; resetForm()" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition flex items-center gap-2 font-bold text-sm shadow-sm">
+            <PlusIcon class="w-4 h-4" />
+            Añadir
           </button>
         </div>
       </div>
     </div>
     
     <!-- Create/Edit Modal -->
-    <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div class="bg-gray-900 rounded-2xl shadow-2xl border border-purple-500/20 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-        <div class="flex items-center justify-between p-6 border-b border-purple-500/20">
-          <h3 class="text-xl font-bold text-white">
-            {{ editingClient ? 'Editar Cliente' : 'Crear Nuevo Cliente' }}
+    <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+      <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-fade-in">
+        <div class="flex items-center justify-between p-5 border-b border-slate-100">
+          <h3 class="text-lg font-black text-slate-800 flex items-center gap-2">
+            <i class="fas fa-user-plus text-primary-500 text-sm"></i>
+            {{ editingClient ? 'Editar Información' : 'Datos del Cliente' }}
           </h3>
-          <button @click="showModal = false" class="text-gray-400 hover:text-white transition-colors">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <button @click="showModal = false" class="text-slate-400 hover:text-slate-600 hover:bg-slate-50 p-1.5 rounded-lg transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
           </button>
         </div>
         
-        <form @submit.prevent="saveClient" class="p-6 space-y-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form @submit.prevent="saveClient" class="p-5">
+          <div class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">
-                <i class="fas fa-user mr-2 text-purple-400"></i>Nombre completo *
+              <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
+                Nombre completo *
               </label>
               <input
                 v-model="form.name"
                 type="text"
                 required
-                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors"
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"
                 placeholder="Juan Pérez"
               />
             </div>
             
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">
-                <i class="fas fa-envelope mr-2 text-purple-400"></i>Email *
-              </label>
-              <input
-                v-model="form.email"
-                type="email"
-                required
-                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors"
-                placeholder="juan@ejemplo.com"
-              />
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
+                  Email *
+                </label>
+                <input
+                  v-model="form.email"
+                  type="email"
+                  required
+                  class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"
+                  placeholder="juan@ejemplo.com"
+                />
+              </div>
+              
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
+                  Teléfono *
+                </label>
+                <input
+                  v-model="form.phone"
+                  type="tel"
+                  required
+                  class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"
+                  placeholder="+57 300 123 4567"
+                />
+              </div>
             </div>
             
             <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">
-                <i class="fas fa-phone mr-2 text-purple-400"></i>Teléfono *
-              </label>
-              <input
-                v-model="form.phone"
-                type="tel"
-                required
-                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors"
-                placeholder="+57 300 123 4567"
-              />
-            </div>
-            
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">
-                <i class="fas fa-building mr-2 text-purple-400"></i>Empresa *
+              <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
+                Empresa *
               </label>
               <input
                 v-model="form.company"
                 type="text"
                 required
-                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors"
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"
                 placeholder="Empresa ABC"
               />
             </div>
           </div>
           
-          <div class="flex justify-end gap-4 pt-4">
+          <div class="flex justify-end gap-3 mt-6 pt-5 border-t border-slate-100">
             <button
               type="button"
               @click="showModal = false"
-              class="px-6 py-3 text-gray-300 bg-gray-700 border border-gray-600 rounded-lg hover:bg-gray-600 transition-colors font-medium"
+              class="px-4 py-2 text-slate-600 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors text-sm font-bold"
             >
               Cancelar
             </button>
             <button
               type="submit"
               :disabled="loading"
-              class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 font-medium transform hover:scale-105 shadow-lg shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition flex items-center gap-2 shadow-sm text-sm font-bold disabled:opacity-50"
             >
               <span v-if="loading" class="flex items-center gap-2">
-                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <div class="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
                 Guardando...
               </span>
               <span v-else class="flex items-center gap-2">
-                <i class="fas fa-save"></i>
-                {{ editingClient ? 'Actualizar' : 'Crear' }} Cliente
+                <i class="fas fa-check"></i>
+                {{ editingClient ? 'Actualizar' : 'Guardar' }}
               </span>
             </button>
           </div>
@@ -315,62 +305,36 @@
     </div>
     
     <!-- Delete Confirmation Modal -->
-    <div v-if="showDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div class="bg-gray-900 rounded-2xl shadow-2xl border border-red-500/20 max-w-md w-full mx-4">
-        <div class="flex items-center justify-between p-6 border-b border-red-500/20">
-          <h3 class="text-xl font-bold text-white flex items-center gap-2">
-            <ExclamationTriangleIcon class="w-6 h-6 text-red-400" />
-            Confirmar Eliminación
+    <div v-if="showDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+      <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden animate-fade-in border border-slate-100">
+        <div class="p-6 text-center">
+          <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <TrashIcon class="w-8 h-8" />
+          </div>
+          <h3 class="text-lg font-black text-slate-800 mb-1">
+            Eliminar Cliente
           </h3>
-          <button @click="showDeleteModal = false" class="text-gray-400 hover:text-white transition-colors">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-          </button>
-        </div>
-        
-        <div class="p-6">
-          <div class="flex items-center gap-4 mb-6">
-            <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-              <span class="text-white font-bold text-lg">
-                {{ clientToDelete?.name.charAt(0).toUpperCase() }}
-              </span>
-            </div>
-            <div>
-              <p class="text-white font-medium">{{ clientToDelete?.name }}</p>
-              <p class="text-gray-400 text-sm">{{ clientToDelete?.company }}</p>
-            </div>
-          </div>
+          <p class="text-slate-500 text-sm mb-5">
+            ¿Confirmas la eliminación permanente de <strong>{{ clientToDelete?.name }}</strong> de la lista de contactos?
+          </p>
           
-          <div class="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-6">
-            <p class="text-red-300 text-sm">
-              <i class="fas fa-exclamation-triangle mr-2"></i>
-              <strong>¿Estás seguro de que deseas eliminar este cliente?</strong>
-            </p>
-            <p class="text-red-400 text-sm mt-2">
-              Esta acción no se puede deshacer y se perderán todos los datos asociados.
-            </p>
-          </div>
-          
-          <div class="flex justify-end gap-4">
+          <div class="flex justify-center gap-3">
             <button
               @click="showDeleteModal = false"
-              class="px-6 py-3 text-gray-300 bg-gray-700 border border-gray-600 rounded-lg hover:bg-gray-600 transition-colors font-medium"
+              class="px-5 py-2 text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors text-sm font-bold w-1/2"
             >
               Cancelar
             </button>
             <button
               @click="deleteClient"
               :disabled="loading"
-              class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              class="px-5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors shadow-sm disabled:opacity-50 flex justify-center items-center gap-2 text-sm font-bold w-1/2"
             >
-              <span v-if="loading" class="flex items-center gap-2">
-                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                Eliminando...
+              <span v-if="loading" class="flex items-center justify-center">
+                <div class="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
               </span>
-              <span v-else class="flex items-center gap-2">
-                <i class="fas fa-trash"></i>
-                Eliminar Cliente
+              <span v-else>
+                Eliminar
               </span>
             </button>
           </div>
@@ -425,8 +389,8 @@ const filteredClients = computed(() => {
     filtered = filtered.filter(client => 
       client.name.toLowerCase().includes(search) ||
       client.email.toLowerCase().includes(search) ||
-      client.company.toLowerCase().includes(search) ||
-      client.phone.toLowerCase().includes(search)
+      (client.company || '').toLowerCase().includes(search) ||
+      (client.phone || '').toLowerCase().includes(search)
     )
   }
 
@@ -435,7 +399,7 @@ const filteredClients = computed(() => {
       case 'name':
         return a.name.localeCompare(b.name)
       case 'company':
-        return a.company.localeCompare(b.company)
+        return (a.company || '').localeCompare(b.company || '')
       case 'email':
         return a.email.localeCompare(b.email)
       case 'createdAt':

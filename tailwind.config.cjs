@@ -4,23 +4,25 @@ module.exports = {
     "./index.html",
     "./src/**/*.{vue,js,ts,jsx,tsx}",
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
         primary: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          200: '#bae6fd',
-          300: '#7dd3fc',
-          400: '#38bdf8',
-          500: '#0ea5e9',
-          600: '#0284c7',
-          700: '#0369a1',
-          800: '#075985',
-          900: '#0c4a6e',
-          950: '#082f49',
+          DEFAULT: "#52c2ef",
+          50: "#f0f9fd",
+          100: "#e0f2fa",
+          200: "#b8e5f6",
+          300: "#7fd0ef",
+          400: "#3eb0e0",
+          500: "#52c2ef",
+          600: "#1a92c4",
+          700: "#17759f",
+          800: "#166384",
+          900: "#16526e",
         },
         secondary: {
+          DEFAULT: "#6690a3",
           50: '#fdf4ff',
           100: '#fae8ff',
           200: '#f5d0fe',
@@ -32,7 +34,18 @@ module.exports = {
           800: '#86198f',
           900: '#701a75',
           950: '#4a044e',
-        }
+        },
+        accent: {
+          DEFAULT: "#f6ae45",
+        },
+        brand: {
+          primary: "#52c2ef",
+          secondary: "#6690a3",
+          accent: "#f6ae45",
+        },
+      },
+      fontFamily: {
+        sans: ["Inter", "sans-serif"],
       },
     },
   },

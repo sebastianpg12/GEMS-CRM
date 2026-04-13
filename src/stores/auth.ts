@@ -6,7 +6,7 @@ export interface User {
   _id: string
   name: string
   email: string
-  role: 'admin' | 'manager' | 'employee' | 'viewer'
+  role: 'admin' | 'manager' | 'employee' | 'support' | 'client' | 'viewer'
   department: string
   position: string
   avatar?: string
@@ -66,6 +66,8 @@ export const useAuthStore = defineStore('auth', () => {
   const userRole = computed(() => user.value?.role || null)
   const isAdmin = computed(() => user.value?.role === 'admin')
   const isManager = computed(() => user.value?.role === 'manager' || user.value?.role === 'admin')
+  const isSupport = computed(() => user.value?.role === 'support' || user.value?.role === 'admin')
+  const isClient = computed(() => user.value?.role === 'client')
   
   // Helper function to safely access permissions
   const getUserPermission = (module: keyof NonNullable<User['permissions']>, action: string) => {
@@ -95,11 +97,17 @@ export const useAuthStore = defineStore('auth', () => {
   const canViewReports = computed(() => getUserPermission('reports', 'view') || ['admin', 'manager'].includes(user.value?.role || ''))
   const canViewAccounting = computed(() => getUserPermission('accounting', 'view') || ['admin', 'manager'].includes(user.value?.role || ''))
   
-  // Casos: Admin, Manager y Empleado pueden ver
-  const canViewCases = computed(() => getUserPermission('cases', 'view') || ['admin', 'manager', 'employee'].includes(user.value?.role || ''))
+  const canViewCases = computed(() => {
+    if (user.value?.role === 'client') return false
+    return getUserPermission('cases', 'view') || ['admin', 'manager', 'employee', 'support'].includes(user.value?.role || '')
+  })
+  
+  const canViewTickets = computed(() => {
+    return ['admin', 'manager', 'support', 'employee'].includes(user.value?.role || '')
+  })
   
   // Equipo: Admin, Manager y Empleado pueden ver  
-  const canViewTeam = computed(() => getUserPermission('team', 'view') || ['admin', 'manager', 'employee'].includes(user.value?.role || ''))
+  const canViewTeam = computed(() => getUserPermission('team', 'view') || ['admin', 'manager', 'employee', 'support'].includes(user.value?.role || ''))
   
   // Create/Edit permissions with fallbacks
   // Clientes: Solo Admin y Manager pueden crear/editar
@@ -253,6 +261,13 @@ export const useAuthStore = defineStore('auth', () => {
   const getAvailableModules = computed(() => {
     if (!user.value) return []
     
+    // Si es CLIENTE, solo ve "Soporte" (levantar tickets)
+    if (user.value.role === 'client') {
+      return [
+        { id: 'tickets-public', name: 'Soporte', icon: 'fas fa-headset', path: '/support', canAccess: true }
+      ]
+    }
+
     const modules = [
       { id: 'dashboard', name: 'Dashboard', icon: 'fas fa-tachometer-alt', path: '/', canAccess: canViewDashboard.value }
     ]
@@ -269,8 +284,8 @@ export const useAuthStore = defineStore('auth', () => {
       modules.push({ id: 'reports', name: 'Reportes', icon: 'fas fa-chart-bar', path: '/reports', canAccess: true })
     }
     
-    if (canViewAccounting.value) {
-      modules.push({ id: 'accounting', name: 'Contabilidad', icon: 'fas fa-calculator', path: '/accounting', canAccess: true })
+    if (canViewTickets.value) {
+      modules.push({ id: 'tickets', name: 'Tickets', icon: 'fas fa-ticket-alt', path: '/tickets', canAccess: true })
     }
     
     if (canViewCases.value) {

@@ -54,5 +54,6 @@ export const ENDPOINTS = {
   MINUTES: '/minutes',
   SETTINGS: '/settings',
   TEAM: '/team',
-  REPORTS: '/reports'
+  REPORTS: '/reports',
+  TICKETS: '/tickets'
 }

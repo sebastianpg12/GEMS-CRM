@@ -1,238 +1,367 @@
 <template>
   <div class="space-y-6">
-    <div class="flex items-start justify-between gap-4">
+    <!-- Encabezado del Cliente -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
       <div class="flex items-center gap-4">
-        <div class="w-16 h-16 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center text-white text-2xl font-bold">
+        <div class="w-16 h-16 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-2xl font-black border border-primary-200">
           {{ (client?.name || 'C').charAt(0).toUpperCase() }}
         </div>
         <div>
-          <h1 class="text-2xl font-bold text-white">{{ client?.name }}</h1>
-          <p class="text-gray-400">{{ client?.company }}</p>
+          <h1 class="text-2xl font-black text-slate-800">{{ client?.name }}</h1>
+          <p class="text-slate-500 font-medium text-sm mt-0.5">{{ client?.company || 'Sin Empresa' }}</p>
         </div>
       </div>
-      <div class="flex items-center gap-2">
-        <router-link to="/clients" class="px-4 py-2 rounded-lg bg-gray-700 text-gray-200 hover:bg-gray-600">Volver</router-link>
-        <button @click="editOverview = !editOverview" class="px-4 py-2 rounded-lg bg-yellow-600 text-white hover:bg-yellow-700">
-          {{ editOverview ? 'Cancelar' : 'Editar' }}
+      <div class="flex items-center gap-3">
+        <router-link to="/clients" class="px-5 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors shadow-sm">
+          <i class="fas fa-arrow-left mr-2"></i> Volver
+        </router-link>
+        <button @click="editOverview = !editOverview" class="px-5 py-2.5 text-sm font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors shadow-sm">
+          <i :class="editOverview ? 'fas fa-times' : 'fas fa-edit'" class="mr-2"></i>
+          {{ editOverview ? 'Cancelar Edición' : 'Editar Cliente' }}
         </button>
-        <button v-if="editOverview" @click="saveOverview" class="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700">
-          Guardar
+        <button v-if="editOverview" @click="saveOverview" class="px-5 py-2.5 text-sm font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors shadow-sm">
+          <i class="fas fa-save mr-2"></i> Guardar Cambios
         </button>
       </div>
     </div>
 
-    <div class="bg-gray-800/50 rounded-2xl border border-gray-700/50">
-      <div class="flex gap-2 p-2 border-b border-gray-700/50 overflow-x-auto">
+    <!-- Contenedor Principal (Tabs y Contenido) -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <!-- Tabs -->
+      <div class="flex gap-2 p-3 border-b border-slate-100 bg-slate-50 overflow-x-auto scroll-smooth">
         <button v-for="t in tabs" :key="t.key" @click="activeTab = t.key"
-          :class="['px-4 py-2 rounded-lg whitespace-nowrap', activeTab === t.key ? 'bg-purple-600 text-white' : 'bg-gray-700 text-gray-200 hover:bg-gray-600']">
-          <i :class="t.icon" class="mr-2"></i>{{ t.label }}
+          :class="[
+            'px-4 py-2.5 rounded-lg whitespace-nowrap text-sm font-bold transition-colors flex items-center min-w-max',
+            activeTab === t.key 
+              ? 'bg-primary-600 text-white shadow-sm' 
+              : 'text-slate-600 hover:bg-white hover:text-slate-900 border border-transparent hover:border-slate-200'
+          ]">
+          <i :class="[t.icon, 'mr-2', activeTab === t.key ? 'opacity-100' : 'opacity-70']"></i>{{ t.label }}
         </button>
       </div>
 
-      <div class="p-4">
+      <!-- Contenido de las Tabs -->
+      <div class="p-6 md:p-8">
         <!-- Overview -->
-        <div v-if="activeTab === 'overview'" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="md:col-span-2 space-y-4">
+        <div v-if="activeTab === 'overview'" class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+          <div class="lg:col-span-2 space-y-6">
             <div>
-              <label class="text-sm text-gray-400">Acerca de</label>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Acerca de</label>
               <textarea v-model="draft.profile.about" :readonly="!editOverview"
-                class="w-full mt-1 bg-gray-900/60 border border-gray-700 rounded-lg p-3 text-gray-200 min-h-[100px]"></textarea>
+                class="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-slate-800 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all min-h-[140px] resize-y"
+                :class="!editOverview ? 'opacity-80' : 'shadow-sm'"
+              ></textarea>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label class="text-sm text-gray-400">Dirección</label>
-                <input v-model="draft.profile.address" :readonly="!editOverview" class="w-full mt-1 bg-gray-900/60 border border-gray-700 rounded-lg p-3 text-gray-200"/>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Dirección</label>
+                <input v-model="draft.profile.address" :readonly="!editOverview" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-slate-800 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all font-medium" :class="!editOverview ? 'opacity-80' : 'shadow-sm'"/>
               </div>
               <div>
-                <label class="text-sm text-gray-400">Sitio web</label>
-                <input v-model="draft.profile.website" :readonly="!editOverview" class="w-full mt-1 bg-gray-900/60 border border-gray-700 rounded-lg p-3 text-gray-200"/>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Sitio web</label>
+                <input v-model="draft.profile.website" :readonly="!editOverview" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-slate-800 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all font-medium" :class="!editOverview ? 'opacity-80' : 'shadow-sm'"/>
               </div>
               <div>
-                <label class="text-sm text-gray-400">Industria</label>
-                <input v-model="draft.profile.industry" :readonly="!editOverview" class="w-full mt-1 bg-gray-900/60 border border-gray-700 rounded-lg p-3 text-gray-200"/>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Industria</label>
+                <input v-model="draft.profile.industry" :readonly="!editOverview" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-slate-800 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all font-medium" :class="!editOverview ? 'opacity-80' : 'shadow-sm'"/>
               </div>
               <div>
-                <label class="text-sm text-gray-400">Tamaño</label>
-                <input v-model="draft.profile.size" :readonly="!editOverview" class="w-full mt-1 bg-gray-900/60 border border-gray-700 rounded-lg p-3 text-gray-200"/>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Tamaño de la Empresa</label>
+                <input v-model="draft.profile.size" :readonly="!editOverview" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-slate-800 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all font-medium" :class="!editOverview ? 'opacity-80' : 'shadow-sm'"/>
               </div>
             </div>
           </div>
-          <div class="space-y-3">
-            <div>
-              <label class="text-sm text-gray-400">Etiquetas</label>
-              <div class="flex flex-wrap gap-2 mt-2">
-                <span v-for="(tag, i) in draft.tags" :key="i" class="px-2 py-1 rounded-full bg-purple-600/20 text-purple-300 text-xs border border-purple-500/30">{{ tag }}</span>
-                <input v-if="editOverview" v-model="newTag" @keyup.enter="addTag" placeholder="+ etiqueta" class="bg-gray-900/60 border border-gray-700 rounded px-2 py-1 text-xs text-gray-200"/>
+          
+          <div class="space-y-6">
+            <div class="bg-primary-50 p-5 rounded-xl border border-primary-100 shadow-sm">
+              <label class="block text-xs font-bold text-primary-800 uppercase tracking-wider mb-3">Etiquetas</label>
+              <div class="flex flex-wrap gap-2">
+                <span v-for="(tag, i) in draft.tags" :key="i" class="px-2.5 py-1 rounded-md bg-white text-primary-700 text-[11px] font-bold uppercase tracking-wider border border-primary-200 shadow-sm">{{ tag }}</span>
+                <input v-if="editOverview" v-model="newTag" @keyup.enter="addTag" placeholder="+ Agregar etiqueta (Enter)" class="bg-white border border-primary-200 rounded-md px-3 py-1.5 text-xs text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 flex-1 min-w-[120px]"/>
               </div>
             </div>
-            <div class="grid grid-cols-2 gap-3">
+            
+            <div class="bg-slate-50 border border-slate-200 p-5 rounded-xl space-y-4 shadow-sm">
               <div>
-                <label class="text-sm text-gray-400">Email</label>
-                <input v-model="draft.email" :readonly="!editOverview" class="w-full mt-1 bg-gray-900/60 border border-gray-700 rounded-lg p-3 text-gray-200"/>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2"><i class="fas fa-envelope mr-1 text-slate-400"></i> Correo Electrónico</label>
+                <input v-model="draft.email" :readonly="!editOverview" class="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all font-medium" :class="!editOverview ? 'opacity-80' : 'shadow-sm'"/>
               </div>
               <div>
-                <label class="text-sm text-gray-400">Teléfono</label>
-                <input v-model="draft.phone" :readonly="!editOverview" class="w-full mt-1 bg-gray-900/60 border border-gray-700 rounded-lg p-3 text-gray-200"/>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2"><i class="fas fa-phone mr-1 text-slate-400"></i> Teléfono</label>
+                <input v-model="draft.phone" :readonly="!editOverview" class="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all font-medium" :class="!editOverview ? 'opacity-80' : 'shadow-sm'"/>
               </div>
-              <div class="col-span-2">
-                <label class="text-sm text-gray-400">Compañía</label>
-                <input v-model="draft.company" :readonly="!editOverview" class="w-full mt-1 bg-gray-900/60 border border-gray-700 rounded-lg p-3 text-gray-200"/>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2"><i class="fas fa-building mr-1 text-slate-400"></i> Nombre Comercial</label>
+                <input v-model="draft.company" :readonly="!editOverview" class="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all font-medium" :class="!editOverview ? 'opacity-80' : 'shadow-sm'"/>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Services -->
-        <div v-else-if="activeTab === 'services'" class="space-y-4">
-          <div class="flex justify-between items-center">
-            <h3 class="text-white font-semibold">Servicios</h3>
+        <div v-else-if="activeTab === 'services'" class="space-y-6">
+          <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+            <h3 class="text-lg font-black text-slate-800">Servicios Contratados</h3>
           </div>
           <!-- Inline add service -->
-          <div class="flex flex-wrap gap-2 items-center bg-gray-900/60 border border-gray-700 rounded-xl p-3">
-            <input v-model="serviceName" placeholder="Nombre del servicio" class="w-48 bg-gray-900/60 border border-gray-700 rounded px-3 py-2 text-gray-200" />
-            <input v-model="servicePlan" placeholder="Plan (opcional)" class="w-40 bg-gray-900/60 border border-gray-700 rounded px-3 py-2 text-gray-200" />
-            <select v-model="serviceStatus" class="bg-gray-900/60 border border-gray-700 rounded px-3 py-2 text-gray-200">
-              <option value="active">Activo</option>
-              <option value="paused">Pausado</option>
-              <option value="cancelled">Cancelado</option>
-              <option value="trial">Prueba</option>
-            </select>
-            <button @click="createService" class="px-3 py-2 rounded bg-purple-600 text-white hover:bg-purple-700">Agregar</button>
+          <div class="flex flex-wrap gap-3 items-center bg-slate-50 border border-slate-200 rounded-xl p-4 shadow-sm">
+            <div class="flex-1 min-w-[200px]">
+              <label class="sr-only">Nombre del servicio</label>
+              <input v-model="serviceName" placeholder="Ej: Mantenimiento Mensual" class="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 text-slate-800 font-medium text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none shadow-sm" />
+            </div>
+            <div class="w-full sm:w-auto">
+              <label class="sr-only">Plan (opcional)</label>
+              <input v-model="servicePlan" placeholder="Plan Premium" class="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 text-slate-800 font-medium text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none shadow-sm" />
+            </div>
+            <div class="w-full sm:w-auto">
+              <label class="sr-only">Estado</label>
+              <select v-model="serviceStatus" class="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 text-slate-800 font-medium text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none shadow-sm">
+                <option value="active">Activo</option>
+                <option value="paused">Pausado</option>
+                <option value="cancelled">Cancelado</option>
+                <option value="trial">Prueba</option>
+              </select>
+            </div>
+            <button @click="createService" class="w-full sm:w-auto px-5 py-2.5 rounded-lg bg-primary-600 text-white font-bold hover:bg-primary-700 shadow-sm transition-colors">
+              <i class="fas fa-plus mr-1"></i> Agregar
+            </button>
           </div>
-          <div v-if="client.services?.length" class="grid md:grid-cols-2 gap-4">
-            <div v-for="s in client.services" :key="s._id" class="bg-gray-900/60 border border-gray-700 rounded-xl p-4">
+          
+          <div v-if="client.services?.length" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div v-for="s in client.services" :key="s._id" class="bg-white border border-slate-200 rounded-xl p-5 hover:border-primary-300 hover:shadow-md transition-all shadow-sm">
               <!-- view mode -->
-              <div v-if="editingServiceId !== s._id" class="flex justify-between items-center">
-                <div>
-                  <p class="text-white font-medium">{{ s.name }}</p>
-                  <p class="text-gray-400 text-sm">{{ s.plan }} · {{ s.status }}</p>
+              <div v-if="editingServiceId !== s._id" class="flex flex-col h-full justify-between gap-3">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <h4 class="text-slate-800 font-black">{{ s.name }}</h4>
+                    <div class="flex items-center gap-2 mt-1">
+                      <span class="text-slate-500 text-sm font-medium">{{ s.plan || 'Sin plan' }}</span>
+                      <span class="text-slate-300">•</span>
+                      <span :class="{
+                        'bg-emerald-100 text-emerald-700 border-emerald-200': s.status === 'active',
+                        'bg-amber-100 text-amber-700 border-amber-200': s.status === 'paused',
+                        'bg-blue-100 text-blue-700 border-blue-200': s.status === 'trial',
+                        'bg-slate-100 text-slate-600 border-slate-200': s.status === 'cancelled',
+                      }" class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-md border">
+                        {{ s.status === 'active' ? 'Activo' : s.status === 'paused' ? 'Pausado' : s.status === 'trial' ? 'Prueba' : 'Cancelado' }}
+                      </span>
+                    </div>
+                  </div>
+                  <div class="flex gap-1">
+                    <button @click="startEditService(s)" class="p-2 text-primary-500 hover:bg-primary-50 rounded-lg transition-colors"><i class="fas fa-edit"></i></button>
+                    <button @click="deleteService(s._id)" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"><i class="fas fa-trash"></i></button>
+                  </div>
                 </div>
-                <div class="flex gap-2">
-                  <button @click="startEditService(s)" class="px-2 py-1 rounded bg-blue-600/20 text-blue-300">Editar</button>
-                  <button @click="deleteService(s._id)" class="px-2 py-1 rounded bg-red-600/20 text-red-300">Eliminar</button>
-                </div>
+                <p v-if="s.notes" class="text-slate-600 text-sm p-3 bg-slate-50 rounded-lg border border-slate-100 mt-2">{{ s.notes }}</p>
               </div>
               <!-- edit mode -->
-              <div v-else class="flex flex-wrap gap-2 items-center">
-                <input v-model="editServicePlan" placeholder="Plan" class="w-40 bg-gray-900/60 border border-gray-700 rounded px-3 py-2 text-gray-200" />
-                <input v-model="editServiceNotes" placeholder="Notas" class="flex-1 bg-gray-900/60 border border-gray-700 rounded px-3 py-2 text-gray-200" />
-                <select v-model="editServiceStatus" class="bg-gray-900/60 border border-gray-700 rounded px-3 py-2 text-gray-200">
-                  <option value="active">Activo</option>
-                  <option value="paused">Pausado</option>
-                  <option value="cancelled">Cancelado</option>
-                  <option value="trial">Prueba</option>
-                </select>
-                <button @click="confirmEditService" class="px-3 py-2 rounded bg-green-600 text-white hover:bg-green-700">Guardar</button>
-                <button @click="cancelEditService" class="px-3 py-2 rounded bg-gray-700 text-gray-200 hover:bg-gray-600">Cancelar</button>
+              <div v-else class="flex flex-col gap-3">
+                <div class="flex flex-col sm:flex-row gap-3">
+                  <input v-model="editServicePlan" placeholder="Plan" class="w-full sm:w-1/2 bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-800 text-sm focus:ring-2 focus:ring-primary-500" />
+                  <select v-model="editServiceStatus" class="w-full sm:w-1/2 bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-800 text-sm focus:ring-2 focus:ring-primary-500">
+                    <option value="active">Activo</option>
+                    <option value="paused">Pausado</option>
+                    <option value="cancelled">Cancelado</option>
+                    <option value="trial">Prueba</option>
+                  </select>
+                </div>
+                <input v-model="editServiceNotes" placeholder="Notas del servicio..." class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-800 text-sm focus:ring-2 focus:ring-primary-500" />
+                <div class="flex gap-2 justify-end mt-2">
+                  <button @click="cancelEditService" class="px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-600 text-sm font-bold hover:bg-slate-50">Cancelar</button>
+                  <button @click="confirmEditService" class="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700">Guardar</button>
+                </div>
               </div>
-              <p v-if="s.notes && editingServiceId !== s._id" class="text-gray-300 text-sm mt-2">{{ s.notes }}</p>
             </div>
           </div>
-          <p v-else class="text-gray-400">No hay servicios registrados.</p>
+          <div v-else class="text-center py-10 bg-slate-50 border border-dashed border-slate-200 rounded-xl">
+            <i class="fas fa-box-open text-3xl text-slate-300 mb-3"></i>
+            <p class="text-slate-500 font-medium">No hay servicios registrados para este cliente.</p>
+          </div>
         </div>
 
         <!-- Commitments -->
-        <div v-else-if="activeTab === 'commitments'" class="space-y-4">
-          <div class="flex justify-between items-center">
-            <h3 class="text-white font-semibold">Compromisos</h3>
+        <div v-else-if="activeTab === 'commitments'" class="space-y-6">
+          <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+            <h3 class="text-lg font-black text-slate-800">Compromisos y Tareas</h3>
           </div>
           <!-- Inline add commitment -->
-          <div class="flex flex-wrap gap-2 items-center bg-gray-900/60 border border-gray-700 rounded-xl p-3">
-            <input v-model="commitTitle" placeholder="Título" class="w-48 bg-gray-900/60 border border-gray-700 rounded px-3 py-2 text-gray-200" />
-            <input v-model="commitDueDate" type="date" class="bg-gray-900/60 border border-gray-700 rounded px-3 py-2 text-gray-200" />
-            <select v-model="commitStatus" class="bg-gray-900/60 border border-gray-700 rounded px-3 py-2 text-gray-200">
-              <option value="pending">Pendiente</option>
-              <option value="in_progress">En progreso</option>
-              <option value="completed">Completado</option>
-              <option value="cancelled">Cancelado</option>
-            </select>
-            <button @click="createCommitment" class="px-3 py-2 rounded bg-purple-600 text-white hover:bg-purple-700">Agregar</button>
+          <div class="flex flex-wrap gap-3 items-center bg-slate-50 border border-slate-200 rounded-xl p-4 shadow-sm">
+            <div class="flex-1 min-w-[200px]">
+              <label class="sr-only">Título del compromiso</label>
+              <input v-model="commitTitle" placeholder="Ej: Enviar propuesta comercial" class="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 text-slate-800 font-medium text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none shadow-sm" />
+            </div>
+            <div class="w-full sm:w-auto">
+              <label class="sr-only">Fecha límite</label>
+              <input v-model="commitDueDate" type="date" class="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 text-slate-800 font-medium text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none shadow-sm" />
+            </div>
+            <div class="w-full sm:w-auto">
+              <label class="sr-only">Estado</label>
+              <select v-model="commitStatus" class="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 text-slate-800 font-medium text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none shadow-sm">
+                <option value="pending">Pendiente</option>
+                <option value="in_progress">En progreso</option>
+                <option value="completed">Completado</option>
+                <option value="cancelled">Cancelado</option>
+              </select>
+            </div>
+            <button @click="createCommitment" class="w-full sm:w-auto px-5 py-2.5 rounded-lg bg-primary-600 text-white font-bold hover:bg-primary-700 shadow-sm transition-colors">
+              <i class="fas fa-plus mr-1"></i> Agregar
+            </button>
           </div>
+          
           <div v-if="client.commitments?.length" class="space-y-3">
-            <div v-for="c in client.commitments" :key="c._id" class="bg-gray-900/60 border border-gray-700 rounded-xl p-4">
+            <div v-for="c in client.commitments" :key="c._id" class="bg-white border border-slate-200 rounded-xl p-5 hover:border-primary-300 hover:shadow-md transition-all shadow-sm">
               <!-- view mode -->
-              <div v-if="editingCommitmentId !== c._id" class="flex justify-between items-center">
-                <div>
-                  <p class="text-white font-medium">{{ c.title }}</p>
-                  <p class="text-gray-400 text-sm">{{ c.status }} · {{ formatDate(c.dueDate) }}</p>
+              <div v-if="editingCommitmentId !== c._id" class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="flex-1">
+                  <div class="flex items-center gap-3 mb-1">
+                    <h4 class="text-slate-800 font-black text-lg">{{ c.title }}</h4>
+                    <span :class="{
+                      'bg-slate-100 text-slate-600 border-slate-200': c.status === 'pending',
+                      'bg-primary-100 text-primary-700 border-primary-200': c.status === 'in_progress',
+                      'bg-emerald-100 text-emerald-700 border-emerald-200': c.status === 'completed',
+                      'bg-red-100 text-red-700 border-red-200': c.status === 'cancelled',
+                    }" class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-md border">
+                      {{ c.status === 'pending' ? 'Pendiente' : c.status === 'in_progress' ? 'En progreso' : c.status === 'completed' ? 'Completado' : 'Cancelado' }}
+                    </span>
+                  </div>
+                  <div class="flex items-center gap-2 text-sm text-slate-500 font-medium">
+                    <i class="fas fa-calendar-alt text-slate-400"></i> {{ c.dueDate ? formatDate(c.dueDate).split(',')[0] : 'Sin fecha' }}
+                  </div>
+                  <p v-if="c.description" class="text-slate-600 text-sm mt-3 p-3 bg-slate-50 rounded-lg border border-slate-100">{{ c.description }}</p>
                 </div>
-                <div class="flex gap-2">
-                  <button @click="startEditCommitment(c)" class="px-2 py-1 rounded bg-blue-600/20 text-blue-300">Editar</button>
-                  <button @click="deleteCommitment(c._id)" class="px-2 py-1 rounded bg-red-600/20 text-red-300">Eliminar</button>
+                <div class="flex gap-2 sm:flex-col self-end sm:self-center">
+                  <button @click="startEditCommitment(c)" class="px-3 py-1.5 text-xs font-bold bg-primary-50 text- primary-700 border border-primary-100 hover:bg-primary-100 rounded-lg transition-colors">Editar</button>
+                  <button @click="deleteCommitment(c._id)" class="px-3 py-1.5 text-xs font-bold bg-red-50 text-red-700 border border-red-100 hover:bg-red-100 rounded-lg transition-colors">Eliminar</button>
                 </div>
               </div>
               <!-- edit mode -->
-              <div v-else class="flex flex-wrap gap-2 items-center">
-                <input v-model="editCommitDescription" placeholder="Descripción" class="flex-1 bg-gray-900/60 border border-gray-700 rounded px-3 py-2 text-gray-200" />
-                <input v-model="editCommitDueDate" type="date" class="bg-gray-900/60 border border-gray-700 rounded px-3 py-2 text-gray-200" />
-                <select v-model="editCommitStatus" class="bg-gray-900/60 border border-gray-700 rounded px-3 py-2 text-gray-200">
-                  <option value="pending">Pendiente</option>
-                  <option value="in_progress">En progreso</option>
-                  <option value="completed">Completado</option>
-                  <option value="cancelled">Cancelado</option>
-                </select>
-                <button @click="confirmEditCommitment" class="px-3 py-2 rounded bg-green-600 text-white hover:bg-green-700">Guardar</button>
-                <button @click="cancelEditCommitment" class="px-3 py-2 rounded bg-gray-700 text-gray-200 hover:bg-gray-600">Cancelar</button>
+              <div v-else class="flex flex-col gap-3">
+                <div class="flex flex-col sm:flex-row gap-3">
+                  <input v-model="editCommitDueDate" type="date" class="w-full sm:w-1/3 bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-800 text-sm focus:ring-2 focus:ring-primary-500" />
+                  <select v-model="editCommitStatus" class="w-full sm:w-1/3 bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-800 text-sm focus:ring-2 focus:ring-primary-500">
+                    <option value="pending">Pendiente</option>
+                    <option value="in_progress">En progreso</option>
+                    <option value="completed">Completado</option>
+                    <option value="cancelled">Cancelado</option>
+                  </select>
+                </div>
+                <input v-model="editCommitDescription" placeholder="Descripción detallada..." class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-800 text-sm focus:ring-2 focus:ring-primary-500" />
+                <div class="flex gap-2 justify-end mt-2">
+                  <button @click="cancelEditCommitment" class="px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-600 text-sm font-bold hover:bg-slate-50">Cancelar</button>
+                  <button @click="confirmEditCommitment" class="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700">Guardar</button>
+                </div>
               </div>
-              <p v-if="c.description && editingCommitmentId !== c._id" class="text-gray-300 text-sm mt-2">{{ c.description }}</p>
             </div>
           </div>
-          <p v-else class="text-gray-400">No hay compromisos registrados.</p>
+          <div v-else class="text-center py-10 bg-slate-50 border border-dashed border-slate-200 rounded-xl">
+            <i class="fas fa-check-circle text-3xl text-slate-300 mb-3"></i>
+            <p class="text-slate-500 font-medium">No hay compromisos pendientes.</p>
+          </div>
         </div>
 
         <!-- Preferences -->
-        <div v-else-if="activeTab === 'preferences'" class="space-y-3">
-          <div class="flex gap-2 items-center">
-            <input v-model="newPrefKey" placeholder="Clave (ej. tono, horario)" class="bg-gray-900/60 border border-gray-700 rounded px-3 py-2 text-gray-200" />
-            <input v-model="newPrefValue" placeholder="Valor" class="bg-gray-900/60 border border-gray-700 rounded px-3 py-2 text-gray-200" />
-            <button @click="addPreference" class="px-3 py-2 rounded bg-purple-600 text-white">Agregar</button>
+        <div v-else-if="activeTab === 'preferences'" class="space-y-6">
+          <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+            <h3 class="text-lg font-black text-slate-800">Preferencias del Cliente</h3>
           </div>
-          <div class="grid md:grid-cols-2 gap-3">
-            <div v-for="p in (client.preferences || [])" :key="p._id || p.key" class="bg-gray-900/60 border border-gray-700 rounded-xl p-3 flex items-center justify-between">
-              <div>
-                <p class="text-gray-300 text-sm">{{ p.key }}</p>
-                <p class="text-white">{{ p.value }}</p>
-              </div>
-              <button @click="removePreference(p)" class="px-2 py-1 rounded bg-red-600/20 text-red-300">Quitar</button>
+          <div class="flex flex-wrap gap-3 items-center bg-slate-50 border border-slate-200 rounded-xl p-4 shadow-sm">
+            <div class="flex-1 min-w-[150px]">
+              <input v-model="newPrefKey" placeholder="Clave (ej. Tono de comunicación)" class="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 text-slate-800 font-medium text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none shadow-sm" />
             </div>
+            <div class="flex-1 min-w-[200px]">
+              <input v-model="newPrefValue" placeholder="Valor (ej. Formal pero cercano)" class="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 text-slate-800 font-medium text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none shadow-sm" />
+            </div>
+            <button @click="addPreference" class="w-full sm:w-auto px-5 py-2.5 rounded-lg bg-primary-600 text-white font-bold hover:bg-primary-700 shadow-sm transition-colors">
+              <i class="fas fa-plus mr-1"></i> Agregar
+            </button>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div v-for="p in (client.preferences || [])" :key="p._id || p.key" class="bg-white border border-slate-200 rounded-xl p-4 flex items-center justify-between shadow-sm hover:border-slate-300 transition-colors">
+              <div>
+                <p class="text-[10px] uppercase tracking-wider font-bold text-slate-400 mb-1">{{ p.key }}</p>
+                <p class="text-slate-800 font-medium">{{ p.value }}</p>
+              </div>
+              <button @click="removePreference(p)" class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+          <div v-if="!(client.preferences || []).length" class="text-center py-10 bg-slate-50 border border-dashed border-slate-200 rounded-xl">
+            <i class="fas fa-heart text-3xl text-slate-300 mb-3"></i>
+            <p class="text-slate-500 font-medium">No se han registrado preferencias.</p>
           </div>
         </div>
 
         <!-- Notes -->
-        <div v-else-if="activeTab === 'notes'" class="space-y-3">
-          <div class="flex gap-2">
-            <input v-model="newNote" placeholder="Agregar nota (Enter para guardar)" @keyup.enter="addNote" class="flex-1 bg-gray-900/60 border border-gray-700 rounded px-3 py-2 text-gray-200" />
-            <button @click="addNote" class="px-3 py-2 rounded bg-purple-600 text-white">Guardar</button>
+        <div v-else-if="activeTab === 'notes'" class="space-y-6">
+          <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+            <h3 class="text-lg font-black text-slate-800">Notas Adicionales</h3>
           </div>
-          <div class="space-y-2">
-            <div v-for="n in sortedNotes" :key="n._id" class="bg-gray-900/60 border border-gray-700 rounded-xl p-3">
-              <div class="flex items-center justify-between">
-                <span class="text-gray-400 text-xs">{{ formatDate(n.createdAt) }}</span>
+          <div class="flex gap-3 items-start">
+            <div class="flex-1">
+              <textarea v-model="newNote" placeholder="Escribe una nueva nota o actualización (Presiona Ctr + Enter para guardar)" rows="3" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-800 font-medium text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none shadow-sm resize-y"></textarea>
+            </div>
+            <button @click="addNote" class="px-5 py-3 rounded-xl bg-primary-600 text-white font-bold hover:bg-primary-700 shadow-sm transition-colors h-full">
+              <i class="fas fa-save mb-1 block text-lg"></i>
+              Guardar
+            </button>
+          </div>
+          
+          <div class="space-y-4">
+            <div v-for="n in sortedNotes" :key="n._id" class="bg-white border text-sm rounded-xl p-5 shadow-sm transition-all" :class="n.pinned ? 'border-amber-300 bg-amber-50/30' : 'border-slate-200'">
+              <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
+                <span class="text-slate-500 text-xs font-bold flex items-center">
+                  <i class="fas fa-clock mr-1.5 opacity-70"></i> {{ formatDate(n.createdAt) }}
+                </span>
                 <div class="flex gap-2">
-                  <button @click="togglePin(n)" class="px-2 py-1 rounded bg-yellow-600/20 text-yellow-300">{{ n.pinned ? 'Desfijar' : 'Fijar' }}</button>
-                  <button @click="deleteNote(n._id)" class="px-2 py-1 rounded bg-red-600/20 text-red-300">Eliminar</button>
+                  <button @click="togglePin(n)" :class="n.pinned ? 'text-amber-500 bg-amber-50 border border-amber-200' : 'text-slate-400 bg-slate-50 border border-slate-200 hover:text-amber-500'" class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors">
+                    <i class="fas fa-thumbtack" :class="{ 'rotate-45': !n.pinned }"></i>
+                  </button>
+                  <button @click="deleteNote(n._id)" class="w-8 h-8 rounded-lg flex items-center justify-center text-red-400 bg-red-50 border border-red-100 hover:text-red-600 transition-colors">
+                    <i class="fas fa-trash"></i>
+                  </button>
                 </div>
               </div>
-              <p class="text-white mt-2 whitespace-pre-wrap">{{ n.content }}</p>
+              <p class="text-slate-700 font-medium leading-relaxed whitespace-pre-wrap">{{ n.content }}</p>
+            </div>
+            
+            <div v-if="!sortedNotes.length" class="text-center py-10 bg-slate-50 border border-dashed border-slate-200 rounded-xl">
+              <i class="fas fa-sticky-note text-3xl text-slate-300 mb-3"></i>
+              <p class="text-slate-500 font-medium">Aún no hay notas para este cliente.</p>
             </div>
           </div>
         </div>
 
         <!-- Custom Fields -->
-        <div v-else-if="activeTab === 'custom'" class="space-y-3">
-          <div class="flex gap-2 items-center">
-            <input v-model="newFieldKey" placeholder="Clave" class="bg-gray-900/60 border border-gray-700 rounded px-3 py-2 text-gray-200" />
-            <input v-model="newFieldValue" placeholder="Valor" class="bg-gray-900/60 border border-gray-700 rounded px-3 py-2 text-gray-200" />
-            <button @click="addCustomField" class="px-3 py-2 rounded bg-purple-600 text-white">Agregar</button>
+        <div v-else-if="activeTab === 'custom'" class="space-y-6">
+          <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+            <h3 class="text-lg font-black text-slate-800">Campos Personalizados</h3>
           </div>
-          <div class="grid md:grid-cols-2 gap-3">
-            <div v-for="f in (client.customFields || [])" :key="f._id || f.key" class="bg-gray-900/60 border border-gray-700 rounded-xl p-3 flex items-center justify-between">
-              <div>
-                <p class="text-gray-400 text-sm">{{ f.key }}</p>
-                <p class="text-white">{{ f.value }}</p>
-              </div>
-              <button @click="removeCustomField(f)" class="px-2 py-1 rounded bg-red-600/20 text-red-300">Quitar</button>
+          <div class="flex flex-wrap gap-3 items-center bg-slate-50 border border-slate-200 rounded-xl p-4 shadow-sm">
+            <div class="flex-1 min-w-[150px]">
+              <input v-model="newFieldKey" placeholder="Nombre del Campo" class="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 text-slate-800 font-medium text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none shadow-sm" />
             </div>
+            <div class="flex-1 min-w-[200px]">
+              <input v-model="newFieldValue" placeholder="Valor" class="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 text-slate-800 font-medium text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none shadow-sm" />
+            </div>
+            <button @click="addCustomField" class="w-full sm:w-auto px-5 py-2.5 rounded-lg bg-primary-600 text-white font-bold hover:bg-primary-700 shadow-sm transition-colors">
+              <i class="fas fa-plus mr-1"></i> Agregar
+            </button>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div v-for="f in (client.customFields || [])" :key="f._id || f.key" class="bg-white border border-slate-200 rounded-xl p-4 flex items-center justify-between shadow-sm hover:border-slate-300 transition-colors">
+              <div>
+                <p class="text-[10px] uppercase tracking-wider font-bold text-slate-400 mb-1">{{ f.key }}</p>
+                <p class="text-slate-800 font-medium">{{ f.value }}</p>
+              </div>
+              <button @click="removeCustomField(f)" class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+          <div v-if="!(client.customFields || []).length" class="text-center py-10 bg-slate-50 border border-dashed border-slate-200 rounded-xl">
+            <i class="fas fa-sliders-h text-3xl text-slate-300 mb-3"></i>
+            <p class="text-slate-500 font-medium">Añade campos personalizados a la medida de tu requerimiento.</p>
           </div>
         </div>
       </div>

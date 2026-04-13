@@ -1,38 +1,30 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="flex flex-col h-full min-h-0 relative">
+    <div class="flex-1 min-h-0 overflow-y-auto">
       
       <!-- Header -->
-      <div class="mb-8">
+      <div class="mb-6">
         <div class="flex items-center justify-between">
-          <!-- ...existing code... -->
-          
           <div class="flex items-center gap-4">
             <!-- Vista seleccionada -->
-            <div class="flex bg-gray-800 rounded-lg p-1">
+            <div class="flex bg-slate-100 rounded-lg p-1 border border-slate-200">
               <button
                 @click="viewMode = 'cards'"
                 :class="[
-                  'px-4 py-2 rounded-md text-sm font-medium transition-all',
-                  viewMode === 'cards' 
-                    ? 'bg-purple-600 text-white' 
-                    : 'text-gray-400 hover:text-white'
+                  'px-4 py-1.5 rounded-md text-sm font-bold transition-all',
+                  viewMode === 'cards' ? 'bg-white text-primary-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
                 ]"
               >
-                <i class="fas fa-th-large mr-2"></i>
-                Tarjetas
+                <i class="fas fa-th-large mr-2"></i>Tarjetas
               </button>
               <button
                 @click="viewMode = 'table'"
                 :class="[
-                  'px-4 py-2 rounded-md text-sm font-medium transition-all',
-                  viewMode === 'table' 
-                    ? 'bg-purple-600 text-white' 
-                    : 'text-gray-400 hover:text-white'
+                  'px-4 py-1.5 rounded-md text-sm font-bold transition-all',
+                  viewMode === 'table' ? 'bg-white text-primary-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
                 ]"
               >
-                <i class="fas fa-table mr-2"></i>
-                Tabla
+                <i class="fas fa-table mr-2"></i>Tabla
               </button>
             </div>
           </div>
@@ -41,72 +33,67 @@
 
       <!-- Loading state -->
       <div v-if="loading" class="flex items-center justify-center py-12">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600"></div>
       </div>
 
       <!-- Vista de tarjetas por miembro -->
-      <div v-else-if="viewMode === 'cards'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div v-else-if="viewMode === 'cards'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
         <div
           v-for="member in teamMembersWithActivities"
           :key="member._id"
-          class="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50 hover:border-purple-500/50 transition-all duration-300"
+          class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md hover:border-primary-200 transition-all duration-200"
         >
           <!-- Header del miembro -->
           <div class="flex items-center gap-3 mb-4">
-            <div class="w-12 h-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center">
-              <i class="fas fa-user text-white"></i>
+            <div class="w-11 h-11 bg-primary-50 ring-2 ring-primary-100 rounded-full flex items-center justify-center">
+              <span class="text-primary-600 font-black text-base">{{ member.name?.charAt(0)?.toUpperCase() }}</span>
             </div>
-            <div class="flex-1">
-              <h3 class="text-white font-semibold">{{ member.name }}</h3>
-              <p class="text-gray-400 text-sm">{{ member.role }}</p>
-              <p v-if="member.department" class="text-gray-500 text-xs">{{ member.department }}</p>
+            <div class="flex-1 min-w-0">
+              <h3 class="text-slate-800 font-bold text-sm truncate">{{ member.name }}</h3>
+              <p class="text-slate-500 text-xs font-medium">{{ member.role }}</p>
+              <p v-if="member.department" class="text-slate-400 text-xs">{{ member.department }}</p>
             </div>
           </div>
 
           <!-- Estadísticas -->
           <div class="grid grid-cols-3 gap-2 mb-4">
-            <div class="bg-gray-700/30 rounded-lg p-2 text-center">
-              <div class="text-lg font-bold text-white">{{ member.activities.length }}</div>
-              <div class="text-xs text-gray-400">Total</div>
+            <div class="bg-slate-50 rounded-lg p-2 text-center border border-slate-100">
+              <div class="text-lg font-black text-slate-800">{{ member.activities.length }}</div>
+              <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Total</div>
             </div>
-            <div class="bg-yellow-500/20 rounded-lg p-2 text-center">
-              <div class="text-lg font-bold text-yellow-300">{{ getPendingCount(member.activities) }}</div>
-              <div class="text-xs text-yellow-400">Pendientes</div>
+            <div class="bg-amber-50 rounded-lg p-2 text-center border border-amber-100">
+              <div class="text-lg font-black text-amber-600">{{ getPendingCount(member.activities) }}</div>
+              <div class="text-[10px] font-bold text-amber-500 uppercase tracking-wide">Pend.</div>
             </div>
-            <div class="bg-green-500/20 rounded-lg p-2 text-center">
-              <div class="text-lg font-bold text-green-300">{{ getCompletedCount(member.activities) }}</div>
-              <div class="text-xs text-green-400">Completadas</div>
+            <div class="bg-emerald-50 rounded-lg p-2 text-center border border-emerald-100">
+              <div class="text-lg font-black text-emerald-600">{{ getCompletedCount(member.activities) }}</div>
+              <div class="text-[10px] font-bold text-emerald-500 uppercase tracking-wide">Comp.</div>
             </div>
           </div>
 
           <!-- Lista de actividades recientes -->
           <div class="space-y-2 mb-4">
-            <h4 class="text-sm font-medium text-gray-300 mb-2">Actividades Recientes</h4>
+            <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-2">Actividades Recientes</h4>
             <div v-if="member.activities.length === 0" class="text-center py-4">
-              <i class="fas fa-inbox text-2xl text-gray-600 mb-2"></i>
-              <p class="text-gray-400 text-sm">Sin actividades asignadas</p>
+              <i class="fas fa-inbox text-2xl text-slate-300 mb-2"></i>
+              <p class="text-slate-400 text-xs font-medium">Sin actividades asignadas</p>
             </div>
             <div
               v-else
               v-for="activity in member.activities.slice(0, 3)"
               :key="activity._id"
-              class="bg-gray-700/30 rounded-lg p-3 border border-gray-600/50"
+              class="bg-slate-50 rounded-lg p-3 border border-slate-100 hover:border-slate-200 transition-colors"
             >
-              <div class="flex items-start justify-between">
-                <div class="flex-1">
-                  <h5 class="text-white text-sm font-medium break-words whitespace-normal">{{ activity.title }}</h5>
-                  <p class="text-gray-400 text-xs line-clamp-1 mt-1">{{ activity.description }}</p>
+              <div class="flex items-start justify-between gap-2">
+                <div class="flex-1 min-w-0">
+                  <h5 class="text-slate-800 text-xs font-bold break-words leading-snug">{{ activity.title }}</h5>
+                  <p class="text-slate-500 text-[10px] line-clamp-1 mt-0.5">{{ activity.description }}</p>
                 </div>
-                <span
-                  class="ml-2 px-2 py-1 rounded-full text-xs font-medium"
-                  :class="getStatusClass(activity.status)"
-                >
+                <span class="ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold flex-shrink-0" :class="getStatusClass(activity.status)">
                   {{ getStatusLabel(activity.status) }}
                 </span>
               </div>
-              
-              <!-- Fecha y prioridad -->
-              <div class="flex items-center justify-between mt-2 text-xs text-gray-400">
+              <div class="flex items-center justify-between mt-2 text-[10px] text-slate-400 font-medium">
                 <div class="flex items-center gap-1">
                   <i class="fas fa-calendar"></i>
                   <span>{{ formatDate(activity.date) }}</span>
@@ -123,101 +110,64 @@
           <button
             v-if="member.activities.length > 3"
             @click="viewMemberActivities(member)"
-            class="w-full px-4 py-2 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 rounded-lg transition-colors text-sm"
+            class="w-full px-4 py-2 bg-primary-50 hover:bg-primary-100 text-primary-600 rounded-lg transition-colors text-xs font-bold border border-primary-100"
           >
-            Ver todas las actividades ({{ member.activities.length }})
+            Ver todas ({{ member.activities.length }})
           </button>
         </div>
       </div>
 
       <!-- Vista de tabla -->
-      <div v-else-if="viewMode === 'table'" class="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700/50 overflow-hidden">
+      <div v-else-if="viewMode === 'table'" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
           <table class="w-full">
-            <thead class="bg-gray-700/50">
+            <thead class="bg-slate-50">
               <tr>
-                <th class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  Actividad
-                </th>
-                <th class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  Asignado a
-                </th>
-                <th class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  Estado
-                </th>
-                <th class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  Prioridad
-                </th>
-                <th class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  Fecha
-                </th>
-                <th class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  Acciones
-                </th>
+                <th class="px-6 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-wider">Actividad</th>
+                <th class="px-6 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-wider">Asignado a</th>
+                <th class="px-6 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-wider">Estado</th>
+                <th class="px-6 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-wider">Prioridad</th>
+                <th class="px-6 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-wider">Fecha</th>
+                <th class="px-6 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-gray-700/50">
-              <tr
-                v-for="activity in allActivities"
-                :key="activity._id"
-                class="hover:bg-gray-700/20 transition-colors"
-              >
-                <td class="px-6 py-4">
-                  <div class="flex flex-col">
-                    <div class="text-white font-medium">{{ activity.title }}</div>
-                    <div class="text-gray-400 text-sm line-clamp-1">{{ activity.description }}</div>
-                  </div>
+            <tbody class="divide-y divide-slate-100">
+              <tr v-for="activity in allActivities" :key="activity._id" class="hover:bg-slate-50 transition-colors group">
+                <td class="px-6 py-3">
+                  <div class="text-slate-800 font-bold text-sm group-hover:text-primary-600 transition-colors">{{ activity.title }}</div>
+                  <div class="text-slate-500 text-xs line-clamp-1">{{ activity.description }}</div>
                 </td>
-                <td class="px-6 py-4">
+                <td class="px-6 py-3">
                   <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
-                      <i class="fas fa-user text-white text-xs"></i>
+                    <div class="w-7 h-7 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 font-black text-xs">
+                      {{ getAssignedToName(activity.assignedToUser).charAt(0) }}
                     </div>
                     <div>
-                      <div class="text-white text-sm">{{ getAssignedToName(activity.assignedToUser) }}</div>
-                      <div v-if="activity.assignedToUser?.role" class="text-gray-400 text-xs">
-                        {{ activity.assignedToUser.role }}
-                      </div>
+                      <div class="text-slate-700 text-sm font-medium">{{ getAssignedToName(activity.assignedToUser) }}</div>
+                      <div v-if="activity.assignedToUser?.role" class="text-slate-400 text-xs">{{ activity.assignedToUser.role }}</div>
                     </div>
                   </div>
                 </td>
-                <td class="px-6 py-4">
-                  <span
-                    class="px-3 py-1 rounded-full text-xs font-medium"
-                    :class="getStatusClass(activity.status)"
-                  >
+                <td class="px-6 py-3">
+                  <span class="px-2.5 py-1 rounded-full text-xs font-bold" :class="getStatusClass(activity.status)">
                     {{ getStatusLabel(activity.status) }}
                   </span>
                 </td>
-                <td class="px-6 py-4">
-                  <span
-                    v-if="activity.priority"
-                    class="px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1"
-                    :class="getPriorityClass(activity.priority)"
-                  >
+                <td class="px-6 py-3">
+                  <span v-if="activity.priority" class="px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 w-fit" :class="getPriorityClass(activity.priority)">
                     <i class="fas fa-flag" :class="getPriorityIconClass(activity.priority)"></i>
                     {{ getPriorityLabel(activity.priority) }}
                   </span>
-                  <span v-else class="text-gray-400 text-sm">-</span>
+                  <span v-else class="text-slate-400 text-sm">—</span>
                 </td>
-                <td class="px-6 py-4 text-gray-300 text-sm">
-                  {{ formatDate(activity.date) }}
-                </td>
-                <td class="px-6 py-4">
-                  <div class="flex items-center gap-2">
-                    <button
-                      @click="reassignActivity(activity)"
-                      class="p-1 text-gray-400 hover:text-purple-400 transition-colors"
-                      title="Reasignar"
-                    >
-                      <i class="fas fa-user-edit text-sm"></i>
+                <td class="px-6 py-3 text-slate-600 text-sm font-medium">{{ formatDate(activity.date) }}</td>
+                <td class="px-6 py-3">
+                  <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button @click="reassignActivity(activity)" class="p-1.5 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-md transition-colors" title="Reasignar">
+                      <i class="fas fa-user-edit text-xs"></i>
                     </button>
-                    <button
-                      @click="editActivity(activity)"
-                      class="p-1 text-gray-400 hover:text-blue-400 transition-colors"
-                      title="Editar"
-                    >
-                      <i class="fas fa-edit text-sm"></i>
+                    <button @click="editActivity(activity)" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="Editar">
+                      <i class="fas fa-edit text-xs"></i>
                     </button>
                   </div>
                 </td>
@@ -227,41 +177,24 @@
         </div>
       </div>
 
-      <!-- Estados vacíos -->
+      <!-- Estado vacío -->
       <div v-if="!loading && teamMembersWithActivities.length === 0" class="text-center py-12">
-        <div class="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 border border-gray-700/50">
-          <i class="fas fa-users text-6xl text-gray-600 mb-4"></i>
-          <h3 class="text-xl font-bold text-white mb-2">No hay miembros del equipo</h3>
-          <p class="text-gray-400 mb-6">
-            Agrega miembros al equipo para poder asignar actividades
-          </p>
-          <router-link
-            to="/team"
-            class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200"
-          >
-            <i class="fas fa-user-plus mr-2"></i>
-            Gestionar Equipo
+        <div class="bg-white rounded-2xl p-10 border border-slate-200 shadow-sm max-w-md mx-auto">
+          <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-users text-2xl text-slate-300"></i>
+          </div>
+          <h3 class="text-lg font-black text-slate-800 mb-2">No hay miembros del equipo</h3>
+          <p class="text-slate-500 text-sm mb-6 font-medium">Agrega miembros al equipo para poder asignar actividades</p>
+          <router-link to="/team" class="px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-bold text-sm shadow-sm inline-flex items-center gap-2">
+            <i class="fas fa-user-plus"></i>Gestionar Equipo
           </router-link>
         </div>
       </div>
     </div>
 
     <!-- Modales -->
-    <AssignActivityModal
-      v-if="showAssignModal"
-      :activity="selectedActivity"
-      :team-members="teamMembers"
-      @close="closeAssignModal"
-      @assign="handleReassign"
-    />
-
-    <ActivityFormModal
-      v-if="showEditModal"
-      :activity="selectedActivity"
-      :clients="clients"
-      @close="closeEditModal"
-      @saved="onActivitySaved"
-    />
+    <AssignActivityModal v-if="showAssignModal" :activity="selectedActivity" :team-members="teamMembers" @close="closeAssignModal" @assign="handleReassign" />
+    <ActivityFormModal v-if="showEditModal" :activity="selectedActivity" :clients="clients" @close="closeEditModal" @saved="onActivitySaved" />
   </div>
 </template>
 

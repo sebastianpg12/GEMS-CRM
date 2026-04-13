@@ -3,27 +3,27 @@
     <!-- Información básica -->
     <div class="grid grid-cols-1 gap-6">
       <div>
-        <label class="block text-sm font-medium text-gray-300 mb-2">
+        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
           Título de la Actividad *
         </label>
         <input
           v-model="form.title"
           type="text"
           required
-          class="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+          class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors text-sm"
           placeholder="Ej: Reunión de seguimiento con cliente"
         />
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-300 mb-2">
+        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
           Cliente *
         </label>
         <select
           v-model="form.clientId"
           required
           :disabled="loadingClients"
-          class="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+          class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors text-sm"
         >
           <option value="" disabled>
             {{ loadingClients ? 'Cargando clientes...' : 'Selecciona un cliente' }}
@@ -36,14 +36,14 @@
             {{ client.name }} {{ client.company ? `- ${client.company}` : '' }}
           </option>
         </select>
-        <p v-if="!loadingClients && clients.length === 0" class="text-yellow-400 text-sm mt-1">
-          No hay clientes disponibles. Crea un cliente primero.
+        <p v-if="!loadingClients && clients.length === 0" class="text-amber-500 text-xs font-bold mt-1.5">
+          <i class="fas fa-exclamation-triangle mr-1"></i> No hay clientes disponibles. Crea un cliente primero.
         </p>
       </div>
 
       <!-- Selección múltiple de asignados (componente reutilizable) -->
       <div>
-        <label class="block text-sm font-medium text-gray-300 mb-2">Asignados *</label>
+        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Asignados *</label>
         <AssignedUsersSelector
           v-model="form.assignedTo"
           :teamMembers="users"
@@ -53,66 +53,66 @@
 
     <!-- Descripción -->
     <div>
-      <label class="block text-sm font-medium text-gray-300 mb-2">
+      <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
         Descripción *
       </label>
       <textarea
         v-model="form.description"
         rows="4"
         required
-        class="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all resize-none"
+        class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors resize-none text-sm"
         placeholder="Describe los detalles de la actividad..."
       ></textarea>
     </div>
 
     <!-- Error message -->
-    <div v-if="error" class="p-4 bg-red-500/20 border border-red-500/50 rounded-lg">
-      <p class="text-red-400 text-sm">{{ error }}</p>
+    <div v-if="error" class="p-4 bg-red-50 border border-red-200 rounded-lg">
+      <p class="text-red-600 font-bold text-sm flex items-center">
+        <i class="fas fa-exclamation-circle mr-2"></i>{{ error }}
+      </p>
     </div>
 
     <!-- Actions -->
-    <div class="flex items-center justify-end space-x-4 pt-4 border-t border-gray-700">
+    <div class="flex items-center justify-end gap-3 pt-5 border-t border-slate-100">
       <button
         type="button"
         @click="$emit('cancel')"
-        class="px-6 py-3 text-gray-400 hover:text-white transition-colors"
+        class="px-5 py-2 text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors font-bold text-sm"
       >
         Cancelar
       </button>
       <button
         type="submit"
         :disabled="loading || clients.length === 0 || loadingClients"
-        class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg shadow-purple-500/25"
+        class="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed font-bold text-sm flex items-center gap-2"
       >
-        <span v-if="loading" class="flex items-center">
-          <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
+        <span v-if="loading" class="flex items-center gap-2">
+          <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
           Guardando...
         </span>
-        <span v-else>
+        <span v-else class="flex items-center gap-2">
+          <i class="fas fa-check"></i>
           {{ mode === 'create' ? 'Crear Actividad' : 'Actualizar Actividad' }}
         </span>
       </button>
     </div>
-    <!-- Selección múltiple de asignados -->
-    <div>
-      <label class="block text-sm font-medium text-gray-300 mb-2">
-        Asignados *
+    <!-- Selección múltiple de asignados (Backup nativo) -->
+    <div class="hidden">
+      <label class="block text-xs font-bold text-slate-700 mb-2">
+        Asignados (nativo) *
       </label>
       <select
         v-model="form.assignedTo"
         multiple
         required
-        class="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+        class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:ring-2 focus:ring-primary-500 transition-colors"
       >
         <option v-for="user in users" :key="user._id" :value="user._id">
           {{ user.name }} ({{ user.email }})
         </option>
       </select>
-      <p v-if="users.length === 0" class="text-yellow-400 text-sm mt-1">
-        No hay usuarios disponibles para asignar.
+      <p v-if="users.length === 0" class="text-amber-500 text-xs mt-1">
+        No hay usuarios disponibles.
       </p>
     </div>
   </form>

@@ -1,41 +1,68 @@
 <template>
-  <div class="flex h-[70vh] bg-gray-900 rounded-xl shadow-lg overflow-hidden">
+  <div class="flex h-[75vh] bg-white rounded-xl shadow-sm overflow-hidden">
     <!-- Lista de conversaciones -->
-    <div class="w-80 min-w-[220px] max-w-[320px] bg-gray-800 border-r border-purple-500/20 p-4 overflow-y-auto">
-      <div class="font-bold text-purple-300 mb-4 text-lg">Prospectos recientes</div>
+    <div class="w-80 min-w-[280px] max-w-[340px] bg-slate-50 border-r border-slate-200 p-4 scroll-smooth overflow-y-auto">
+      <div class="font-black text-slate-800 mb-5 text-sm uppercase tracking-wider flex items-center gap-2">
+        <i class="fas fa-history text-primary-500"></i>
+        Historial de Prospectos
+      </div>
       <ProspectConversationsList @select="handleSelectConversation" />
     </div>
     <!-- Área de chat/análisis -->
-    <div class="flex-1 p-8 flex flex-col">
+    <div class="flex-1 p-6 md:p-8 flex flex-col bg-white">
       <template v-if="selectedConversation">
         <ProspectConversationDetail :conversation="selectedConversation" @message-sent="handleMessageSent" />
       </template>
       <template v-else>
-        <div class="mb-6">
-          <div class="font-bold text-purple-300 text-xl mb-2">Nuevo Prospecto</div>
-          <div class="flex flex-col md:flex-row gap-6">
+        <div class="mb-6 h-full flex flex-col">
+          <div class="font-black text-slate-800 text-xl mb-4 flex items-center gap-2 border-b border-slate-100 pb-3">
+            <i class="fas fa-magic text-primary-500"></i>
+            Nuevo Prospecto
+          </div>
+          <div class="flex flex-col md:flex-row gap-6 mt-2">
             <div class="flex-1">
-              <label class="block text-sm font-medium text-gray-300 mb-2">Texto descriptivo del prospecto</label>
-              <textarea v-model="inputText" rows="6" class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="Describe el prospecto, su negocio, necesidades, etc."></textarea>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                Texto descriptivo del prospecto
+              </label>
+              <textarea v-model="inputText" rows="6" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-primary-500 shadow-sm font-medium text-sm focus:outline-none transition-all resize-y" placeholder="Describe el prospecto, su negocio, necesidades, etc."></textarea>
             </div>
             <div class="flex-1">
-              <label class="block text-sm font-medium text-gray-300 mb-2">Imágenes del prospecto (opcional)</label>
-              <input type="file" multiple accept="image/*" @change="handleImageUpload" class="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white" />
-              <div v-if="images.length" class="flex flex-wrap gap-2 mt-2">
-                <img v-for="(img, i) in images" :key="i" :src="img.preview" class="w-20 h-20 object-cover rounded-lg border border-purple-500/30" />
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                Imágenes del prospecto (opcional)
+              </label>
+              <div class="relative group cursor-pointer">
+                <input type="file" multiple accept="image/*" @change="handleImageUpload" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                <div class="w-full px-4 py-8 bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center text-center group-hover:border-primary-400 group-hover:bg-primary-50 transition-colors">
+                  <i class="fas fa-cloud-upload-alt text-3xl text-slate-300 group-hover:text-primary-400 mb-2"></i>
+                  <span class="text-sm font-bold text-slate-500 group-hover:text-primary-600">Haz clic o arrastra imágenes aquí</span>
+                </div>
+              </div>
+              <div v-if="images.length" class="flex flex-wrap gap-3 mt-4">
+                <div v-for="(img, i) in images" :key="i" class="relative rounded-lg overflow-hidden border border-slate-200 shadow-sm">
+                  <img :src="img.preview" class="w-20 h-20 object-cover" />
+                </div>
               </div>
             </div>
           </div>
-          <div class="flex items-center gap-4 mt-6">
-            <button @click="analyzeProspect" :disabled="loading || !inputText" class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 font-medium disabled:opacity-50">
-              {{ loading ? 'Analizando...' : 'Analizar Prospecto con IA' }}
+          
+          <div class="flex items-center justify-end gap-4 mt-6 pt-6 border-t border-slate-100">
+            <button @click="analyzeProspect" :disabled="loading || !inputText" class="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200 font-bold disabled:opacity-50 flex items-center shadow-sm">
+              <i :class="loading ? 'fas fa-circle-notch fa-spin' : 'fas fa-bolt'" class="mr-2"></i>
+              {{ loading ? 'Analizando prospecto...' : 'Analizar Prospecto con IA' }}
             </button>
           </div>
-          <div v-if="result" class="mt-6 bg-gray-900/70 rounded-xl p-6 border border-purple-500/30">
-            <h2 class="text-xl font-bold text-purple-300 mb-2">Análisis y Recomendaciones</h2>
-            <div class="text-gray-200 whitespace-pre-line">{{ result }}</div>
+          
+          <div v-if="result" class="mt-6 flex-1 bg-primary-50/50 rounded-xl p-6 border border-primary-100 overflow-y-auto">
+            <h2 class="text-lg font-black text-primary-800 mb-4 flex items-center border-b border-primary-200/50 pb-2">
+              <i class="fas fa-chart-line mr-2 text-primary-500"></i>
+              Análisis y Recomendaciones
+            </h2>
+            <div class="text-slate-700 font-medium text-sm leading-relaxed whitespace-pre-line">{{ result }}</div>
           </div>
-          <div v-if="error" class="mt-4 text-red-400">{{ error }}</div>
+          <div v-if="error" class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-sm font-bold text-red-600 flex items-center">
+            <i class="fas fa-exclamation-circle mr-2"></i>
+            {{ error }}
+          </div>
         </div>
       </template>
     </div>
@@ -49,14 +76,14 @@ import ProspectConversationDetail from '@/features/conversations/components/Pros
 
 const selectedConversation = ref(null)
 
-function handleSelectConversation(conversation) {
+function handleSelectConversation(conversation: any) {
   selectedConversation.value = conversation
 }
 
-function handleMessageSent(message) {
+function handleMessageSent(message: any) {
   // Actualizar el historial local si es necesario
-  if (selectedConversation.value) {
-    selectedConversation.value.messages.push(message)
+  if (selectedConversation.value !== null) {
+    (selectedConversation.value as any).messages.push(message)
   }
 }
 

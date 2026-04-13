@@ -1,31 +1,34 @@
 <template>
-  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md border border-gray-700">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-semibold text-white">
-          <i class="fas fa-lightning-bolt text-yellow-400 mr-2"></i>
-          Tarea Rápida
-        </h3>
+  <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md animate-fade-in">
+      <!-- Header -->
+      <div class="flex items-center justify-between p-5 border-b border-slate-100">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center">
+            <i class="fas fa-bolt text-indigo-600 text-sm"></i>
+          </div>
+          <h3 class="text-base font-black text-slate-800">Tarea Rápida</h3>
+        </div>
         <button
           @click="$emit('close')"
-          class="text-gray-400 hover:text-white transition-colors"
+          class="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
         >
           <i class="fas fa-times"></i>
         </button>
       </div>
 
-      <form @submit.prevent="handleSubmit">
+      <form @submit.prevent="handleSubmit" class="p-5">
         <div class="space-y-4">
           <!-- Título -->
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">
-              Título de la tarea <span class="text-red-400">*</span>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+              Título <span class="text-red-500">*</span>
             </label>
             <input
               v-model="form.title"
               type="text"
               ref="titleInput"
-              class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors text-sm font-medium"
               placeholder="¿Qué necesitas hacer?"
               required
             />
@@ -33,55 +36,50 @@
 
           <!-- Descripción (opcional) -->
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">
-              Descripción (opcional)
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+              Descripción <span class="text-slate-400 font-normal normal-case">(opcional)</span>
             </label>
             <textarea
               v-model="form.description"
               rows="2"
-              class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors resize-none text-sm"
               placeholder="Detalles adicionales..."
             ></textarea>
           </div>
 
           <!-- Información automática -->
-          <div class="bg-gray-700/50 rounded-lg p-3 border border-gray-600">
-            <h4 class="text-sm font-medium text-gray-300 mb-2">
-              <i class="fas fa-magic text-purple-400 mr-1"></i>
-              Configuración automática:
+          <div class="bg-indigo-50 rounded-xl p-4 border border-indigo-100">
+            <h4 class="text-xs font-bold text-indigo-700 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+              <i class="fas fa-magic text-indigo-500"></i>
+              Configuración automática
             </h4>
-            
-            <div class="space-y-2 text-sm text-gray-400">
-              <div class="flex justify-between">
-                <span>📅 Fecha:</span>
-                <span class="text-white">{{ formatDate(selectedDate) }}</span>
+            <div class="space-y-2 text-xs">
+              <div class="flex justify-between items-center">
+                <span class="text-slate-500 font-medium flex items-center gap-1.5"><i class="fas fa-calendar-day text-indigo-400"></i> Fecha:</span>
+                <span class="text-slate-800 font-bold">{{ formatDate(selectedDate) }}</span>
               </div>
-              
-              <div class="flex justify-between">
-                <span>⏰ Vencimiento:</span>
-                <span class="text-white">{{ formatDate(dueDate) }} (2 días)</span>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-500 font-medium flex items-center gap-1.5"><i class="fas fa-hourglass-end text-orange-400"></i> Vencimiento:</span>
+                <span class="text-slate-800 font-bold">{{ formatDate(dueDate) }} <span class="text-slate-400 font-normal">(2 días)</span></span>
               </div>
-              
-              <div class="flex justify-between">
-                <span>👤 Asignado a:</span>
-                <span class="text-white">{{ currentUser?.name || 'Ti mismo' }}</span>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-500 font-medium flex items-center gap-1.5"><i class="fas fa-user text-indigo-400"></i> Asignado a:</span>
+                <span class="text-slate-800 font-bold">{{ currentUser?.name || 'Ti mismo' }}</span>
               </div>
-              
-              <div class="flex justify-between">
-                <span>🏢 Cliente:</span>
-                <span class="text-gray-300">Se asignará después</span>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-500 font-medium flex items-center gap-1.5"><i class="fas fa-building text-slate-400"></i> Cliente:</span>
+                <span class="text-slate-500 italic">Se asignará después</span>
               </div>
-              
-              <div class="flex justify-between">
-                <span>📊 Estado:</span>
-                <span class="text-yellow-300">Pendiente</span>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-500 font-medium flex items-center gap-1.5"><i class="fas fa-circle-dot text-amber-400"></i> Estado:</span>
+                <span class="text-amber-600 font-bold">Pendiente</span>
               </div>
             </div>
           </div>
 
           <!-- Prioridad rápida -->
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
               Prioridad
             </label>
             <div class="flex gap-2">
@@ -89,11 +87,11 @@
                 type="button"
                 v-for="priority in priorities"
                 :key="priority.value"
-                @click="form.priority = priority.value"
-                class="flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all duration-200"
+                @click="form.priority = priority.value as 'low' | 'medium' | 'high' | 'urgent'"
+                class="flex-1 py-2 px-2 rounded-lg text-xs font-bold transition-all duration-200 border"
                 :class="form.priority === priority.value 
                   ? priority.activeClass 
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'"
+                  : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100'"
               >
                 {{ priority.label }}
               </button>
@@ -102,11 +100,11 @@
         </div>
 
         <!-- Botones de acción -->
-        <div class="flex gap-3 mt-6">
+        <div class="flex gap-3 mt-6 pt-5 border-t border-slate-100">
           <button
             type="button"
             @click="$emit('close')"
-            class="flex-1 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+            class="flex-1 px-4 py-2.5 bg-slate-50 text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors font-bold text-sm"
           >
             Cancelar
           </button>
@@ -114,10 +112,10 @@
           <button
             type="submit"
             :disabled="!form.title.trim() || loading"
-            class="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-md hover:from-purple-700 hover:to-pink-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="flex-1 px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-bold text-sm shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            <i v-if="loading" class="fas fa-spinner fa-spin mr-2"></i>
-            <i v-else class="fas fa-lightning-bolt mr-2"></i>
+            <i v-if="loading" class="fas fa-spinner fa-spin"></i>
+            <i v-else class="fas fa-bolt"></i>
             {{ loading ? 'Creando...' : 'Crear Tarea' }}
           </button>
         </div>
@@ -165,10 +163,10 @@ const dueDate = computed(() => {
 })
 
 const priorities = [
-  { value: 'low', label: 'Baja', activeClass: 'bg-blue-600 text-white' },
-  { value: 'medium', label: 'Media', activeClass: 'bg-yellow-600 text-white' },
-  { value: 'high', label: 'Alta', activeClass: 'bg-orange-600 text-white' },
-  { value: 'urgent', label: 'Urgente', activeClass: 'bg-red-600 text-white' }
+  { value: 'low', label: 'Baja', activeClass: 'bg-blue-600 text-white border-blue-600' },
+  { value: 'medium', label: 'Media', activeClass: 'bg-amber-500 text-white border-amber-500' },
+  { value: 'high', label: 'Alta', activeClass: 'bg-orange-600 text-white border-orange-600' },
+  { value: 'urgent', label: 'Urgente', activeClass: 'bg-red-600 text-white border-red-600' }
 ]
 
 // Methods
@@ -216,28 +214,13 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* Animación de entrada */
-.fixed {
-  animation: fadeIn 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* Animación del modal */
-.bg-gray-800 {
-  animation: slideUp 0.3s ease-out;
+.animate-fade-in {
+  animation: slideUp 0.25s ease-out;
 }
 
 @keyframes slideUp {
   from {
-    transform: translateY(20px);
+    transform: translateY(16px);
     opacity: 0;
   }
   to {

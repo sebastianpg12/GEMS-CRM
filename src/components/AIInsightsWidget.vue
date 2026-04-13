@@ -1,105 +1,117 @@
 <template>
-  <div class="bg-gray-900/40 backdrop-blur-xl rounded-2xl shadow-2xl p-6 border border-purple-500/20 animate-fade-in animation-delay-1800">
-    <div class="flex items-center justify-between mb-4">
-      <h3 class="text-xl font-semibold text-white flex items-center">
-        <i class="fas fa-brain text-purple-400 mr-2"></i>
+  <div class="bg-white border border-slate-200 shadow-sm rounded-2xl p-4 lg:p-5 animate-fade-in animation-delay-1800">
+    <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-3">
+      <h3 class="text-xs font-black text-slate-800 flex items-center tracking-tight uppercase">
+        <div class="w-6 h-6 rounded bg-purple-50 flex items-center justify-center mr-2">
+          <i class="fas fa-brain text-purple-500 text-[10px]"></i>
+        </div>
         Insights IA
-        <span class="ml-2 text-xs bg-purple-500/20 text-purple-300 px-2 py-1 rounded-full border border-purple-500/30">
-          Creativo
-        </span>
       </h3>
-      <button
-        @click="generateInsights(false)"
-        :disabled="loading"
-        class="p-2 bg-purple-500/20 hover:bg-purple-500/30 rounded-lg transition-colors duration-200 disabled:opacity-50"
-        :title="loading ? 'Generando insights...' : 'Actualizar insights'"
-      >
-        <i :class="loading ? 'fas fa-spinner fa-spin' : 'fas fa-sync-alt'" class="text-purple-400"></i>
-      </button>
+      <div class="flex items-center gap-2">
+        <span class="text-[9px] bg-gradient-to-r from-purple-100 to-primary-100 text-purple-700 px-2 py-0.5 rounded border border-purple-200 font-bold uppercase tracking-wider">
+          Activo
+        </span>
+        <button
+          @click="generateInsights(false)"
+          :disabled="loading"
+          class="w-6 h-6 flex items-center justify-center bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded transition-all duration-200 disabled:opacity-50 text-slate-500 hover:text-primary-500"
+          title="Actualizar insights"
+        >
+          <i :class="loading ? 'fas fa-spinner fa-spin text-[10px]' : 'fas fa-sync-alt text-[10px]'"></i>
+        </button>
+      </div>
     </div>
 
-    <div v-if="loading" class="flex items-center justify-center py-8">
+    <div v-if="loading" class="flex items-center justify-center py-12">
       <div class="text-center">
-        <div class="relative mb-4">
-          <i class="fas fa-brain text-purple-400 text-4xl animate-bounce"></i>
-          <div class="absolute inset-0 bg-purple-400/20 rounded-full blur-lg animate-pulse"></div>
+        <div class="relative mb-6 mx-auto w-16 h-16 flex items-center justify-center">
+          <i class="fas fa-brain text-purple-500 text-3xl animate-bounce relative z-10"></i>
+          <div class="absolute inset-0 bg-purple-100 rounded-full animate-pulse"></div>
         </div>
-        <p class="text-gray-400 mb-2">Analizando datos con IA creativa...</p>
-        <div class="flex justify-center space-x-1">
-          <div class="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
-          <div class="w-2 h-2 bg-purple-400 rounded-full animate-pulse animation-delay-300"></div>
-          <div class="w-2 h-2 bg-purple-400 rounded-full animate-pulse animation-delay-600"></div>
-        </div>
-      </div>
-    </div>
-
-    <div v-else-if="insights" class="space-y-4">
-      <div class="bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-lg p-4 border border-purple-500/20">
-        <div class="flex items-start gap-3">
-          <i class="fas fa-lightbulb text-yellow-400 mt-1"></i>
-          <div>
-            <h4 class="text-white font-medium mb-1">Visión Creativa</h4>
-            <p class="text-gray-300 text-sm leading-relaxed">{{ insights.summary }}</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-lg p-4 border border-green-500/20">
-        <div class="flex items-start gap-3">
-          <i class="fas fa-bullseye text-green-400 mt-1"></i>
-          <div>
-            <h4 class="text-white font-medium mb-2">Recomendaciones Innovadoras</h4>
-            <div v-if="insights.recommendations && insights.recommendations.length > 0">
-              <ul class="space-y-1">
-                <li v-for="rec in insights.recommendations" :key="rec" class="text-gray-300 text-sm flex items-start">
-                  <span class="text-green-400 mr-2">•</span>
-                  {{ rec }}
-                </li>
-              </ul>
-            </div>
-            <div v-else class="text-gray-400 text-sm italic">
-              Generando recomendaciones personalizadas...
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-lg p-4 border border-blue-500/20">
-        <div class="flex items-start gap-3">
-          <i class="fas fa-chart-line text-blue-400 mt-1"></i>
-          <div>
-            <h4 class="text-white font-medium mb-2">Tendencias Clave</h4>
-            <div v-if="insights.trends && insights.trends.length > 0">
-              <ul class="space-y-1">
-                <li v-for="trend in insights.trends" :key="trend" class="text-gray-300 text-sm flex items-start">
-                  <span class="text-blue-400 mr-2">📈</span>
-                  {{ trend }}
-                </li>
-              </ul>
-            </div>
-            <div v-else class="text-gray-400 text-sm italic">
-              Analizando patrones de uso del sistema...
-            </div>
-          </div>
+        <p class="text-slate-500 font-medium mb-3">Analizando datos con IA colaborativa...</p>
+        <div class="flex justify-center space-x-1.5">
+          <div class="w-2.5 h-2.5 bg-purple-400 rounded-full animate-pulse"></div>
+          <div class="w-2.5 h-2.5 bg-primary-400 rounded-full animate-pulse animation-delay-300"></div>
+          <div class="w-2.5 h-2.5 bg-sky-400 rounded-full animate-pulse animation-delay-600"></div>
         </div>
       </div>
     </div>
 
-    <div v-else-if="error" class="text-center py-8">
-      <i class="fas fa-exclamation-triangle text-red-400 text-3xl mb-2"></i>
-      <p class="text-gray-400 mb-2">Error al generar insights</p>
-      <p class="text-red-400 text-sm">{{ error }}</p>
+    <div v-else-if="insights" class="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-100">
+      
+      <!-- Visión Creativa -->
+      <div class="px-4 py-2 hover:bg-slate-50/50 transition-colors">
+        <div class="flex items-center gap-2 mb-2">
+          <div class="w-5 h-5 rounded bg-amber-50 text-amber-500 flex items-center justify-center">
+            <i class="fas fa-lightbulb text-[10px]"></i>
+          </div>
+          <h4 class="text-slate-800 font-bold text-[10px] uppercase tracking-wider">Visión</h4>
+        </div>
+        <p class="text-slate-500 text-[10px] font-medium leading-relaxed">{{ insights.summary }}</p>
+      </div>
+
+      <!-- Recomendaciones -->
+      <div class="px-4 py-2 hover:bg-slate-50/50 transition-colors">
+        <div class="flex items-center gap-2 mb-2">
+          <div class="w-5 h-5 rounded bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <i class="fas fa-bullseye text-[10px]"></i>
+          </div>
+          <h4 class="text-slate-800 font-bold text-[10px] uppercase tracking-wider">Recomendaciones</h4>
+        </div>
+        <div v-if="insights.recommendations && insights.recommendations.length > 0">
+          <ul class="space-y-1">
+            <li v-for="rec in insights.recommendations" :key="rec" class="text-slate-500 text-[10px] flex items-start font-medium leading-tight">
+              <span class="text-emerald-400 mr-2 mt-[2px]"><i class="fas fa-circle text-[4px]"></i></span>
+              <span>{{ rec }}</span>
+            </li>
+          </ul>
+        </div>
+        <div v-else class="text-slate-400 text-[10px] italic">
+          Generando...
+        </div>
+      </div>
+
+      <!-- Tendencias -->
+      <div class="px-4 py-2 hover:bg-slate-50/50 transition-colors">
+        <div class="flex items-center gap-2 mb-2">
+          <div class="w-5 h-5 rounded bg-sky-50 text-sky-500 flex items-center justify-center">
+            <i class="fas fa-chart-line text-[10px]"></i>
+          </div>
+          <h4 class="text-slate-800 font-bold text-[10px] uppercase tracking-wider">Tendencias</h4>
+        </div>
+        <div v-if="insights.trends && insights.trends.length > 0">
+          <ul class="space-y-1">
+            <li v-for="trend in insights.trends" :key="trend" class="text-slate-500 text-[10px] flex items-start font-medium leading-tight">
+              <span class="text-sky-400 mr-2 mt-[2px]"><i class="fas fa-circle text-[4px]"></i></span>
+              <span>{{ trend }}</span>
+            </li>
+          </ul>
+        </div>
+        <div v-else class="text-slate-400 text-[10px] italic">
+          Analizando...
+        </div>
+      </div>
+    </div>
+
+    <div v-else-if="error" class="text-center py-10 bg-red-50 rounded-2xl border border-red-100">
+      <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm text-red-500">
+        <i class="fas fa-exclamation-triangle text-2xl"></i>
+      </div>
+      <p class="text-slate-700 font-bold mb-1">Inconveniente detectado</p>
+      <p class="text-red-500 text-sm font-medium">{{ error }}</p>
       <button
         @click="generateInsights(false)"
-        class="mt-4 px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 rounded-lg text-purple-400 transition-colors duration-200"
+        class="mt-5 px-6 py-2.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl shadow-sm text-slate-700 font-bold transition-all duration-200 active:scale-[0.98]"
       >
-        Reintentar
+        <i class="fas fa-sync-alt mr-2 text-slate-400"></i>Reintentar Análisis
       </button>
     </div>
 
-    <div v-else class="text-center py-8 text-gray-400">
-      <i class="fas fa-brain text-3xl mb-2 block"></i>
-      <p>Haz clic en el botón para generar insights con IA</p>
+    <div v-else class="text-center py-12 text-slate-500 bg-slate-50 rounded-2xl border border-dashed border-slate-300">
+      <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm text-slate-300">
+        <i class="fas fa-brain text-2xl"></i>
+      </div>
+      <p class="font-medium">Inicia un análisis con IA para revelar el potencial de tus datos</p>
     </div>
   </div>
 </template>
@@ -340,15 +352,13 @@ Proporciona:
 
     // Si no se encontraron secciones estructuradas, intentar extraer de texto libre
     if (recommendations.length === 0 || trends.length === 0) {
-      const fullText = aiResponse.toLowerCase()
-
       // Buscar recomendaciones en el texto
       if (recommendations.length === 0) {
         const recMatches = aiResponse.match(/(?:recomendaciones?|sugerencias?)[^:]*:([\s\S]*?)(?=\n(?:tendencias?|trends?|insights?)|$)/i)
         if (recMatches) {
           const recText = recMatches[1]
-          const recLines = recText.split('\n').filter(l => l.trim().match(/^[-•*\d+.\s]*[a-zA-Z]/))
-          recommendations = recLines.map(l => l.replace(/^[-•*\d+.\s]*/, '').trim()).filter(l => l.length > 10).slice(0, 3)
+          const recLines = recText.split('\n').filter((l: string) => l.trim().match(/^[-•*\d+.\s]*[a-zA-Z]/))
+          recommendations = recLines.map((l: string) => l.replace(/^[-•*\d+.\s]*/, '').trim()).filter((l: string) => l.length > 10).slice(0, 3)
         }
       }
 
@@ -357,8 +367,8 @@ Proporciona:
         const trendMatches = aiResponse.match(/(?:tendencias?|trends?|insights?)[^:]*:([\s\S]*?)$/i)
         if (trendMatches) {
           const trendText = trendMatches[1]
-          const trendLines = trendText.split('\n').filter(l => l.trim().match(/^[-•*\d+.\s]*[a-zA-Z]/))
-          trends = trendLines.map(l => l.replace(/^[-•*\d+.\s]*/, '').trim()).filter(l => l.length > 10).slice(0, 3)
+          const trendLines = trendText.split('\n').filter((l: string) => l.trim().match(/^[-•*\d+.\s]*[a-zA-Z]/))
+          trends = trendLines.map((l: string) => l.replace(/^[-•*\d+.\s]*/, '').trim()).filter((l: string) => l.length > 10).slice(0, 3)
         }
       }
     }

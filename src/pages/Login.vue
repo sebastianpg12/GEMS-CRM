@@ -1,236 +1,126 @@
 <template>
-  <div class="min-h-screen relative flex flex-col px-4 py-6 sm:py-8 text-slate-100 font-[Inter,Sora,ui-sans-serif]">
-    <!-- Fondo prisma y grid sutil -->
-    <div class="absolute inset-0 bg-gradient-to-br from-[#7C3AED] via-purple-700 to-[#06B6D4]"></div>
-    <div class="absolute inset-0 opacity-[0.06] pointer-events-none bg-[length:36px_36px]" style="background-image:linear-gradient(to right,rgba(255,255,255,.12)_1px,transparent_1px),linear-gradient(to bottom,rgba(255,255,255,.12)_1px,transparent_1px);"></div>
+  <div class="min-h-screen flex items-center justify-center bg-[#f8f9fa] relative overflow-hidden font-['Inter',sans-serif]">
+    <!-- Background Blur Glow -->
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary-500/10 blur-[120px] rounded-full pointer-events-none"></div>
 
-  <div class="relative z-10 w-full max-w-7xl flex-1 pb-24 md:pb-0 mx-auto">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center px-1.5 sm:px-0">
-        <!-- Columna izquierda: Hero (desktop) -->
-        <section class="hidden md:flex flex-col gap-6 pr-4">
-          <div class="flex items-start gap-4">
-            <img src="@/assets/logo.webp" alt="GEMS CRM" class="w-12 h-12 rounded-lg shadow-md shadow-cyan-300/20" />
-            <div>
-              <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-white">
-                GEMS CRM
-              </h1>
-              <p class="mt-3 text-lg md:text-xl font-normal text-slate-100/90">
-                Enfócate en lo importante y avanza paso a paso con claridad.
-              </p>
-            </div>
-          </div>
-          <blockquote class="text-[13px] md:text-sm font-medium text-slate-300/80">
-            “Escribe la visión, y declárala con claridad, para que corra el que la leyere.” — Habacuc 2:2
-          </blockquote>
-          <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-5 text-slate-100/95">
-            <p class="text-[15px] md:text-base font-medium">
-              Somos GEMS, una comunidad con propósito. Creemos en el crecimiento compartido: cada línea de código y cada píxel puede elevar a alguien más. Ayudamos a las personas creando experiencias que suman valor real.
-            </p>
-            <p class="mt-3 text-[15px] md:text-base font-medium">
-              GEMS no es solo una empresa; es un estilo de vida. Y tú, que lees esto, aportarás tu granito de arena: con tu talento
-            </p>
-          </div>
-        </section>
-
-        <!-- Encabezado móvil (solo mobile) -->
-        <section class="md:hidden order-1">
-          <div class="flex items-start gap-3 mb-3">
-            <img src="@/assets/logo.webp" alt="GEMS CRM" class="w-10 h-10 rounded-md shadow-md shadow-cyan-300/20" />
-            <div>
-              <h1 class="text-[30px] leading-snug font-bold text-white">
-                GEMS CRM
-              </h1>
-              <p class="mt-1.5 text-[15px] font-normal text-slate-100/90">
-                Enfócate en lo importante y avanza paso a paso con claridad.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <!-- Formulario -->
-        <section class="order-2">
-          <div class="max-w-md mx-auto group rounded-2xl p-[1px] bg-gradient-to-r from-cyan-300/30 to-fuchsia-400/30 hover:from-cyan-300/60 hover:to-fuchsia-400/60 transition-colors">
-            <div class="rounded-2xl bg-white/5 dark:bg-white/5 backdrop-blur-xl border border-white/10 p-5 sm:p-8 shadow-xl">
-              <p class="sr-only">Inicia sesión en tu cuenta</p>
-              <!-- Login Form -->
-              <form @submit.prevent="handleLogin" class="space-y-6" aria-live="polite">
-                <!-- Email Field -->
-                <div>
-                  <label for="email" class="block text-sm font-medium text-slate-200 mb-2">
-                    Correo Electrónico
-                  </label>
-                  <div class="relative">
-                    <input
-                      id="email"
-                      v-model="credentials.email"
-                      type="email"
-                      required
-                      class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-slate-300/70 focus:ring-2 focus:ring-sky-400 focus:border-transparent outline-none transition-all duration-200"
-                      :class="{ 'border-[#F43F5E] focus:ring-[#F43F5E]': emailError }"
-                      placeholder="tu@email.com"
-                      @blur="validateEmail"
-                      @input="emailError = ''"
-                      :aria-invalid="!!emailError"
-                      aria-describedby="emailHelp"
-                    />
-                    <i class="fas fa-envelope absolute right-3 top-3.5 text-slate-300/70" aria-hidden="true"></i>
-                  </div>
-                  <p :id="'emailHelp'" v-if="emailError" class="text-[#F43F5E] text-sm mt-1">{{ emailError }}</p>
-                </div>
-
-                <!-- Password Field -->
-                <div>
-                  <label for="password" class="block text-sm font-medium text-slate-200 mb-2">
-                    Contraseña
-                  </label>
-                  <div class="relative">
-                    <input
-                      id="password"
-                      v-model="credentials.password"
-                      :type="showPassword ? 'text' : 'password'"
-                      required
-                      class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-slate-300/70 focus:ring-2 focus:ring-sky-400 focus:border-transparent outline-none transition-all duration-200 pr-12"
-                      :class="{ 'border-[#F43F5E] focus:ring-[#F43F5E]': passwordError }"
-                      placeholder="••••••••"
-                      @input="passwordError = ''"
-                      :aria-invalid="!!passwordError"
-                      aria-describedby="passwordHelp"
-                    />
-                    <button
-                      type="button"
-                      @click="showPassword = !showPassword"
-                      class="absolute right-3 top-3.5 text-slate-300/70 hover:text-white transition-colors"
-                      aria-label="Mostrar u ocultar contraseña"
-                    >
-                      <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
-                    </button>
-                  </div>
-                  <p :id="'passwordHelp'" v-if="passwordError" class="text-[#F43F5E] text-sm mt-1">{{ passwordError }}</p>
-                </div>
-
-                <!-- Remember Me & Forgot Password -->
-                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-                  <div class="flex items-center">
-                    <input
-                      id="remember"
-                      v-model="rememberMe"
-                      type="checkbox"
-                      class="w-4 h-4 text-sky-500 bg-white/5 border-white/10 rounded focus:ring-sky-400 focus:ring-2"
-                    />
-                    <label for="remember" class="ml-2 text-sm text-slate-200">
-                      Recordarme
-                    </label>
-                  </div>
-                  <button
-                    type="button"
-                    @click="showForgotPassword = true"
-                    class="relative text-sm text-sky-300 hover:text-sky-200 transition-colors after:absolute after:left-0 after:-bottom-0.5 after:h-[2px] after:w-0 after:bg-gradient-to-r from-cyan-300 to-fuchsia-400 hover:after:w-full after:transition-all self-end sm:self-auto"
-                  >
-                    ¿Olvidaste tu contraseña?
-                  </button>
-                </div>
-
-                <!-- Error Message -->
-                <div v-if="error" class="p-3 bg-red-900/40 border border-red-500/50 rounded-lg" aria-live="polite">
-                  <div class="flex items-center">
-                    <i class="fas fa-exclamation-triangle text-red-300 mr-2" aria-hidden="true"></i>
-                    <p class="text-red-300 text-sm">{{ error }}</p>
-                  </div>
-                </div>
-
-                <!-- Login Button -->
-                <button
-                  type="submit"
-                  :disabled="isLoading || !isFormValid"
-                  class="w-full py-3 px-4 rounded-xl font-medium text-white bg-[#0EA5E9] hover:bg-[#22D3EE] focus:outline-none focus-visible:ring-4 focus-visible:ring-cyan-300/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg"
-                >
-                  <span v-if="!isLoading" class="flex items-center justify-center">
-                    <i class="fas fa-sign-in-alt mr-2" aria-hidden="true"></i>
-                    Iniciar Sesión
-                  </span>
-                  <span v-else class="flex items-center justify-center">
-                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Iniciando sesión...
-                  </span>
-                </button>
-              </form>
-            </div>
-          </div>
-        </section>
-
-        <!-- Versículo móvil (después del form) -->
-        <section class="md:hidden order-3">
-          <blockquote class="mt-6 text-sm font-medium text-slate-300/90 max-w-md mx-auto">
-            “Escribe la visión, y declárala con claridad, para que corra el que la leyere.” — Habacuc 2:2
-          </blockquote>
-        </section>
-
-        <!-- Mensaje motivacional móvil (al final) -->
-        <section class="md:hidden order-4 mt-3">
-          <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-4 text-slate-100/95">
-            <p class="text-[14px] font-medium">
-              Somos GEMS, una comunidad con propósito. Creemos en el crecimiento compartido: cada línea de código y cada píxel puede elevar a alguien más. Ayudamos a las personas creando experiencias que suman valor real.
-            </p>
-            <p class="mt-2 text-[14px] font-medium">
-              GEMS no es solo una empresa; es un estilo de vida. Y tú, que lees esto, aportarás tu granito de arena: con tu talento
-            </p>
-          </div>
-        </section>
+    <div class="w-full max-w-md p-10 bg-white border border-slate-200 rounded-[2.5rem] shadow-2xl relative z-10 animate-fade-in">
+      
+      <!-- Header -->
+      <div class="flex flex-col items-center mb-10 text-center">
+        <img src="/ct-logo.svg" alt="Customer CRM Logo" class="w-16 h-16 mb-4" />
+        <h1 class="text-2xl font-black text-[#1a3764] tracking-tight">Customer CRM</h1>
+        <p class="text-sm font-medium text-slate-500 mt-2">Acceso a la plataforma centralizada</p>
       </div>
+
+      <!-- Error message -->
+      <div v-if="error" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3 animate-fade-in">
+        <i class="fas fa-shield-check text-red-500 shrink-0 mt-0.5" aria-hidden="true"></i>
+        <p class="text-sm font-bold text-red-600 leading-tight">{{ error }}</p>
+      </div>
+
+      <!-- Login Form -->
+      <form @submit.prevent="handleLogin" class="space-y-6">
+        <div class="space-y-4">
+          
+          <!-- Email -->
+          <div class="relative group">
+            <i class="fas fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors z-10"></i>
+            <input
+              v-model="credentials.email"
+              type="email"
+              required
+              @blur="validateEmail"
+              @input="emailError = ''"
+              placeholder="Correo"
+              class="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-4 text-sm font-medium focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all text-slate-800"
+              :class="{ 'border-red-400 focus:ring-red-500/20': emailError }"
+            />
+            <p v-if="emailError" class="absolute -bottom-5 left-2 text-red-500 text-xs">{{ emailError }}</p>
+          </div>
+
+          <!-- Password -->
+          <div class="relative group mt-6">
+            <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors z-10"></i>
+            <input
+              v-model="credentials.password"
+              :type="showPassword ? 'text' : 'password'"
+              required
+              @input="passwordError = ''"
+              placeholder="Contraseña"
+              class="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-12 text-sm font-medium focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none transition-all text-slate-800"
+            />
+            <button
+              type="button"
+              @click="showPassword = !showPassword"
+              class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors z-10"
+            >
+              <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Auth Actions -->
+        <div class="flex items-center justify-between px-1">
+          <div class="flex items-center">
+            <input
+              id="remember"
+              v-model="rememberMe"
+              type="checkbox"
+              class="w-4 h-4 text-primary-500 bg-slate-50 border-slate-300 rounded focus:ring-primary-400 focus:ring-2"
+            />
+            <label for="remember" class="ml-2 text-sm font-medium text-slate-600">
+              Recordarme
+            </label>
+          </div>
+          <button
+            type="button"
+            @click="showForgotPassword = true"
+            class="text-sm font-medium text-primary-600 hover:text-primary-500 transition-colors"
+          >
+            ¿Olvidaste tu contraseña?
+          </button>
+        </div>
+
+        <button
+          type="submit"
+          :disabled="isLoading || !isFormValid"
+          class="w-full py-4 bg-primary-500 hover:bg-primary-400 text-white font-black rounded-2xl transition-all shadow-lg shadow-primary-500/20 active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-70 disabled:pointer-events-none"
+        >
+          <template v-if="isLoading">
+            <i class="fas fa-spinner fa-spin"></i> Desbloqueando...
+          </template>
+          <template v-else>
+            Desbloquear Sistema
+          </template>
+        </button>
+      </form>
     </div>
 
-    <!-- Footer con derechos y redes -->
-    <footer class="w-full z-10 mt-auto">
-      <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between text-slate-200/80 text-xs sm:text-sm" style="padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px)">
-        <div>
-          © {{ currentYear }} GEMS Innovations. Todos los derechos reservados.
-        </div>
-        <nav class="flex items-center gap-4 mt-2 sm:mt-0" aria-label="Enlaces de GEMS Innovations">
-          <a
-            href="https://www.instagram.com/gemsinnovations/"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="text-sky-200 hover:text-sky-100 transition-colors underline decoration-transparent hover:decoration-sky-200 underline-offset-4"
-            aria-label="Instagram de GEMS Innovations"
-          >
-            Instagram
-          </a>
-          <a
-            href="https://gemsinnovations.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="text-sky-200 hover:text-sky-100 transition-colors underline decoration-transparent hover:decoration-sky-200 underline-offset-4"
-            aria-label="Sitio web de GEMS Innovations"
-          >
-            gemsinnovations.com
-          </a>
-        </nav>
-      </div>
-    </footer>
+    <!-- Background decor -->
+    <div class="absolute bottom-4 text-center w-full text-slate-400 text-xs font-medium">
+       © {{ currentYear }} Customer CRM. Todos los derechos reservados.
+    </div>
 
-    <!-- Forgot Password Modal -->
-    <div v-if="showForgotPassword" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-  <div class="bg-gray-900 rounded-2xl shadow-2xl border border-purple-500/20 max-w-md w-full mx-4 p-6">
+    <!-- Modal Forgot Password -->
+    <div v-if="showForgotPassword" class="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
+      <div class="bg-white rounded-[2rem] shadow-2xl border border-slate-200 max-w-md w-full mx-4 p-8 animate-fade-in">
         <div class="flex items-center justify-between mb-6">
-          <h3 class="text-xl font-bold text-white">Restablecer Contraseña</h3>
-          <button @click="showForgotPassword = false" class="text-gray-400 hover:text-white transition-colors">
+          <h3 class="text-xl font-bold text-slate-800">Restablecer Contraseña</h3>
+          <button @click="showForgotPassword = false" class="text-slate-400 hover:text-slate-600 transition-colors">
             <i class="fas fa-times text-lg"></i>
           </button>
         </div>
         
-        <form @submit.prevent="handleForgotPassword" class="space-y-4">
+        <form @submit.prevent="handleForgotPassword" class="space-y-6">
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">
+            <label class="block text-sm font-medium text-slate-600 mb-2">
               Correo Electrónico
             </label>
             <input
               v-model="forgotPasswordEmail"
               type="email"
               required
-              class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none"
               placeholder="tu@email.com"
             />
           </div>
@@ -239,14 +129,14 @@
             <button
               type="button"
               @click="showForgotPassword = false"
-              class="flex-1 py-2 px-4 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors"
+              class="flex-1 py-3 px-4 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
               :disabled="forgotPasswordLoading"
-              class="flex-1 py-2 px-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 transition-all"
+              class="flex-1 py-3 px-4 bg-primary-500 text-white font-bold rounded-xl hover:bg-primary-400 disabled:opacity-50 transition-all shadow-md shadow-primary-500/20"
             >
               {{ forgotPasswordLoading ? 'Enviando...' : 'Enviar' }}
             </button>
@@ -278,6 +168,7 @@ const passwordError = ref('')
 const showForgotPassword = ref(false)
 const forgotPasswordEmail = ref('')
 const forgotPasswordLoading = ref(false)
+const currentYear = new Date().getFullYear()
 
 // Computed
 const isFormValid = computed(() => {
@@ -292,8 +183,8 @@ const { isLoading, error } = authStore
 // Methods
 const validateEmail = () => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (!emailRegex.test(credentials.value.email)) {
-    emailError.value = 'Por favor ingresa un correo válido'
+  if (!emailRegex.test(credentials.value.email) && credentials.value.email) {
+    emailError.value = 'Correo inválido'
   } else {
     emailError.value = ''
   }
@@ -305,41 +196,26 @@ const handleLogin = async () => {
   const result = await authStore.login(credentials.value)
   
   if (result.success) {
-    // Redirect to dashboard after successful login
     await router.push('/')
   }
 }
 
-const setDemoCredentials = (type: 'admin' | 'manager' | 'employee') => {
-  const demoCredentials = {
-    admin: { email: 'admin@gems.com', password: 'admin123' },
-    manager: { email: 'maria@gems.com', password: 'maria123' },
-    employee: { email: 'carlos@gems.com', password: 'carlos123' }
-  }
-  
-  credentials.value = demoCredentials[type]
-  emailError.value = ''
-  passwordError.value = ''
-}
-
 const handleForgotPassword = async () => {
+  if (!forgotPasswordEmail.value) return
+
   forgotPasswordLoading.value = true
-  // TODO: Implement forgot password functionality
+  // Mock request
   setTimeout(() => {
     forgotPasswordLoading.value = false
     showForgotPassword.value = false
-    alert('Se ha enviado un correo con las instrucciones para restablecer tu contraseña.')
-  }, 2000)
+    alert('Se ha enviado un correo con las instrucciones.')
+  }, 1500)
 }
 
-// Check if user is already authenticated
 onMounted(async () => {
   const isAuthenticated = await authStore.checkAuth()
   if (isAuthenticated) {
     await router.push('/')
   }
 })
-
-// Footer year
-const currentYear = new Date().getFullYear()
 </script>

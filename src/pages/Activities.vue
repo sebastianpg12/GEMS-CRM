@@ -1,42 +1,45 @@
 <template>
-  <div class="space-y-6">
+  <div class="flex flex-col h-full min-h-0 relative">
     <!-- Search Bar -->
-    <div class="bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-purple-500/20">
-      <div class="relative">
+    <div class="mb-4 flex-shrink-0">
+      <div class="relative w-full max-w-md">
         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <i class="fas fa-search text-gray-400"></i>
+          <i class="fas fa-search text-slate-400"></i>
         </div>
         <input
           v-model="searchTerm"
           type="text"
-          placeholder="Buscar actividades por título, descripción o cliente..."
-          class="block w-full pl-10 pr-3 py-3 border border-gray-600/50 rounded-lg bg-gray-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors"
+          placeholder="Buscar actividades..."
+          class="w-full pl-10 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-shadow shadow-sm"
         />
       </div>
     </div>
 
     <!-- Activities View -->
-    <ActivitiesView 
-      ref="activitiesViewRef"
-      :searchTerm="searchTerm"
-      @create="openCreateModal"
-      @edit="openEditModal"
-    />
+    <div class="flex-1 min-h-0 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col p-4">
+      <ActivitiesView 
+        ref="activitiesViewRef"
+        :searchTerm="searchTerm"
+        @create="openCreateModal"
+        @edit="openEditModal"
+        class="h-full flex flex-col"
+      />
+    </div>
 
     <!-- Create/Edit Modal -->
-    <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div class="bg-gray-900 rounded-2xl shadow-2xl border border-purple-500/20 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-        <div class="flex items-center justify-between p-6 border-b border-purple-500/20">
-          <h3 class="text-xl font-bold text-white">
+    <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+      <div class="bg-white rounded-2xl shadow-xl border border-slate-100 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto animate-fade-in">
+        <div class="flex items-center justify-between p-5 border-b border-slate-100">
+          <h3 class="text-lg font-black text-slate-800">
             {{ editingActivity ? 'Editar Actividad' : 'Nueva Actividad' }}
           </h3>
-          <button @click="closeModal" class="text-gray-400 hover:text-white transition-colors">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <button @click="closeModal" class="text-slate-400 hover:text-slate-600 hover:bg-slate-50 p-1.5 rounded-lg transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
           </button>
         </div>
-        <div class="p-6">
+        <div class="p-5">
           <ActivityForm
             :activity="editingActivity"
             @save="handleSave"

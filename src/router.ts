@@ -18,12 +18,25 @@ import ClientDetail from './pages/ClientDetail.vue'
 import BoardsPage from './pages/BoardsPage.vue'
 import BoardView from './pages/BoardView.vue'
 import TasksBoard from './pages/TasksBoard.vue'
+import InternalTickets from './pages/tickets/InternalTickets.vue'
+import ExternalTickets from './pages/tickets/ExternalTickets.vue'
 
 const routes = [
   {
     path: '/vincular-wpp',
     name: 'WppVinculacion',
     component: WppVinculacion,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/support',
+    name: 'Support',
+    component: ExternalTickets
+  },
+  {
+    path: '/tickets',
+    name: 'Tickets',
+    component: InternalTickets,
     meta: { requiresAuth: true }
   },
   {
@@ -165,10 +178,10 @@ const router = createRouter({
 router.beforeEach(async (to, _from, next) => {
   const authStore = useAuthStore()
   
-  // Always allow access to login page
-  if (to.path === '/login') {
-    // If already authenticated, redirect to dashboard
-    if (authStore.isAuthenticated) {
+  // Always allow access to login and support pages
+  if (to.path === '/login' || to.path === '/support') {
+    // If already authenticated and trying to access login, redirect to dashboard
+    if (to.path === '/login' && authStore.isAuthenticated) {
       next('/')
       return
     }

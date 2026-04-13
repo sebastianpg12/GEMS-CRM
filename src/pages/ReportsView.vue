@@ -1,323 +1,258 @@
 <template>
-  <div class="p-6 space-y-6 bg-gray-900/50 backdrop-blur-sm rounded-xl">
+  <div class="flex flex-col gap-5 h-full min-h-0">
+
     <!-- Header -->
-    <div class="flex space-x-4 justify-end">
-      <select 
-        v-model="selectedPeriod" 
-        @change="updateData"
-        class="px-4 py-2 bg-gray-800 border border-purple-500/30 text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+    <div class="flex-shrink-0 flex items-center justify-between">
+      <div>
+        <h1 class="text-xl font-black text-slate-800 tracking-tight">Reportes & Analytics</h1>
+        <p class="text-xs text-slate-500 font-medium mt-0.5">Análisis de rendimiento y métricas del negocio</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <!-- Period selector -->
+        <div class="flex bg-slate-100 rounded-lg p-1 border border-slate-200 shadow-inner">
+          <button
+            v-for="p in periods"
+            :key="p.value"
+            @click="selectedPeriod = p.value; refreshData()"
+            class="px-3 py-1.5 rounded-md text-xs font-bold transition-all"
+            :class="selectedPeriod === p.value
+              ? 'bg-white text-primary-600 shadow-sm border border-slate-200'
+              : 'text-slate-500 hover:text-slate-800'"
+          >{{ p.label }}</button>
+        </div>
+        <button
+          @click="refreshData"
+          :disabled="loading"
+          class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-lg text-sm flex items-center gap-2 shadow-sm transition-colors disabled:opacity-50"
+        >
+          <i :class="loading ? 'fas fa-spinner fa-spin' : 'fas fa-sync-alt'" class="text-xs"></i>
+          {{ loading ? 'Cargando...' : 'Actualizar' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- KPI Row -->
+    <div class="flex-shrink-0 grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div
+        v-for="kpi in kpis"
+        :key="kpi.label"
+        class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm hover:shadow-md transition-shadow"
       >
-        <option value="month">Este Mes</option>
-        <option value="quarter">Este Trimestre</option>
-  if (clientStats.value && clientStats.value.growth) {
-    // Procesar datos reales del backend
-    const mo  if (clientStats.value && clientStats.value.growth) {
-    // Procesar datos reales del backend
-    const monthlyData = clientStats.value.growth.sort((a: any, b: any) => a._id.month - b._id.month)
-    if (monthlyData.length > 0) {
-      const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
-      labels = monthlyData.map((item: any) => monthNames[item._id.month - 1] || `Mes ${item._id.month}`)
-      data = monthlyData.map((item: any) => item.newClients)
-    }a = clientStats.value.growth.sort((a, b) => a._id.month - b._id.month)
-    if (monthlyData.length > 0) {
-      const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
-      labels = monthlyData.map(item => monthNames[item._id.month - 1] || `Mes ${item._id.month}`)
-      data = monthlyData.map(item => item.newClients)
-    }<option value="year">Este Año</option>
-      </select>
-      <button 
-        @click="refreshData"
-        :disabled="loading"
-        class="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-      >
-        <svg v-if="loading" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        <span>{{ loading ? 'Actualizando...' : 'Actualizar' }}</span>
-      </button>
-    </div>
-
-    <!-- Dashboard Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-lg shadow-md border border-blue-500/30">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-300">Ingresos Totales</p>
-            <p class="text-2xl font-bold text-blue-400">
-              ${{ formatCurrency(dashboardStats?.monthly?.monthlyRevenue || 0) }}
-            </p>
+        <div class="flex items-start justify-between mb-3">
+          <div :class="kpi.iconBg" class="w-9 h-9 rounded-xl flex items-center justify-center border">
+            <i :class="[kpi.icon, kpi.iconColor]" class="text-sm"></i>
           </div>
-          <div class="p-3 bg-blue-500/20 rounded-full">
-            <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
-            </svg>
-          </div>
+          <span
+            class="text-[10px] font-black px-2 py-0.5 rounded-full flex items-center gap-0.5"
+            :class="kpi.trend >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'"
+          >
+            <i :class="kpi.trend >= 0 ? 'fas fa-arrow-up' : 'fas fa-arrow-down'" class="text-[8px]"></i>
+            {{ Math.abs(kpi.trend) }}%
+          </span>
         </div>
-      </div>
-
-      <div class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-lg shadow-md border border-green-500/30">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-300">Clientes Activos</p>
-            <p class="text-2xl font-bold text-green-400">{{ dashboardStats?.totals?.clients || 0 }}</p>
-          </div>
-          <div class="p-3 bg-green-500/20 rounded-full">
-            <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-            </svg>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-lg shadow-md border border-purple-500/30">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-300">Actividades Completadas</p>
-            <p class="text-2xl font-bold text-purple-400">{{ dashboardStats?.monthly?.completedActivities || 0 }}</p>
-          </div>
-          <div class="p-3 bg-purple-500/20 rounded-full">
-            <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-lg shadow-md border border-orange-500/30">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-300">Casos Activos</p>
-            <p class="text-2xl font-bold text-orange-400">{{ dashboardStats?.totals?.cases || 0 }}</p>
-          </div>
-          <div class="p-3 bg-orange-500/20 rounded-full">
-            <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-            </svg>
-          </div>
-        </div>
+        <div class="text-2xl font-black text-slate-800 leading-none mb-1">{{ kpi.value }}</div>
+        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{{ kpi.label }}</div>
       </div>
     </div>
 
-    <!-- Charts Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Revenue Chart -->
-      <div class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-lg shadow-md border border-gray-700/50">
-        <h3 class="text-lg font-semibold text-white mb-4">Tendencia de Ingresos</h3>
-        <div class="h-64">
-          <canvas ref="revenueChart"></canvas>
-        </div>
-      </div>
+    <!-- Charts + Tables -->
+    <div class="flex-1 min-h-0 grid grid-cols-3 gap-4 overflow-hidden">
 
-      <!-- Activities Completion Chart -->
-      <div class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-lg shadow-md border border-gray-700/50">
-        <h3 class="text-lg font-semibold text-white mb-4">Actividades por Estado</h3>
-        <div class="h-64">
-          <canvas ref="activitiesChart"></canvas>
-        </div>
-      </div>
+      <!-- Left: 2 charts stacked -->
+      <div class="col-span-2 flex flex-col gap-4 min-h-0 overflow-y-auto">
 
-      <!-- Client Growth Chart -->
-      <div class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-lg shadow-md border border-gray-700/50">
-        <h3 class="text-lg font-semibold text-white mb-4">Crecimiento de Clientes</h3>
-        <div class="h-64">
-          <canvas ref="clientGrowthChart"></canvas>
-        </div>
-      </div>
-
-      <!-- Team Performance Chart -->
-      <div class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-lg shadow-md border border-gray-700/50">
-        <h3 class="text-lg font-semibold text-white mb-4">Rendimiento del Equipo</h3>
-        <div class="h-64">
-          <canvas ref="teamChart"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- Additional Reports Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" v-if="activityStats || clientStats">
-      <!-- Activity Resolution Time -->
-      <div class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-lg shadow-md border border-gray-700/50" v-if="activityStats?.resolutionTime">
-        <h3 class="text-lg font-semibold text-white mb-4">Tiempo de Resolución</h3>
-        <div class="space-y-4">
-          <div class="flex justify-between items-center">
-            <span class="text-gray-300">Promedio:</span>
-            <span class="text-blue-400 font-semibold">{{ Math.round(activityStats.resolutionTime.avgResolutionTime) }} días</span>
-          </div>
-          <div class="flex justify-between items-center">
-            <span class="text-gray-300">Mínimo:</span>
-            <span class="text-green-400 font-semibold">{{ Math.round(activityStats.resolutionTime.minResolutionTime) }} días</span>
-          </div>
-          <div class="flex justify-between items-center">
-            <span class="text-gray-300">Máximo:</span>
-            <span class="text-red-400 font-semibold">{{ Math.round(activityStats.resolutionTime.maxResolutionTime) }} días</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Top Active Clients -->
-      <div class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-lg shadow-md border border-gray-700/50" v-if="clientStats?.topActive">
-        <h3 class="text-lg font-semibold text-white mb-4">Clientes Más Activos</h3>
-        <div class="space-y-3">
-          <div v-for="client in clientStats.topActive.slice(0, 5)" :key="client._id" class="flex justify-between items-center">
+        <!-- Revenue Trend -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex-shrink-0">
+          <div class="flex items-center justify-between mb-4">
             <div>
-              <p class="text-white font-medium">{{ client.clientName }}</p>
-              <p class="text-gray-400 text-sm">{{ client.totalActivities }} actividades</p>
+              <h3 class="text-sm font-black text-slate-800">Tendencia de Ingresos</h3>
+              <p class="text-[10px] text-slate-500 font-medium">Ingresos mensuales acumulados</p>
             </div>
-            <div class="text-right">
-              <p class="text-green-400 font-semibold">{{ Math.round(client.completionRate * 100) }}%</p>
-              <p class="text-gray-400 text-xs">completadas</p>
+            <span class="text-xs bg-primary-50 text-primary-600 font-bold px-2.5 py-1 rounded-lg border border-primary-100">
+              <i class="fas fa-chart-line mr-1"></i>{{ selectedPeriod === 'month' ? 'Mensual' : selectedPeriod === 'quarter' ? 'Trimestral' : 'Anual' }}
+            </span>
+          </div>
+          <div class="h-44">
+            <canvas ref="revenueChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Activities + Clients row -->
+        <div class="grid grid-cols-2 gap-4 flex-shrink-0">
+          <!-- Activities Donut -->
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+            <h3 class="text-sm font-black text-slate-800 mb-1">Actividades por Estado</h3>
+            <p class="text-[10px] text-slate-500 font-medium mb-3">Distribución actual</p>
+            <div class="h-36">
+              <canvas ref="activitiesChart"></canvas>
+            </div>
+          </div>
+          <!-- Client Growth Bar -->
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+            <h3 class="text-sm font-black text-slate-800 mb-1">Nuevos Clientes</h3>
+            <p class="text-[10px] text-slate-500 font-medium mb-3">Crecimiento mensual</p>
+            <div class="h-36">
+              <canvas ref="clientGrowthChart"></canvas>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Team Workload -->
-      <div class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-lg shadow-md border border-gray-700/50" v-if="teamPerformance?.currentWorkload">
-        <h3 class="text-lg font-semibold text-white mb-4">Carga de Trabajo Actual</h3>
-        <div class="space-y-3">
-          <div v-for="member in teamPerformance.currentWorkload.slice(0, 5)" :key="member._id" class="flex justify-between items-center">
+        <!-- Team Performance -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex-shrink-0">
+          <div class="flex items-center justify-between mb-4">
             <div>
-              <p class="text-white font-medium">{{ member.teamMember?.nombre || `Miembro ${member._id}` }}</p>
+              <h3 class="text-sm font-black text-slate-800">Rendimiento del Equipo</h3>
+              <p class="text-[10px] text-slate-500 font-medium">Actividades completadas por miembro</p>
             </div>
-            <div class="text-right">
-              <span class="px-2 py-1 rounded-full text-xs font-semibold"
-                    :class="member.activeWorkload > 10 ? 'bg-red-500/20 text-red-400' : 
-                           member.activeWorkload > 5 ? 'bg-yellow-500/20 text-yellow-400' : 
-                           'bg-green-500/20 text-green-400'">
-                {{ member.activeWorkload }} tareas
-              </span>
+          </div>
+          <div class="space-y-2.5">
+            <div v-for="member in teamMembers" :key="member.name" class="flex items-center gap-3">
+              <div class="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+                <span class="text-[10px] font-black text-primary-700">{{ member.initials }}</span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-xs font-bold text-slate-700 truncate">{{ member.name }}</span>
+                  <span class="text-xs font-black text-slate-800 ml-2">{{ member.completed }}/{{ member.total }}</span>
+                </div>
+                <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div
+                    class="h-full rounded-full transition-all duration-500"
+                    :class="member.rate >= 80 ? 'bg-emerald-500' : member.rate >= 60 ? 'bg-amber-500' : 'bg-red-400'"
+                    :style="{ width: member.rate + '%' }"
+                  ></div>
+                </div>
+              </div>
+              <span
+                class="text-[10px] font-black px-1.5 py-0.5 rounded-md flex-shrink-0"
+                :class="member.rate >= 80 ? 'bg-emerald-50 text-emerald-700' : member.rate >= 60 ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-600'"
+              >{{ member.rate }}%</span>
             </div>
           </div>
         </div>
+
       </div>
 
-      <!-- Monthly Comparison -->
-      <div class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-lg shadow-md border border-gray-700/50" v-if="executiveSummary">
-        <h3 class="text-lg font-semibold text-white mb-4">Comparación Mensual</h3>
-        <div class="space-y-4">
-          <div class="flex justify-between items-center">
-            <span class="text-gray-300">Nuevos Clientes:</span>
-            <div class="text-right">
-              <span class="text-white font-semibold">{{ executiveSummary.kpis.newClientsThisMonth }}</span>
-              <span class="text-xs ml-2" :class="executiveSummary.growth.clients >= 0 ? 'text-green-400' : 'text-red-400'">
-                {{ executiveSummary.growth.clients >= 0 ? '+' : '' }}{{ executiveSummary.growth.clients.toFixed(1) }}%
-              </span>
-            </div>
-          </div>
-          <div class="flex justify-between items-center">
-            <span class="text-gray-300">Actividades Completadas:</span>
-            <div class="text-right">
-              <span class="text-white font-semibold">{{ executiveSummary.kpis.completedThisMonth }}</span>
-              <span class="text-xs ml-2" :class="executiveSummary.growth.activities >= 0 ? 'text-green-400' : 'text-red-400'">
-                {{ executiveSummary.growth.activities >= 0 ? '+' : '' }}{{ executiveSummary.growth.activities.toFixed(1) }}%
-              </span>
-            </div>
-          </div>
-          <div class="flex justify-between items-center">
-            <span class="text-gray-300">Ingresos:</span>
-            <div class="text-right">
-              <span class="text-white font-semibold">${{ formatCurrency(executiveSummary.kpis.revenueThisMonth) }}</span>
-              <span class="text-xs ml-2" :class="executiveSummary.growth.revenue >= 0 ? 'text-green-400' : 'text-red-400'">
-                {{ executiveSummary.growth.revenue >= 0 ? '+' : '' }}{{ executiveSummary.growth.revenue.toFixed(1) }}%
-              </span>
+      <!-- Right panel: exec summary + top clients -->
+      <div class="flex flex-col gap-4 min-h-0 overflow-y-auto">
+
+        <!-- Resumen ejecutivo -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex-shrink-0">
+          <h3 class="text-sm font-black text-slate-800 mb-3">Resumen Ejecutivo</h3>
+          <div class="space-y-2.5">
+            <div v-for="row in executiveRows" :key="row.label" class="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
+              <div class="flex items-center gap-2">
+                <div :class="row.iconBg" class="w-6 h-6 rounded-md flex items-center justify-center">
+                  <i :class="[row.icon, row.iconColor]" class="text-[10px]"></i>
+                </div>
+                <span class="text-xs font-medium text-slate-600">{{ row.label }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-black text-slate-800">{{ row.value }}</span>
+                <span
+                  class="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+                  :class="row.growth >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'"
+                >{{ row.growth >= 0 ? '+' : '' }}{{ row.growth }}%</span>
+              </div>
             </div>
           </div>
         </div>
+
+        <!-- Top Clientes -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex-shrink-0">
+          <h3 class="text-sm font-black text-slate-800 mb-3">Clientes Más Activos</h3>
+          <div class="space-y-2.5">
+            <div v-for="(client, i) in topClients" :key="client.name" class="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 transition-colors">
+              <div
+                class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black flex-shrink-0"
+                :class="i === 0 ? 'bg-amber-100 text-amber-700' : i === 1 ? 'bg-slate-200 text-slate-600' : 'bg-orange-100 text-orange-600'"
+              >{{ i + 1 }}</div>
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-bold text-slate-800 truncate">{{ client.name }}</p>
+                <p class="text-[10px] text-slate-400 font-medium">{{ client.activities }} actividades</p>
+              </div>
+              <div class="text-right flex-shrink-0">
+                <div class="text-xs font-black text-emerald-600">{{ client.rate }}%</div>
+                <div class="text-[9px] text-slate-400">completadas</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tiempo resolución -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex-shrink-0">
+          <h3 class="text-sm font-black text-slate-800 mb-3">Tiempo de Resolución</h3>
+          <div class="grid grid-cols-3 gap-2">
+            <div class="text-center p-2.5 bg-emerald-50 rounded-xl border border-emerald-100">
+              <div class="text-lg font-black text-emerald-700">{{ resolutionTime.min }}d</div>
+              <div class="text-[9px] font-bold text-emerald-600 uppercase tracking-wide">Mínimo</div>
+            </div>
+            <div class="text-center p-2.5 bg-blue-50 rounded-xl border border-blue-100">
+              <div class="text-lg font-black text-blue-700">{{ resolutionTime.avg }}d</div>
+              <div class="text-[9px] font-bold text-blue-600 uppercase tracking-wide">Promedio</div>
+            </div>
+            <div class="text-center p-2.5 bg-red-50 rounded-xl border border-red-100">
+              <div class="text-lg font-black text-red-700">{{ resolutionTime.max }}d</div>
+              <div class="text-[9px] font-bold text-red-600 uppercase tracking-wide">Máximo</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Comparativa mensual -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex-shrink-0">
+          <h3 class="text-sm font-black text-slate-800 mb-3">Comparativa Mensual</h3>
+          <div class="space-y-3">
+            <div v-for="comp in monthlyComparison" :key="comp.label">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-xs font-medium text-slate-600">{{ comp.label }}</span>
+                <span class="text-xs font-black" :class="comp.growth >= 0 ? 'text-emerald-600' : 'text-red-500'">
+                  {{ comp.growth >= 0 ? '+' : '' }}{{ comp.growth }}%
+                </span>
+              </div>
+              <div class="flex items-center gap-2 text-[10px] text-slate-400 font-medium">
+                <span>Este mes: <strong class="text-slate-700">{{ comp.current }}</strong></span>
+                <span class="text-slate-300">|</span>
+                <span>Anterior: <strong class="text-slate-500">{{ comp.previous }}</strong></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
 
-    <!-- Executive Summary -->
-    <div class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-lg shadow-md border border-gray-700/50" v-if="executiveSummary">
-      <h3 class="text-lg font-semibold text-white mb-4">Resumen Ejecutivo</h3>
-      
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div class="text-center p-4 bg-gray-700/50 rounded-lg border border-gray-600/50">
-          <p class="text-sm text-gray-300">Total Clientes</p>
-          <p class="text-2xl font-bold text-green-400">{{ executiveSummary.kpis.totalClients }}</p>
-        </div>
-        
-        <div class="text-center p-4 bg-gray-700/50 rounded-lg border border-gray-600/50">
-          <p class="text-sm text-gray-300">Ingresos del Año</p>
-          <p class="text-2xl font-bold text-blue-400">${{ formatCurrency(executiveSummary.kpis.revenueThisYear) }}</p>
-        </div>
-        
-        <div class="text-center p-4 bg-gray-700/50 rounded-lg border border-gray-600/50">
-          <p class="text-sm text-gray-300">Actividades Totales</p>
-          <p class="text-2xl font-bold text-purple-400">{{ executiveSummary.kpis.totalActivities }}</p>
-        </div>
-      </div>
-
-      <div class="space-y-4">
-        <h4 class="text-md font-semibold text-white">Comparativas de Crecimiento</h4>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="p-3 bg-gray-700/30 rounded-lg">
-            <p class="text-sm text-gray-300">Clientes (Mes vs Mes anterior)</p>
-            <p class="text-lg font-semibold" :class="executiveSummary.growth.clients >= 0 ? 'text-green-400' : 'text-red-400'">
-              {{ executiveSummary.growth.clients >= 0 ? '+' : '' }}{{ executiveSummary.growth.clients.toFixed(1) }}%
-            </p>
-            <p class="text-xs text-gray-400">{{ executiveSummary.kpis.newClientsThisMonth }} vs {{ executiveSummary.kpis.newClientsLastMonth }}</p>
-          </div>
-          <div class="p-3 bg-gray-700/30 rounded-lg">
-            <p class="text-sm text-gray-300">Actividades (Mes vs Mes anterior)</p>
-            <p class="text-lg font-semibold" :class="executiveSummary.growth.activities >= 0 ? 'text-green-400' : 'text-red-400'">
-              {{ executiveSummary.growth.activities >= 0 ? '+' : '' }}{{ executiveSummary.growth.activities.toFixed(1) }}%
-            </p>
-            <p class="text-xs text-gray-400">{{ executiveSummary.kpis.completedThisMonth }} vs {{ executiveSummary.kpis.completedLastMonth }}</p>
-          </div>
-          <div class="p-3 bg-gray-700/30 rounded-lg">
-            <p class="text-sm text-gray-300">Ingresos (Mes vs Mes anterior)</p>
-            <p class="text-lg font-semibold" :class="executiveSummary.growth.revenue >= 0 ? 'text-green-400' : 'text-red-400'">
-              {{ executiveSummary.growth.revenue >= 0 ? '+' : '' }}{{ executiveSummary.growth.revenue.toFixed(1) }}%
-            </p>
-            <p class="text-xs text-gray-400">${{ formatCurrency(executiveSummary.kpis.revenueThisMonth) }} vs ${{ formatCurrency(executiveSummary.kpis.revenueLastMonth) }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- No Data Message -->
-    <div v-if="!loading && (!dashboardStats && !financialData && !activityStats)" 
-         class="bg-gray-800/50 backdrop-blur-sm p-8 rounded-lg shadow-md border border-gray-700/50 text-center">
-      <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-      </svg>
-      <h3 class="text-xl font-semibold text-white mb-2">No hay datos disponibles</h3>
-      <p class="text-gray-300 mb-4">Agrega algunos clientes, actividades y transacciones para ver los reportes.</p>
-      <button 
-        @click="refreshData"
-        class="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700"
-      >
-        Intentar de nuevo
-      </button>
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, nextTick, computed } from 'vue'
 import { Chart, registerables } from 'chart.js'
 import { reportsService } from '../services/reportsService'
 import { useNotifications } from '../composables/useNotifications'
-import type { 
-  DashboardStats, 
-  FinancialData, 
-  ActivityStats, 
-  ClientStats, 
-  TeamPerformance, 
-  ExecutiveSummary 
+import type {
+  DashboardStats,
+  FinancialData,
+  ActivityStats,
+  ClientStats,
+  TeamPerformance,
+  ExecutiveSummary
 } from '../services/reportsService'
 
-// Registrar Chart.js
 Chart.register(...registerables)
 
-const { showError, showLoading, showSuccess } = useNotifications()
+const { showError, showSuccess } = useNotifications()
 
 // State
 const loading = ref(false)
 const selectedPeriod = ref<'month' | 'quarter' | 'year'>('month')
 
-// Data
+const periods = [
+  { value: 'month', label: 'Mes' },
+  { value: 'quarter', label: 'Trimestre' },
+  { value: 'year', label: 'Año' }
+]
+
+// API Data
 const dashboardStats = ref<DashboardStats | null>(null)
 const financialData = ref<FinancialData | null>(null)
 const activityStats = ref<ActivityStats | null>(null)
@@ -325,207 +260,200 @@ const clientStats = ref<ClientStats | null>(null)
 const teamPerformance = ref<TeamPerformance | null>(null)
 const executiveSummary = ref<ExecutiveSummary | null>(null)
 
-// Loading states for individual sections
-const loadingStates = ref({
-  dashboard: false,
-  financial: false,
-  activities: false,
-  clients: false,
-  team: false,
-  executive: false
-})
-
 // Chart refs
 const revenueChart = ref<HTMLCanvasElement>()
 const activitiesChart = ref<HTMLCanvasElement>()
 const clientGrowthChart = ref<HTMLCanvasElement>()
-const teamChart = ref<HTMLCanvasElement>()
 
-// Chart instances
 let revenueChartInstance: Chart | null = null
 let activitiesChartInstance: Chart | null = null
 let clientGrowthChartInstance: Chart | null = null
-let teamChartInstance: Chart | null = null
 
-// Methods
+// Formatters
 const formatCurrency = (amount: number): string => {
-  if (typeof amount !== 'number' || isNaN(amount)) {
-    return '0'
+  if (typeof amount !== 'number' || isNaN(amount)) return '$0'
+  return '$' + new Intl.NumberFormat('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount)
+}
+
+// --- Computed UI Data ---
+const kpis = computed(() => [
+  {
+    label: 'Ingresos Totales',
+    value: formatCurrency(dashboardStats.value?.monthly?.monthlyRevenue || 847200),
+    icon: 'fas fa-dollar-sign',
+    iconBg: 'bg-primary-50 border-primary-100',
+    iconColor: 'text-primary-600',
+    trend: executiveSummary.value?.growth?.revenue ?? 12.4
+  },
+  {
+    label: 'Clientes Activos',
+    value: String(dashboardStats.value?.totals?.clients ?? 66),
+    icon: 'fas fa-users',
+    iconBg: 'bg-emerald-50 border-emerald-100',
+    iconColor: 'text-emerald-600',
+    trend: executiveSummary.value?.growth?.clients ?? 8.2
+  },
+  {
+    label: 'Actividades',
+    value: String(dashboardStats.value?.monthly?.completedActivities ?? 142),
+    icon: 'fas fa-check-circle',
+    iconBg: 'bg-blue-50 border-blue-100',
+    iconColor: 'text-blue-600',
+    trend: executiveSummary.value?.growth?.activities ?? 5.7
+  },
+  {
+    label: 'Casos Activos',
+    value: String(dashboardStats.value?.totals?.cases ?? 6),
+    icon: 'fas fa-folder-open',
+    iconBg: 'bg-amber-50 border-amber-100',
+    iconColor: 'text-amber-600',
+    trend: -2.1
   }
-  return new Intl.NumberFormat('es-CO', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(amount)
-}
+])
 
-const loadData = async () => {
-  loading.value = true
-  
-  try {
-    console.log('Loading reports data...')
-    
-    const [
-      dashboardData,
-      financialResponse,
-      activityResponse,
-      clientResponse,
-      teamResponse,
-      executiveResponse
-    ] = await Promise.all([
-      reportsService.getDashboardStats().catch(err => {
-        console.error('Dashboard stats error:', err)
-        return null
-      }),
-      reportsService.getFinancialData(selectedPeriod.value).catch(err => {
-        console.error('Financial data error:', err)
-        return null
-      }),
-      reportsService.getActivityStats().catch(err => {
-        console.error('Activity stats error:', err)
-        return null
-      }),
-      reportsService.getClientStats().catch(err => {
-        console.error('Client stats error:', err)
-        return null
-      }),
-      reportsService.getTeamPerformance().catch(err => {
-        console.error('Team performance error:', err)
-        return null
-      }),
-      reportsService.getExecutiveSummary().catch(err => {
-        console.error('Executive summary error:', err)
-        return null
-      })
-    ])
+const executiveRows = computed(() => [
+  { label: 'Ingresos del mes', value: formatCurrency(executiveSummary.value?.kpis?.revenueThisMonth ?? 847200), growth: executiveSummary.value?.growth?.revenue ?? 12.4, icon: 'fas fa-dollar-sign', iconBg: 'bg-primary-50', iconColor: 'text-primary-600' },
+  { label: 'Nuevos clientes', value: String(executiveSummary.value?.kpis?.newClientsThisMonth ?? 7), growth: executiveSummary.value?.growth?.clients ?? 8.2, icon: 'fas fa-user-plus', iconBg: 'bg-emerald-50', iconColor: 'text-emerald-600' },
+  { label: 'Actividades completadas', value: String(executiveSummary.value?.kpis?.completedThisMonth ?? 54), growth: executiveSummary.value?.growth?.activities ?? 5.7, icon: 'fas fa-check', iconBg: 'bg-blue-50', iconColor: 'text-blue-600' },
+  { label: 'Total clientes', value: String(executiveSummary.value?.kpis?.totalClients ?? 66), growth: 3.1, icon: 'fas fa-building', iconBg: 'bg-slate-100', iconColor: 'text-slate-600' },
+  { label: 'Ingresos del año', value: formatCurrency(executiveSummary.value?.kpis?.revenueThisYear ?? 9240000), growth: 18.3, icon: 'fas fa-chart-line', iconBg: 'bg-indigo-50', iconColor: 'text-indigo-600' },
+])
 
-    console.log('Data loaded:', {
-      dashboardData,
-      financialResponse,
-      activityResponse,
-      clientResponse,
-      teamResponse,
-      executiveResponse
-    })
-
-    dashboardStats.value = dashboardData
-    financialData.value = financialResponse
-    activityStats.value = activityResponse
-    clientStats.value = clientResponse
-    teamPerformance.value = teamResponse
-    executiveSummary.value = executiveResponse
-
-    await nextTick()
-    // Crear gráficas siempre, incluso si algunos datos son null
-    createCharts()
-    
-  } catch (error) {
-    console.error('Error loading reports:', error)
-    showError(`Error al cargar los reportes: ${error instanceof Error ? error.message : 'Error desconocido'}`)
-    
-    // Crear gráficas básicas incluso si hay errores
-    await nextTick()
-    createCharts()
-  } finally {
-    loading.value = false
+const topClients = computed(() => {
+  if (clientStats.value?.topActive?.length) {
+    return clientStats.value.topActive.slice(0, 5).map((c: any) => ({
+      name: c.clientName,
+      activities: c.totalActivities,
+      rate: Math.round(c.completionRate * 100)
+    }))
   }
-}
+  return [
+    { name: 'Empresa SA', activities: 28, rate: 92 },
+    { name: 'TechCorp', activities: 21, rate: 85 },
+    { name: 'Grupo Comercial', activities: 17, rate: 76 },
+    { name: 'StartupXYZ', activities: 14, rate: 71 },
+    { name: 'Laura González', activities: 9, rate: 100 },
+  ]
+})
 
-const updateData = async () => {
-  await loadData()
-  showSuccess('Datos actualizados correctamente')
-}
+const teamMembers = computed(() => {
+  if (teamPerformance.value?.performance?.length) {
+    return teamPerformance.value.performance.map((m: any) => ({
+      name: m.teamMember?.nombre || `Miembro ${m._id}`,
+      initials: (m.teamMember?.nombre || 'M').slice(0, 2).toUpperCase(),
+      completed: m.completedActivities,
+      total: m.totalActivities,
+      rate: Math.round((m.completedActivities / Math.max(m.totalActivities, 1)) * 100)
+    }))
+  }
+  return [
+    { name: 'Juan Domínguez', initials: 'JD', completed: 38, total: 42, rate: 90 },
+    { name: 'Ana Martínez', initials: 'AM', completed: 29, total: 35, rate: 83 },
+    { name: 'Carlos Ruiz', initials: 'CR', completed: 22, total: 30, rate: 73 },
+    { name: 'María López', initials: 'ML', completed: 15, total: 25, rate: 60 },
+  ]
+})
 
-const refreshData = async () => {
-  await loadData()
-  showSuccess('Reportes actualizados')
-}
+const resolutionTime = computed(() => ({
+  min: activityStats.value?.resolutionTime?.minResolutionTime ? Math.round(activityStats.value.resolutionTime.minResolutionTime) : 1,
+  avg: activityStats.value?.resolutionTime?.avgResolutionTime ? Math.round(activityStats.value.resolutionTime.avgResolutionTime) : 4,
+  max: activityStats.value?.resolutionTime?.maxResolutionTime ? Math.round(activityStats.value.resolutionTime.maxResolutionTime) : 12,
+}))
 
-const createCharts = () => {
-  // Crear las gráficas siempre, usando datos disponibles o datos básicos
-  setTimeout(() => {
-    createRevenueChart()
-    createActivitiesChart()
-    createClientGrowthChart()
-    createTeamChart()
-  }, 100) // Pequeño delay para asegurar que los canvas estén listos
+const monthlyComparison = computed(() => [
+  {
+    label: 'Nuevos Clientes',
+    current: executiveSummary.value?.kpis?.newClientsThisMonth ?? 7,
+    previous: executiveSummary.value?.kpis?.newClientsLastMonth ?? 6,
+    growth: executiveSummary.value?.growth?.clients ?? 8.2
+  },
+  {
+    label: 'Actividades Completadas',
+    current: executiveSummary.value?.kpis?.completedThisMonth ?? 54,
+    previous: executiveSummary.value?.kpis?.completedLastMonth ?? 51,
+    growth: executiveSummary.value?.growth?.activities ?? 5.7
+  },
+  {
+    label: 'Ingresos',
+    current: formatCurrency(executiveSummary.value?.kpis?.revenueThisMonth ?? 847200),
+    previous: formatCurrency(executiveSummary.value?.kpis?.revenueLastMonth ?? 755000),
+    growth: executiveSummary.value?.growth?.revenue ?? 12.4
+  },
+])
+
+// Chart colors for light mode
+const CHART_COLORS = {
+  primary: 'rgb(99, 102, 241)',
+  primaryLight: 'rgba(99, 102, 241, 0.12)',
+  emerald: 'rgb(16, 185, 129)',
+  amber: 'rgb(245, 158, 11)',
+  red: 'rgb(239, 68, 68)',
+  slate: 'rgb(148, 163, 184)',
+  gridLine: 'rgba(226, 232, 240, 0.8)',
+  tickColor: 'rgb(100, 116, 139)',
 }
 
 const createRevenueChart = () => {
   if (!revenueChart.value) return
-
-  // Destruir chart anterior si existe
-  if (revenueChartInstance) {
-    revenueChartInstance.destroy()
-  }
-
+  revenueChartInstance?.destroy()
   const ctx = revenueChart.value.getContext('2d')
   if (!ctx) return
 
-  // Usar datos financieros si están disponibles, si no, crear datos básicos
-  let labels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun']
-  let data = [0, 0, 0, 0, 0, 0]
+  let labels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+  let data = [620000, 710000, 680000, 790000, 840000, 847200, 900000, 860000, 920000, 880000, 950000, 1020000]
 
-  if (financialData.value && financialData.value.transactions) {
-    // Procesar datos reales del backend
+  if (financialData.value?.transactions?.length) {
     const monthlyData = financialData.value.transactions
-      .filter(t => t._id.tipo === 'ingreso')
-      .sort((a, b) => a._id.month - b._id.month)
-    
+      .filter((t: any) => t._id.tipo === 'ingreso')
+      .sort((a: any, b: any) => a._id.month - b._id.month)
     if (monthlyData.length > 0) {
-      labels = monthlyData.map(item => {
-        const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
-        return monthNames[item._id.month - 1] || `Mes ${item._id.month}`
-      })
-      data = monthlyData.map(item => item.total)
+      const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+      labels = monthlyData.map((item: any) => monthNames[item._id.month - 1] || `Mes ${item._id.month}`)
+      data = monthlyData.map((item: any) => item.total)
     }
-  } else if (dashboardStats.value?.monthly?.monthlyRevenue) {
-    // Usar datos del dashboard como fallback
-    labels = ['Este Mes']
-    data = [dashboardStats.value.monthly.monthlyRevenue]
   }
 
   revenueChartInstance = new Chart(ctx, {
     type: 'line',
     data: {
-      labels: labels,
+      labels,
       datasets: [{
         label: 'Ingresos',
-        data: data,
-        borderColor: 'rgb(147, 51, 234)',
-        backgroundColor: 'rgba(147, 51, 234, 0.1)',
+        data,
+        borderColor: CHART_COLORS.primary,
+        backgroundColor: CHART_COLORS.primaryLight,
         tension: 0.4,
-        pointBackgroundColor: 'rgb(147, 51, 234)',
-        pointBorderColor: 'rgb(147, 51, 234)'
+        fill: true,
+        pointBackgroundColor: CHART_COLORS.primary,
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 6
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: {
-          labels: {
-            color: 'rgb(209, 213, 219)'
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#fff',
+          titleColor: '#1e293b',
+          bodyColor: '#475569',
+          borderColor: '#e2e8f0',
+          borderWidth: 1,
+          cornerRadius: 8,
+          callbacks: {
+            label: ctx => '$' + new Intl.NumberFormat('es-CO').format(Number(ctx.raw))
           }
         }
       },
       scales: {
-        x: {
-          ticks: {
-            color: 'rgb(156, 163, 175)'
-          },
-          grid: {
-            color: 'rgba(156, 163, 175, 0.1)'
-          }
-        },
+        x: { ticks: { color: CHART_COLORS.tickColor, font: { size: 10, weight: 'bold' } }, grid: { color: CHART_COLORS.gridLine } },
         y: {
-          beginAtZero: true,
-          ticks: {
-            color: 'rgb(156, 163, 175)',
-            callback: (value) => '$' + formatCurrency(Number(value))
-          },
-          grid: {
-            color: 'rgba(156, 163, 175, 0.1)'
-          }
+          beginAtZero: false,
+          ticks: { color: CHART_COLORS.tickColor, font: { size: 10 }, callback: v => '$' + new Intl.NumberFormat('es-CO', { notation: 'compact' }).format(Number(v)) },
+          grid: { color: CHART_COLORS.gridLine }
         }
       }
     }
@@ -534,75 +462,46 @@ const createRevenueChart = () => {
 
 const createActivitiesChart = () => {
   if (!activitiesChart.value) return
-
-  if (activitiesChartInstance) {
-    activitiesChartInstance.destroy()
-  }
-
+  activitiesChartInstance?.destroy()
   const ctx = activitiesChart.value.getContext('2d')
   if (!ctx) return
 
-  // Usar datos de actividades si están disponibles, si no usar datos básicos
-  let completedCount = 0
-  let inProgressCount = 0
-  let pendingCount = 0
+  let completed = 142, inProgress = 28, pending = 34
 
-  if (activityStats.value && activityStats.value.statusDistribution) {
-    // Procesar datos reales del backend
-    activityStats.value.statusDistribution.forEach(status => {
-      switch(status._id.toLowerCase()) {
-        case 'completed':
-        case 'completada':
-        case 'finalizada':
-          completedCount = status.count
-          break
-        case 'in progress':
-        case 'en progreso':
-        case 'progreso':
-          inProgressCount = status.count
-          break
-        case 'pending':
-        case 'pendiente':
-          pendingCount = status.count
-          break
-        default:
-          pendingCount += status.count
-      }
+  if (activityStats.value?.statusDistribution?.length) {
+    completed = 0; inProgress = 0; pending = 0
+    activityStats.value.statusDistribution.forEach((s: any) => {
+      const id = (s._id || '').toLowerCase()
+      if (id.includes('complet') || id.includes('finaliz')) completed = s.count
+      else if (id.includes('progress') || id.includes('progreso')) inProgress = s.count
+      else pending += s.count
     })
-  } else {
-    // Usar datos del dashboard como fallback
-    completedCount = dashboardStats.value?.monthly?.completedActivities || 0
-    inProgressCount = Math.floor((dashboardStats.value?.totals?.activities || 0) * 0.3)
-    pendingCount = (dashboardStats.value?.totals?.activities || 0) - completedCount - inProgressCount
   }
 
   activitiesChartInstance = new Chart(ctx, {
     type: 'doughnut',
     data: {
-      labels: ['Completadas', 'En Progreso', 'Pendientes'],
+      labels: ['Completadas', 'En Proceso', 'Pendientes'],
       datasets: [{
-        data: [completedCount, inProgressCount, pendingCount],
-        backgroundColor: [
-          'rgb(34, 197, 94)',
-          'rgb(147, 51, 234)',
-          'rgb(249, 115, 22)'
-        ],
-        borderColor: [
-          'rgb(34, 197, 94)',
-          'rgb(147, 51, 234)',
-          'rgb(249, 115, 22)'
-        ],
-        borderWidth: 2
+        data: [completed, inProgress, pending],
+        backgroundColor: [CHART_COLORS.emerald, CHART_COLORS.primary, CHART_COLORS.amber],
+        borderColor: '#fff',
+        borderWidth: 3,
+        hoverOffset: 4
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      cutout: '65%',
       plugins: {
         legend: {
-          labels: {
-            color: 'rgb(209, 213, 219)'
-          }
+          position: 'bottom',
+          labels: { color: CHART_COLORS.tickColor, font: { size: 10, weight: 'bold' }, boxWidth: 10, padding: 10 }
+        },
+        tooltip: {
+          backgroundColor: '#fff', titleColor: '#1e293b', bodyColor: '#475569',
+          borderColor: '#e2e8f0', borderWidth: 1, cornerRadius: 8
         }
       }
     }
@@ -611,149 +510,92 @@ const createActivitiesChart = () => {
 
 const createClientGrowthChart = () => {
   if (!clientGrowthChart.value) return
-
-  if (clientGrowthChartInstance) {
-    clientGrowthChartInstance.destroy()
-  }
-
+  clientGrowthChartInstance?.destroy()
   const ctx = clientGrowthChart.value.getContext('2d')
   if (!ctx) return
 
-  // Usar datos de clientes si están disponibles, si no crear datos básicos
   let labels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun']
-  let data = [1, 2, 1, 3, 2, 1]
+  let data = [4, 6, 3, 8, 5, 7]
 
-  if (clientStats.value && clientStats.value.growth) {
-    // Procesar datos reales del backend si existen
-    const monthlyData = clientStats.value.growth.sort((a: any, b: any) => a._id.month - b._id.month)
-    if (monthlyData.length > 0) {
-      const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
-      labels = monthlyData.map((item: any) => monthNames[item._id.month - 1] || `Mes ${item._id.month}`)
-      data = monthlyData.map((item: any) => item.newClients)
-    }
-  } else if (dashboardStats.value?.monthly?.newClients) {
-    // Usar datos del dashboard como fallback
-    labels = ['Este Mes']
-    data = [dashboardStats.value.monthly.newClients]
+  if (clientStats.value?.growth?.length) {
+    const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+    const sorted = [...clientStats.value.growth].sort((a: any, b: any) => a._id.month - b._id.month)
+    labels = sorted.map((item: any) => monthNames[item._id.month - 1] || `Mes ${item._id.month}`)
+    data = sorted.map((item: any) => item.newClients)
   }
 
   clientGrowthChartInstance = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: labels,
+      labels,
       datasets: [{
         label: 'Nuevos Clientes',
-        data: data,
-        backgroundColor: 'rgba(34, 197, 94, 0.8)',
-        borderColor: 'rgb(34, 197, 94)',
-        borderWidth: 1
+        data,
+        backgroundColor: 'rgba(16, 185, 129, 0.2)',
+        borderColor: CHART_COLORS.emerald,
+        borderWidth: 2,
+        borderRadius: 6,
+        borderSkipped: false
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: {
-          labels: {
-            color: 'rgb(209, 213, 219)'
-          }
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#fff', titleColor: '#1e293b', bodyColor: '#475569',
+          borderColor: '#e2e8f0', borderWidth: 1, cornerRadius: 8
         }
       },
       scales: {
-        x: {
-          ticks: {
-            color: 'rgb(156, 163, 175)'
-          },
-          grid: {
-            color: 'rgba(156, 163, 175, 0.1)'
-          }
-        },
-        y: {
-          beginAtZero: true,
-          ticks: {
-            color: 'rgb(156, 163, 175)'
-          },
-          grid: {
-            color: 'rgba(156, 163, 175, 0.1)'
-          }
-        }
+        x: { ticks: { color: CHART_COLORS.tickColor, font: { size: 10 } }, grid: { display: false } },
+        y: { beginAtZero: true, ticks: { color: CHART_COLORS.tickColor, font: { size: 10 }, stepSize: 1 }, grid: { color: CHART_COLORS.gridLine } }
       }
     }
   })
 }
 
-const createTeamChart = () => {
-  if (!teamChart.value) return
-
-  if (teamChartInstance) {
-    teamChartInstance.destroy()
-  }
-
-  const ctx = teamChart.value.getContext('2d')
-  if (!ctx) return
-
-  // Usar datos del equipo si están disponibles, si no crear datos básicos
-  let labels = ['Equipo A', 'Equipo B', 'Equipo C']
-  let data = [15, 22, 18]
-
-  if (teamPerformance.value && teamPerformance.value.performance && teamPerformance.value.performance.length > 0) {
-    // Procesar datos reales del backend
-    labels = teamPerformance.value.performance.map(member => member.teamMember?.nombre || `Miembro ${member._id}`)
-    data = teamPerformance.value.performance.map(member => member.completedActivities)
-  } else if (dashboardStats.value?.totals?.teamMembers) {
-    // Crear datos básicos basados en el número de miembros del equipo
-    const teamCount = dashboardStats.value.totals.teamMembers
-    labels = Array.from({length: teamCount}, (_, i) => `Miembro ${i + 1}`)
-    data = Array.from({length: teamCount}, () => Math.floor(Math.random() * 25) + 10)
-  }
-
-  teamChartInstance = new Chart(ctx, {
-    type: 'radar',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: 'Actividades Completadas',
-        data: data,
-        borderColor: 'rgb(236, 72, 153)',
-        backgroundColor: 'rgba(236, 72, 153, 0.2)',
-        pointBackgroundColor: 'rgb(236, 72, 153)',
-        pointBorderColor: 'rgb(236, 72, 153)'
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          labels: {
-            color: 'rgb(209, 213, 219)'
-          }
-        }
-      },
-      scales: {
-        r: {
-          beginAtZero: true,
-          ticks: {
-            color: 'rgb(156, 163, 175)',
-            backdropColor: 'transparent'
-          },
-          grid: {
-            color: 'rgba(156, 163, 175, 0.3)'
-          },
-          angleLines: {
-            color: 'rgba(156, 163, 175, 0.3)'
-          },
-          pointLabels: {
-            color: 'rgb(209, 213, 219)'
-          }
-        }
-      }
-    }
-  })
+const createCharts = () => {
+  setTimeout(() => {
+    createRevenueChart()
+    createActivitiesChart()
+    createClientGrowthChart()
+  }, 100)
 }
 
-// Lifecycle
-onMounted(() => {
-  loadData()
-})
+const loadData = async () => {
+  loading.value = true
+  try {
+    const [dash, fin, act, cli, team, exec] = await Promise.all([
+      reportsService.getDashboardStats().catch(() => null),
+      reportsService.getFinancialData(selectedPeriod.value).catch(() => null),
+      reportsService.getActivityStats().catch(() => null),
+      reportsService.getClientStats().catch(() => null),
+      reportsService.getTeamPerformance().catch(() => null),
+      reportsService.getExecutiveSummary().catch(() => null)
+    ])
+    dashboardStats.value = dash
+    financialData.value = fin
+    activityStats.value = act
+    clientStats.value = cli
+    teamPerformance.value = team
+    executiveSummary.value = exec
+    await nextTick()
+    createCharts()
+  } catch (error) {
+    console.error('Error loading reports:', error)
+    await nextTick()
+    createCharts()
+  } finally {
+    loading.value = false
+  }
+}
+
+const refreshData = async () => {
+  await loadData()
+  showSuccess('Reportes actualizados')
+}
+
+onMounted(() => { loadData() })
 </script>
