@@ -14,29 +14,29 @@ class TicketService {
   }
 
   // Create ticket from public form (no auth)
-  async createPublic(data: {
-    subject: string;
-    description: string;
-    category: string;
-    priority: string;
-    name: string;
-    email: string;
-    clientId?: string;
-  }): Promise<{ success: boolean; data?: Ticket; error?: string }> {
+  // Create ticket from public form (supports FormData for files)
+  async createPublic(data: any): Promise<{ success: boolean; data?: Ticket; error?: string }> {
     try {
-      console.log('--- DEBUG: Sending Public Ticket ---', data);
+      const isFormData = data instanceof FormData || (data && data.constructor && data.constructor.name === 'FormData');
+      const headers: any = {};
+      if (!isFormData) {
+        headers['Content-Type'] = 'application/json';
+      }
+
+
       const response = await fetch(`${this.baseUrl}${this.endpoint}/public`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        headers,
+        body: isFormData ? data : JSON.stringify(data),
       });
       const result = await response.json();
       return result;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating public ticket:', error);
-      throw new Error('No se pudo enviar el ticket. Reintente más tarde.');
+      return { success: false, error: error.message };
     }
   }
+
 
   // Get all tickets (authenticated)
   async getAll(filters?: { status?: string; priority?: string; category?: string }): Promise<Ticket[]> {
