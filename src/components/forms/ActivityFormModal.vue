@@ -129,9 +129,10 @@
                   ></textarea>
                 </div>
 
-                <!-- Tiempo Estimado -->
-                <div class="space-y-2 shrink-0">
-                  <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1 flex justify-between">
+                <!-- Tiempo Estimado y Progreso -->
+                <div class="space-y-5 shrink-0">
+                  <div class="space-y-2">
+                    <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1 flex justify-between">
                     <span>Tiempo Estimado</span>
                     <button type="button" @click="form.estimatedTime = ''" class="text-primary-500 hover:text-primary-600">Limpiar</button>
                   </label>
@@ -168,6 +169,18 @@
                         class="w-full h-full pl-8 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-slate-700 text-[11px] font-black focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all shadow-sm placeholder-slate-300"
                       />
                     </div>
+                    </div>
+                  </div>
+
+                  <!-- Progreso -->
+                  <div class="mt-3 bg-white p-2 rounded-xl border border-slate-100 shadow-sm flex items-center gap-3">
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest w-12 text-right">{{ form.completionPercentage || 0 }}%</span>
+                    <input 
+                      type="range" 
+                      v-model.number="form.completionPercentage" 
+                      min="0" max="100" step="5"
+                      class="flex-1 h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-primary-500"
+                    />
                   </div>
                 </div>
               </div>
@@ -247,7 +260,8 @@ const form = reactive({
   type: 'task',
   date: '',
   dueDate: '',
-  estimatedTime: ''
+  estimatedTime: '',
+  completionPercentage: 0
 })
 
 const populateForm = () => {
@@ -262,6 +276,7 @@ const populateForm = () => {
     form.status = props.activity.status || 'pending'
     form.type = props.activity.type || 'task'
     form.estimatedTime = props.activity.estimatedTime || ''
+    form.completionPercentage = props.activity.completionPercentage || 0
     form.date = props.activity.date ? formatDateTimeLocal(props.activity.date) : new Date().toISOString().slice(0, 16)
     form.dueDate = props.activity.dueDate ? formatDateTimeLocal(props.activity.dueDate) : ''
   } else {
@@ -286,6 +301,7 @@ const handleSubmit = async () => {
       status: form.status,
       type: form.type,
       estimatedTime: form.estimatedTime,
+      completionPercentage: form.completionPercentage,
       date: form.date,
       dueDate: form.dueDate || undefined
     }

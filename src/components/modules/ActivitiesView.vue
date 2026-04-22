@@ -37,6 +37,16 @@
             <i class="fas fa-calendar-alt mr-2"></i>
             Calendario
           </button>
+          <button
+            @click="currentView = 'daily'"
+            :class="currentView === 'daily' 
+              ? 'bg-white text-primary shadow-sm font-bold border-slate-200' 
+              : 'text-slate-500 hover:text-slate-800'"
+            class="px-3 py-1.5 rounded-md text-sm font-medium transition-all"
+          >
+            <i class="fas fa-sun mr-2"></i>
+            Daily
+          </button>
         </div>
         
         <!-- Botón crear -->
@@ -195,9 +205,8 @@
             v-model="selectedTeamMember"
             :options="[
               { value: '', label: 'Todos los miembros' },
-              { value: 'unassigned', label: 'Sin asignar' },
-              ...(authStore.user?._id ? [{ value: authStore.user._id, label: '⭐ Mis Tareas', specialClass: 'font-bold text-primary-600' }] : []),
-              ...filteredMembersByDept.filter(m => m._id !== authStore.user?._id).map(m => ({ value: m._id!, label: m.name }))
+              { value: 'unassigned', label: 'Sin asignar', specialClass: 'text-slate-500 italic' },
+              ...filteredMembersByDept.map(m => ({ value: m._id!, label: m.name }))
             ]"
           />
         </div>
@@ -212,6 +221,7 @@
             :options="[
               { value: '', label: 'Todos los estados' },
               { value: 'pending', label: 'Pendiente' },
+              { value: 'in-progress', label: 'En Proceso' },
               { value: 'completed', label: 'Completada' }
             ]"
           />
@@ -229,6 +239,11 @@
         @quick-task="handleQuickTask"
         @view-activity="viewActivity"
       />
+    </div>
+
+    <!-- Vista Daily -->
+    <div v-else-if="currentView === 'daily'">
+      <DailyScrum :activities="filteredActivities" />
     </div>
 
     <!-- Vista de Lista -->
@@ -250,6 +265,23 @@
               <td class="p-4 pl-6">
                 <div class="font-bold text-slate-800 text-sm">{{ activity.title }}</div>
                 <div class="text-xs text-slate-500 line-clamp-1 mt-0.5 max-w-md">{{ activity.description || 'Sin descripción' }}</div>
+                <!-- Progreso y Tiempo (List View) -->
+                <div v-if="activity.estimatedTime || activity.timeSpent || activity.completionPercentage !== undefined" class="mt-2 flex items-center gap-3">
+                  <div class="flex-1 max-w-[120px] bg-slate-100 rounded-full h-1.5 overflow-hidden flex items-center">
+                    <div class="bg-primary-500 h-1.5 rounded-full transition-all" :style="{ width: `${activity.completionPercentage || 0}%` }"></div>
+                  </div>
+                  <div class="flex items-center gap-1.5 text-[10px] font-black text-slate-400">
+                    <button @click.stop="toggleTimer(activity)" class="p-1 rounded-md transition-colors" :class="isTimerActive(activity) ? 'text-red-500 bg-red-50 hover:bg-red-100' : 'text-primary-500 bg-primary-50 hover:bg-primary-100'">
+                      <i :class="isTimerActive(activity) ? 'fas fa-stop' : 'fas fa-play'"></i>
+                    </button>
+                    <span :class="isTimerActive(activity) ? 'text-red-500' : ''">{{ formatTime(activity.timeSpent) }}</span>
+                    <span v-if="activity.estimatedTime">/ {{ activity.estimatedTime }}</span>
+                    
+                    <button @click.stop="promptAddManualTime(activity)" class="ml-0.5 w-5 h-5 rounded-md flex items-center justify-center bg-slate-100 text-slate-500 hover:bg-primary-100 hover:text-primary-600 transition-all opacity-0 group-hover:opacity-100" title="Añadir minutos (Manual)">
+                      <i class="fas fa-plus text-[10px]"></i>
+                    </button>
+                  </div>
+                </div>
               </td>
               <td class="p-4 hidden md:table-cell text-xs font-bold text-slate-600">
                 {{ getClientName(activity.clientId) }}
@@ -820,15 +852,30 @@
               </template>
             </div>
 
-            <!-- Fecha y tiempo estimado -->
-            <div class="flex items-center justify-between text-xs text-slate-500 font-medium">
-              <div class="flex items-center gap-1">
-                <i class="fas fa-calendar"></i>
-                <span>{{ formatDate(activity.date) }}</span>
+            <!-- Fecha y Progreso -->
+            <div class="flex flex-col gap-2 mt-2 pt-2 border-t border-slate-100">
+              <div class="flex items-center justify-between text-xs text-slate-500 font-medium">
+                <div class="flex items-center gap-1">
+                  <i class="fas fa-calendar"></i>
+                  <span>{{ formatDate(activity.date) }}</span>
+                </div>
               </div>
-              <div v-if="activity.estimatedTime" class="flex items-center gap-1">
-                <i class="fas fa-clock"></i>
-                <span>{{ activity.estimatedTime }}</span>
+              
+              <div v-if="activity.estimatedTime || activity.timeSpent || activity.completionPercentage !== undefined" class="flex items-center gap-3">
+                <div class="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden flex items-center shrink-0">
+                  <div class="bg-primary-500 h-1.5 rounded-full transition-all" :style="{ width: `${activity.completionPercentage || 0}%` }"></div>
+                </div>
+                <div class="flex items-center gap-1.5 text-[10px] font-black text-slate-500 bg-slate-50 px-2 py-1 rounded-lg border border-slate-200 shadow-sm transition-colors group/timer" :class="isTimerActive(activity) ? 'border-red-200 bg-red-50' : 'hover:border-primary-200'">
+                  <button @click.stop="toggleTimer(activity)" class="flex items-center justify-center transition-transform hover:scale-110 active:scale-95">
+                    <i :class="isTimerActive(activity) ? 'fas fa-stop-circle text-red-500 text-xs shadow-red-200 drop-shadow-sm' : 'fas fa-play-circle text-primary-500 text-xs shadow-primary-200 drop-shadow-sm group-hover/timer:text-primary-600'"></i>
+                  </button>
+                  <span class="font-bold" :class="isTimerActive(activity) ? 'text-red-600' : ''">{{ formatTime(activity.timeSpent) }}</span>
+                  <span v-if="activity.estimatedTime" class="opacity-60">/ {{ activity.estimatedTime }}</span>
+                  
+                  <button @click.stop="promptAddManualTime(activity)" class="ml-0.5 w-4 h-4 rounded-full flex items-center justify-center bg-slate-200 text-slate-500 hover:bg-primary-100 hover:text-primary-600 transition-all opacity-0 group-hover/timer:opacity-100" title="Añadir minutos (Manual)">
+                    <i class="fas fa-plus text-[8px]"></i>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -971,15 +1018,30 @@
               </template>
             </div>
 
-            <!-- Fecha y tiempo estimado -->
-            <div class="flex items-center justify-between text-xs text-slate-500 font-medium">
-              <div class="flex items-center gap-1">
-                <i class="fas fa-calendar"></i>
-                <span>{{ formatDate(activity.date) }}</span>
+            <!-- Fecha y Progreso -->
+            <div class="flex flex-col gap-2 mt-2 pt-2 border-t border-slate-100">
+              <div class="flex items-center justify-between text-xs text-slate-500 font-medium">
+                <div class="flex items-center gap-1">
+                  <i class="fas fa-calendar"></i>
+                  <span>{{ formatDate(activity.date) }}</span>
+                </div>
               </div>
-              <div v-if="activity.estimatedTime" class="flex items-center gap-1">
-                <i class="fas fa-clock"></i>
-                <span>{{ activity.estimatedTime }}</span>
+              
+              <div v-if="activity.estimatedTime || activity.timeSpent || activity.completionPercentage !== undefined" class="flex items-center gap-3">
+                <div class="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden flex items-center shrink-0">
+                  <div class="bg-primary-500 h-1.5 rounded-full transition-all" :style="{ width: `${activity.completionPercentage || 0}%` }"></div>
+                </div>
+                <div class="flex items-center gap-1.5 text-[10px] font-black text-slate-500 bg-slate-50 px-2 py-1 rounded-lg border border-slate-200 shadow-sm transition-colors group/timer" :class="isTimerActive(activity) ? 'border-red-200 bg-red-50' : 'hover:border-primary-200'">
+                  <button @click.stop="toggleTimer(activity)" class="flex items-center justify-center transition-transform hover:scale-110 active:scale-95">
+                    <i :class="isTimerActive(activity) ? 'fas fa-stop-circle text-red-500 text-xs shadow-red-200 drop-shadow-sm' : 'fas fa-play-circle text-primary-500 text-xs shadow-primary-200 drop-shadow-sm group-hover/timer:text-primary-600'"></i>
+                  </button>
+                  <span class="font-bold" :class="isTimerActive(activity) ? 'text-red-600' : ''">{{ formatTime(activity.timeSpent) }}</span>
+                  <span v-if="activity.estimatedTime" class="opacity-60">/ {{ activity.estimatedTime }}</span>
+                  
+                  <button @click.stop="promptAddManualTime(activity)" class="ml-0.5 w-4 h-4 rounded-full flex items-center justify-center bg-slate-200 text-slate-500 hover:bg-primary-100 hover:text-primary-600 transition-all opacity-0 group-hover/timer:opacity-100" title="Añadir minutos (Manual)">
+                    <i class="fas fa-plus text-[8px]"></i>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -2299,7 +2361,9 @@ const draggedActivity = ref<ActivityData | null>(null)
 const isDragging = ref(false)
 
 // Vista y UI
-const currentView = ref<'kanban' | 'tasks' | 'calendar'>('kanban')
+import DailyScrum from '../../pages/DailyScrum.vue'
+
+const currentView = ref<'kanban' | 'tasks' | 'calendar' | 'daily'>('kanban')
 const quickTaskTitle = ref('')
 const showQuickSettings = ref(false)
 const showQuickTaskHints = ref(false)
@@ -2462,6 +2526,50 @@ const completedActivities = computed(() =>
 const overdueActivities = computed(() => 
   filteredActivities.value.filter(a => a.status === 'overdue')
 )
+
+const formatTime = (seconds: number | undefined) => {
+  if (!seconds) return '0h'
+  const h = Math.floor(seconds / 3600)
+  const m = Math.floor((seconds % 3600) / 60)
+  if (h > 0 && m > 0) return `${h}h ${m}m`
+  if (h > 0) return `${h}h`
+  return `${m}m`
+}
+
+const isTimerActive = (activity: any) => {
+  return activity.activeSessions?.some((s: any) => s.userId === authStore.user?._id)
+}
+
+const toggleTimer = async (activity: any) => {
+  const action = isTimerActive(activity) ? 'stop' : 'start'
+  try {
+    const updated = await activityService.toggleTimer(activity._id, action, authStore.user!._id)
+    const index = activities.value.findIndex(a => a._id === updated._id)
+    if (index !== -1) {
+      activities.value[index] = updated
+    }
+  } catch (error) {
+    showError('Error al actualizar el temporizador')
+  }
+}
+
+const promptAddManualTime = async (activity: any) => {
+  const minsStr = prompt('¿Cuántos minutos extra deseas añadir?')
+  if (!minsStr) return
+  const mins = parseInt(minsStr)
+  if (isNaN(mins) || mins <= 0) return
+  
+  try {
+    const updated = await activityService.toggleTimer(activity._id, 'add_manual', authStore.user!._id, mins)
+    const index = activities.value.findIndex(a => a._id === updated._id)
+    if (index !== -1) {
+      activities.value[index] = updated
+    }
+    showSuccess(`${mins} minutos añadidos exitosamente`)
+  } catch (error) {
+    showError('Error al añadir tiempo manual')
+  }
+}
 
 // Función helper para obtener información completa del usuario
 const getUserInfo = (user: any) => {

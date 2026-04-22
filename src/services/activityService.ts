@@ -18,6 +18,9 @@ export interface ActivityData {
   dueDate?: string
   estimatedTime?: string
   taskId?: string // ✅ ID de la tarea del board asociada
+  completionPercentage?: number
+  timeSpent?: number
+  activeSessions?: Array<{ userId: string, startTime: string }>
   createdBy?: string
   createdByUser?: {
     _id: string
@@ -206,9 +209,7 @@ class ActivityService {
     try {
       const response = await fetch(`${this.baseUrl}${this.endpoint}/${id}/assign`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this.getHeaders(),
         body: JSON.stringify({ assignedTo }),
       })
       
@@ -220,6 +221,44 @@ class ActivityService {
     } catch (error) {
       console.error('Error reassigning activity:', error)
       throw new Error('No se pudo reasignar la actividad')
+    }
+  }
+
+  async updateProgress(id: string, completionPercentage: number): Promise<ActivityData> {
+    try {
+      const response = await fetch(`${this.baseUrl}${this.endpoint}/${id}/progress`, {
+        method: 'PATCH',
+        headers: this.getHeaders(),
+        body: JSON.stringify({ completionPercentage }),
+      })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
+      return await response.json()
+    } catch (error) {
+      console.error('Error updating activity progress:', error)
+      throw new Error('No se pudo actualizar el progreso de la actividad')
+    }
+  }
+
+  async toggleTimer(id: string, action: 'start' | 'stop' | 'add_manual', userId: string, minutes?: number): Promise<ActivityData> {
+    try {
+      const response = await fetch(`${this.baseUrl}${this.endpoint}/${id}/timer`, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify({ action, userId, minutes }),
+      })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
+      return await response.json()
+    } catch (error) {
+      console.error('Error toggling activity timer:', error)
+      throw new Error('No se pudo actualizar el temporizador de la actividad')
     }
   }
 }

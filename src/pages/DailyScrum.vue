@@ -1,68 +1,9 @@
 <template>
-  <div class="flex flex-col h-full min-h-0 relative bg-slate-950">
-    <div class="flex-1 min-h-0 overflow-y-auto space-y-8 p-8 custom-scrollbar">
-      
-      <!-- Header Section with Glassmorphism -->
-      <div class="bg-slate-900/40 backdrop-blur-xl rounded-[2.5rem] p-8 border border-slate-800 shadow-2xl relative overflow-hidden group">
-        <div class="absolute inset-0 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 opacity-50 group-hover:opacity-100 transition-opacity duration-700"></div>
-        
-        <div class="relative flex flex-col lg:flex-row gap-8 lg:items-center lg:justify-between">
-          <div class="space-y-2">
-            <div class="flex items-center gap-3">
-              <div class="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                <i class="fas fa-chart-line text-white text-xl"></i>
-              </div>
-              <h1 class="text-3xl font-black text-white tracking-tight">Daily Scrum <span class="text-indigo-500 text-sm font-bold ml-2 px-3 py-1 bg-indigo-500/10 rounded-full border border-indigo-500/20 uppercase tracking-widest">Live</span></h1>
-            </div>
-            <p class="text-slate-400 text-sm font-medium ml-15">Monitoreo de pulso en tiempo real y rendimiento del equipo.</p>
-          </div>
-
-          <div class="flex flex-wrap items-center gap-4">
-            <!-- Selector de Departamento -->
-            <div class="relative group">
-              <i class="fas fa-users absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors"></i>
-              <select
-                v-model="selectedDepartment"
-                @change="loadDailyTasks"
-                class="pl-11 pr-10 py-3 bg-slate-800/50 border border-slate-700 rounded-2xl text-white font-bold text-sm focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all appearance-none cursor-pointer"
-              >
-                <option value="">Todos los Equipos</option>
-                <option value="TI">Equipo TI</option>
-                <option value="MARKETING">Marketing</option>
-                <option value="VENTAS">Ventas</option>
-                <option value="SOPORTE">Soporte</option>
-              </select>
-            </div>
-
-            <!-- Botón de Acción -->
-            <button
-              @click="sendEmailReport"
-              :disabled="sendingEmail"
-              class="px-8 py-3 bg-white text-slate-950 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-indigo-50 active:scale-95 transition-all shadow-xl shadow-white/5 flex items-center gap-3 disabled:opacity-50"
-            >
-              <i class="fas fa-paper-plane" :class="{'fa-spinner fa-spin': sendingEmail}"></i>
-              {{ sendingEmail ? 'Enviando...' : 'Exportar Reporte' }}
-            </button>
-          </div>
-        </div>
-
-        <!-- Mini Stats Grid -->
-        <div class="relative grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 pt-8 border-t border-slate-800/50">
-          <div v-for="stat in summaryStats" :key="stat.label" class="p-4 rounded-2xl bg-slate-950/30 border border-slate-800/50">
-            <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{{ stat.label }}</div>
-            <div class="text-xl font-black text-white">{{ stat.value }}<span class="text-xs text-slate-500 ml-1 font-bold">{{ stat.suffix }}</span></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Loading State -->
-      <div v-if="loading" class="flex flex-col items-center justify-center py-24 space-y-4">
-        <div class="w-16 h-16 border-4 border-slate-800 border-t-indigo-500 rounded-full animate-spin"></div>
-        <p class="text-slate-500 font-black text-xs uppercase tracking-[0.3em]">Sincronizando pulso...</p>
-      </div>
+  <div class="flex flex-col h-full min-h-0 relative">
+    <div class="flex-1 min-h-0 overflow-y-auto space-y-8 p-0 custom-scrollbar">
 
       <!-- Main Content -->
-      <div v-else class="space-y-12">
+      <div class="space-y-12 mt-4 bg-slate-950 p-6 sm:p-8 rounded-3xl border border-slate-800 shadow-2xl">
         
         <!-- Live Tracking Section -->
         <section class="space-y-6">
@@ -198,50 +139,45 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import axios from 'axios'
 import { API_CONFIG } from '@/config/api'
 import { useAuthStore } from '@/stores/auth'
 
+const props = defineProps<{
+  activities: any[]
+}>()
+
 const authStore = useAuthStore()
 const API_URL = API_CONFIG.BASE_URL.replace('/api', '')
 
-const loading = ref(true)
 const sendingEmail = ref(false)
-const selectedDepartment = ref('')
-const dailyTasks = ref<any[]>([])
 
-const config = computed(() => ({
-  headers: {
-    Authorization: `Bearer ${authStore.token}`
-  }
-}))
+const dailyTasks = computed(() => {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  
+  return props.activities.filter((t: any) => {
+    const updated = new Date(t.updatedAt)
+    const hasActive = t.activeSessions && t.activeSessions.length > 0
+    return updated >= today || hasActive
+  })
+})
 
 const activeTasks = computed(() => {
   return dailyTasks.value.filter(t => t.activeSessions && t.activeSessions.length > 0)
-})
-
-const summaryStats = computed(() => {
-  const total = dailyTasks.value.length
-  const active = activeTasks.value.length
-  const avgProgress = total > 0 
-    ? Math.round(dailyTasks.value.reduce((acc, t) => acc + (t.completionPercentage || 0), 0) / total) 
-    : 0
-  const totalHours = dailyTasks.value.reduce((acc, t) => acc + (t.actualHours || 0), 0).toFixed(1)
-
-  return [
-    { label: 'Tareas Hoy', value: total, suffix: 'items' },
-    { label: 'En Ejecución', value: active, suffix: 'miembros' },
-    { label: 'Progreso Promedio', value: avgProgress, suffix: '%' },
-    { label: 'Inversión Tiempo', value: totalHours, suffix: 'horas' }
-  ]
 })
 
 const tasksByUser = computed(() => {
   const grouped: Record<string, any[]> = {}
   
   dailyTasks.value.forEach(task => {
-    const userName = task.assignedTo?.name || 'Sin Asignar'
+    // Si asignadoTo es un array de objetos
+    let userName = 'Sin Asignar'
+    if (Array.isArray(task.assignedTo) && task.assignedTo.length > 0) {
+      userName = task.assignedTo[0].name || 'Usuario'
+    }
+    
     if (!grouped[userName]) {
       grouped[userName] = []
     }
@@ -251,31 +187,6 @@ const tasksByUser = computed(() => {
   return grouped
 })
 
-async function loadDailyTasks() {
-  loading.value = true
-  try {
-    const params = new URLSearchParams()
-    if (selectedDepartment.value) {
-      params.append('department', selectedDepartment.value)
-    }
-    const response = await axios.get(`${API_URL}/api/tasks?${params.toString()}`, config.value)
-    
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    
-    dailyTasks.value = response.data.filter((t: any) => {
-      const updated = new Date(t.updatedAt)
-      const hasActive = t.activeSessions && t.activeSessions.length > 0
-      return updated >= today || hasActive
-    })
-    
-  } catch (error) {
-    console.error('Error loading daily tasks:', error)
-  } finally {
-    loading.value = false
-  }
-}
-
 async function sendEmailReport() {
   const email = prompt('¿A qué correo deseas enviar este reporte?', authStore.user?.email || '')
   if (!email) return
@@ -283,9 +194,12 @@ async function sendEmailReport() {
   sendingEmail.value = true
   try {
     await axios.post(`${API_URL}/api/taskReports/send-daily-email`, {
-      department: selectedDepartment.value,
       toEmail: email
-    }, config.value)
+    }, {
+      headers: {
+        Authorization: `Bearer ${authStore.token}`
+      }
+    })
     alert(`Reporte enviado exitosamente a ${email}`)
   } catch (error: any) {
     alert(error.response?.data?.error || 'Error al enviar el reporte.')
@@ -323,9 +237,6 @@ const calculateUserPerformance = (tasks: any[]) => {
   return Math.round(avgProgress)
 }
 
-onMounted(() => {
-  loadDailyTasks()
-})
 </script>
 
 <style scoped>
