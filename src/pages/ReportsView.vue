@@ -2,31 +2,51 @@
   <div class="flex flex-col gap-5 h-full min-h-0">
 
     <!-- Header -->
-    <div class="flex-shrink-0 flex items-center justify-between">
+    <div class="flex-shrink-0 flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
         <h1 class="text-xl font-black text-slate-800 tracking-tight">Reportes & Analytics</h1>
-        <p class="text-xs text-slate-500 font-medium mt-0.5">Análisis de rendimiento y métricas del negocio</p>
+        <p class="text-xs text-slate-500 font-medium mt-0.5">Análisis de rendimiento y métricas de productividad</p>
       </div>
-      <div class="flex items-center gap-2">
-        <!-- Period selector -->
-        <div class="flex bg-slate-100 rounded-lg p-1 border border-slate-200 shadow-inner">
-          <button
-            v-for="p in periods"
-            :key="p.value"
-            @click="selectedPeriod = p.value; refreshData()"
-            class="px-3 py-1.5 rounded-md text-xs font-bold transition-all"
-            :class="selectedPeriod === p.value
-              ? 'bg-white text-primary-600 shadow-sm border border-slate-200'
-              : 'text-slate-500 hover:text-slate-800'"
-          >{{ p.label }}</button>
+      <div class="flex flex-wrap items-center gap-3">
+        <!-- Filtros Rápidos -->
+        <div class="flex flex-wrap items-center gap-2">
+          <select 
+            v-model="filters.department" 
+            @change="loadData"
+            class="bg-white border border-slate-200 text-xs font-bold text-slate-600 rounded-lg px-3 py-2 shadow-sm focus:ring-2 focus:ring-primary-500/20 transition-all outline-none"
+          >
+            <option value="">Todos los Equipos</option>
+            <option v-for="dept in departments" :key="dept" :value="dept">{{ dept }}</option>
+          </select>
+
+          <select 
+            v-model="filters.clientId" 
+            @change="loadData"
+            class="bg-white border border-slate-200 text-xs font-bold text-slate-600 rounded-lg px-3 py-2 shadow-sm focus:ring-2 focus:ring-primary-500/20 transition-all outline-none"
+          >
+            <option value="">Todos los Clientes</option>
+            <option v-for="client in clients" :key="client._id" :value="client._id">{{ client.name }}</option>
+          </select>
+
+          <select 
+            v-model="filters.assignedTo" 
+            @change="loadData"
+            class="bg-white border border-slate-200 text-xs font-bold text-slate-600 rounded-lg px-3 py-2 shadow-sm focus:ring-2 focus:ring-primary-500/20 transition-all outline-none"
+          >
+            <option value="">Todo el Personal</option>
+            <option v-for="member in availableMembers" :key="member._id" :value="member._id">{{ member.name }}</option>
+          </select>
         </div>
+
+        <div class="h-8 w-[1px] bg-slate-200 hidden md:block"></div>
+
         <button
           @click="refreshData"
           :disabled="loading"
           class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-lg text-sm flex items-center gap-2 shadow-sm transition-colors disabled:opacity-50"
         >
           <i :class="loading ? 'fas fa-spinner fa-spin' : 'fas fa-sync-alt'" class="text-xs"></i>
-          {{ loading ? 'Cargando...' : 'Actualizar' }}
+          {{ loading ? 'Actualizar' : 'Actualizar' }}
         </button>
       </div>
     </div>
@@ -61,21 +81,6 @@
       <!-- Left: 2 charts stacked -->
       <div class="col-span-2 flex flex-col gap-4 min-h-0 overflow-y-auto">
 
-        <!-- Revenue Trend -->
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex-shrink-0">
-          <div class="flex items-center justify-between mb-4">
-            <div>
-              <h3 class="text-sm font-black text-slate-800">Tendencia de Ingresos</h3>
-              <p class="text-[10px] text-slate-500 font-medium">Ingresos mensuales acumulados</p>
-            </div>
-            <span class="text-xs bg-primary-50 text-primary-600 font-bold px-2.5 py-1 rounded-lg border border-primary-100">
-              <i class="fas fa-chart-line mr-1"></i>{{ selectedPeriod === 'month' ? 'Mensual' : selectedPeriod === 'quarter' ? 'Trimestral' : 'Anual' }}
-            </span>
-          </div>
-          <div class="h-44">
-            <canvas ref="revenueChart"></canvas>
-          </div>
-        </div>
 
         <!-- Activities + Clients row -->
         <div class="grid grid-cols-2 gap-4 flex-shrink-0">
@@ -87,12 +92,12 @@
               <canvas ref="activitiesChart"></canvas>
             </div>
           </div>
-          <!-- Client Growth Bar -->
+          <!-- Client Growth Bar -> Workload -->
           <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
-            <h3 class="text-sm font-black text-slate-800 mb-1">Nuevos Clientes</h3>
-            <p class="text-[10px] text-slate-500 font-medium mb-3">Crecimiento mensual</p>
+            <h3 class="text-sm font-black text-slate-800 mb-1">Carga de Trabajo</h3>
+            <p class="text-[10px] text-slate-500 font-medium mb-3">Tareas activas por miembro</p>
             <div class="h-36">
-              <canvas ref="clientGrowthChart"></canvas>
+              <canvas ref="workloadChart"></canvas>
             </div>
           </div>
         </div>
@@ -246,6 +251,19 @@ const { showError, showSuccess } = useNotifications()
 const loading = ref(false)
 const selectedPeriod = ref<'month' | 'quarter' | 'year'>('month')
 
+const filters = ref({
+  department: '',
+  clientId: '',
+  assignedTo: ''
+})
+
+const availableMembers = ref<any[]>([])
+const clients = ref<any[]>([])
+const departments = computed(() => {
+  const depts = new Set(availableMembers.value.map(m => m.department).filter(Boolean))
+  return Array.from(depts).sort()
+})
+
 const periods = [
   { value: 'month', label: 'Mes' },
   { value: 'quarter', label: 'Trimestre' },
@@ -278,45 +296,43 @@ const formatCurrency = (amount: number): string => {
 // --- Computed UI Data ---
 const kpis = computed(() => [
   {
-    label: 'Ingresos Totales',
-    value: formatCurrency(dashboardStats.value?.monthly?.monthlyRevenue || 847200),
-    icon: 'fas fa-dollar-sign',
+    label: 'Total Equipo',
+    value: String(dashboardStats.value?.totals?.teamMembers ?? 0),
+    icon: 'fas fa-id-badge',
     iconBg: 'bg-primary-50 border-primary-100',
     iconColor: 'text-primary-600',
-    trend: executiveSummary.value?.growth?.revenue ?? 12.4
+    trend: 0
   },
   {
     label: 'Clientes Activos',
-    value: String(dashboardStats.value?.totals?.clients ?? 66),
+    value: String(dashboardStats.value?.totals?.clients ?? 0),
     icon: 'fas fa-users',
     iconBg: 'bg-emerald-50 border-emerald-100',
     iconColor: 'text-emerald-600',
-    trend: executiveSummary.value?.growth?.clients ?? 8.2
+    trend: executiveSummary.value?.growth?.clients ?? 0
   },
   {
     label: 'Actividades',
-    value: String(dashboardStats.value?.monthly?.completedActivities ?? 142),
+    value: String(dashboardStats.value?.monthly?.completedActivities ?? 0),
     icon: 'fas fa-check-circle',
     iconBg: 'bg-blue-50 border-blue-100',
     iconColor: 'text-blue-600',
-    trend: executiveSummary.value?.growth?.activities ?? 5.7
+    trend: executiveSummary.value?.growth?.activities ?? 0
   },
   {
     label: 'Casos Activos',
-    value: String(dashboardStats.value?.totals?.cases ?? 6),
+    value: String(dashboardStats.value?.totals?.cases ?? 0),
     icon: 'fas fa-folder-open',
     iconBg: 'bg-amber-50 border-amber-100',
     iconColor: 'text-amber-600',
-    trend: -2.1
+    trend: 0
   }
 ])
 
 const executiveRows = computed(() => [
-  { label: 'Ingresos del mes', value: formatCurrency(executiveSummary.value?.kpis?.revenueThisMonth ?? 847200), growth: executiveSummary.value?.growth?.revenue ?? 12.4, icon: 'fas fa-dollar-sign', iconBg: 'bg-primary-50', iconColor: 'text-primary-600' },
-  { label: 'Nuevos clientes', value: String(executiveSummary.value?.kpis?.newClientsThisMonth ?? 7), growth: executiveSummary.value?.growth?.clients ?? 8.2, icon: 'fas fa-user-plus', iconBg: 'bg-emerald-50', iconColor: 'text-emerald-600' },
-  { label: 'Actividades completadas', value: String(executiveSummary.value?.kpis?.completedThisMonth ?? 54), growth: executiveSummary.value?.growth?.activities ?? 5.7, icon: 'fas fa-check', iconBg: 'bg-blue-50', iconColor: 'text-blue-600' },
-  { label: 'Total clientes', value: String(executiveSummary.value?.kpis?.totalClients ?? 66), growth: 3.1, icon: 'fas fa-building', iconBg: 'bg-slate-100', iconColor: 'text-slate-600' },
-  { label: 'Ingresos del año', value: formatCurrency(executiveSummary.value?.kpis?.revenueThisYear ?? 9240000), growth: 18.3, icon: 'fas fa-chart-line', iconBg: 'bg-indigo-50', iconColor: 'text-indigo-600' },
+  { label: 'Nuevos clientes', value: String(executiveSummary.value?.kpis?.newClientsThisMonth ?? 0), growth: executiveSummary.value?.growth?.clients ?? 0, icon: 'fas fa-user-plus', iconBg: 'bg-emerald-50', iconColor: 'text-emerald-600' },
+  { label: 'Actividades completadas', value: String(executiveSummary.value?.kpis?.completedThisMonth ?? 0), growth: executiveSummary.value?.growth?.activities ?? 0, icon: 'fas fa-check', iconBg: 'bg-blue-50', iconColor: 'text-blue-600' },
+  { label: 'Total clientes', value: String(executiveSummary.value?.kpis?.totalClients ?? 0), growth: 0, icon: 'fas fa-building', iconBg: 'bg-slate-100', iconColor: 'text-slate-600' },
 ])
 
 const topClients = computed(() => {
@@ -327,57 +343,48 @@ const topClients = computed(() => {
       rate: Math.round(c.completionRate * 100)
     }))
   }
-  return [
-    { name: 'Empresa SA', activities: 28, rate: 92 },
-    { name: 'TechCorp', activities: 21, rate: 85 },
-    { name: 'Grupo Comercial', activities: 17, rate: 76 },
-    { name: 'StartupXYZ', activities: 14, rate: 71 },
-    { name: 'Laura González', activities: 9, rate: 100 },
-  ]
+  return []
 })
 
 const teamMembers = computed(() => {
   if (teamPerformance.value?.performance?.length) {
-    return teamPerformance.value.performance.map((m: any) => ({
-      name: m.teamMember?.nombre || `Miembro ${m._id}`,
-      initials: (m.teamMember?.nombre || 'M').slice(0, 2).toUpperCase(),
-      completed: m.completedActivities,
-      total: m.totalActivities,
-      rate: Math.round((m.completedActivities / Math.max(m.totalActivities, 1)) * 100)
-    }))
+    return teamPerformance.value.performance.map((m: any) => {
+      const name = m.teamMember?.name || `Usuario ${String(m._id).slice(-4)}`
+      const parts = name.split(' ').filter(Boolean)
+      const initials = parts.length >= 2 
+        ? (parts[0][0] + parts[1][0]).toUpperCase()
+        : name.slice(0, 2).toUpperCase()
+        
+      return {
+        name,
+        initials,
+        completed: m.completedActivities,
+        total: m.totalActivities,
+        rate: Math.round(m.completionRate || 0)
+      }
+    })
   }
-  return [
-    { name: 'Juan Domínguez', initials: 'JD', completed: 38, total: 42, rate: 90 },
-    { name: 'Ana Martínez', initials: 'AM', completed: 29, total: 35, rate: 83 },
-    { name: 'Carlos Ruiz', initials: 'CR', completed: 22, total: 30, rate: 73 },
-    { name: 'María López', initials: 'ML', completed: 15, total: 25, rate: 60 },
-  ]
+  return []
 })
 
 const resolutionTime = computed(() => ({
-  min: activityStats.value?.resolutionTime?.minResolutionTime ? Math.round(activityStats.value.resolutionTime.minResolutionTime) : 1,
-  avg: activityStats.value?.resolutionTime?.avgResolutionTime ? Math.round(activityStats.value.resolutionTime.avgResolutionTime) : 4,
-  max: activityStats.value?.resolutionTime?.maxResolutionTime ? Math.round(activityStats.value.resolutionTime.maxResolutionTime) : 12,
+  min: activityStats.value?.resolutionTime?.minResolutionTime ? Math.round(activityStats.value.resolutionTime.minResolutionTime) : 0,
+  avg: activityStats.value?.resolutionTime?.avgResolutionTime ? Math.round(activityStats.value.resolutionTime.avgResolutionTime) : 0,
+  max: activityStats.value?.resolutionTime?.maxResolutionTime ? Math.round(activityStats.value.resolutionTime.maxResolutionTime) : 0,
 }))
 
 const monthlyComparison = computed(() => [
   {
     label: 'Nuevos Clientes',
-    current: executiveSummary.value?.kpis?.newClientsThisMonth ?? 7,
-    previous: executiveSummary.value?.kpis?.newClientsLastMonth ?? 6,
-    growth: executiveSummary.value?.growth?.clients ?? 8.2
+    current: executiveSummary.value?.kpis?.newClientsThisMonth ?? 0,
+    previous: executiveSummary.value?.kpis?.newClientsLastMonth ?? 0,
+    growth: executiveSummary.value?.growth?.clients ?? 0
   },
   {
     label: 'Actividades Completadas',
-    current: executiveSummary.value?.kpis?.completedThisMonth ?? 54,
-    previous: executiveSummary.value?.kpis?.completedLastMonth ?? 51,
-    growth: executiveSummary.value?.growth?.activities ?? 5.7
-  },
-  {
-    label: 'Ingresos',
-    current: formatCurrency(executiveSummary.value?.kpis?.revenueThisMonth ?? 847200),
-    previous: formatCurrency(executiveSummary.value?.kpis?.revenueLastMonth ?? 755000),
-    growth: executiveSummary.value?.growth?.revenue ?? 12.4
+    current: executiveSummary.value?.kpis?.completedThisMonth ?? 0,
+    previous: executiveSummary.value?.kpis?.completedLastMonth ?? 0,
+    growth: executiveSummary.value?.growth?.activities ?? 0
   },
 ])
 
@@ -508,31 +515,29 @@ const createActivitiesChart = () => {
   })
 }
 
-const createClientGrowthChart = () => {
-  if (!clientGrowthChart.value) return
-  clientGrowthChartInstance?.destroy()
-  const ctx = clientGrowthChart.value.getContext('2d')
+const createWorkloadChart = () => {
+  if (!workloadChart.value) return
+  workloadChartInstance?.destroy()
+  const ctx = workloadChart.value.getContext('2d')
   if (!ctx) return
 
-  let labels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun']
-  let data = [4, 6, 3, 8, 5, 7]
+  let labels = ['Miembro 1', 'Miembro 2', 'Miembro 3']
+  let data = [5, 8, 4]
 
-  if (clientStats.value?.growth?.length) {
-    const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
-    const sorted = [...clientStats.value.growth].sort((a: any, b: any) => a._id.month - b._id.month)
-    labels = sorted.map((item: any) => monthNames[item._id.month - 1] || `Mes ${item._id.month}`)
-    data = sorted.map((item: any) => item.newClients)
+  if (teamPerformance.value?.currentWorkload?.length) {
+    labels = teamPerformance.value.currentWorkload.map((m: any) => m.teamMember?.name || `U ${String(m._id).slice(-4)}`)
+    data = teamPerformance.value.currentWorkload.map((m: any) => m.activeWorkload)
   }
 
-  clientGrowthChartInstance = new Chart(ctx, {
+  workloadChartInstance = new Chart(ctx, {
     type: 'bar',
     data: {
       labels,
       datasets: [{
-        label: 'Nuevos Clientes',
+        label: 'Tareas Activas',
         data,
-        backgroundColor: 'rgba(16, 185, 129, 0.2)',
-        borderColor: CHART_COLORS.emerald,
+        backgroundColor: 'rgba(99, 102, 241, 0.2)',
+        borderColor: CHART_COLORS.primary,
         borderWidth: 2,
         borderRadius: 6,
         borderSkipped: false
@@ -560,20 +565,38 @@ const createCharts = () => {
   setTimeout(() => {
     createRevenueChart()
     createActivitiesChart()
-    createClientGrowthChart()
+    createWorkloadChart()
   }, 100)
 }
+
+import { teamService } from '../services/teamService'
+import { clientService } from '../services/clientService'
 
 const loadData = async () => {
   loading.value = true
   try {
+    // Fetch filter options if empty
+    if (availableMembers.value.length === 0) {
+      const [membersData, clientsData] = await Promise.all([
+        teamService.getAll(),
+        clientService.getAll()
+      ])
+      availableMembers.value = membersData
+      clients.value = clientsData
+    }
+
+    const query = {
+      period: selectedPeriod.value,
+      ...filters.value
+    }
+
     const [dash, fin, act, cli, team, exec] = await Promise.all([
-      reportsService.getDashboardStats().catch(() => null),
+      reportsService.getDashboardStats(query).catch(() => null),
       reportsService.getFinancialData(selectedPeriod.value).catch(() => null),
-      reportsService.getActivityStats().catch(() => null),
-      reportsService.getClientStats().catch(() => null),
-      reportsService.getTeamPerformance().catch(() => null),
-      reportsService.getExecutiveSummary().catch(() => null)
+      reportsService.getActivityStats(query).catch(() => null),
+      reportsService.getClientStats(query).catch(() => null),
+      reportsService.getTeamPerformance(query).catch(() => null),
+      reportsService.getExecutiveSummary(query).catch(() => null)
     ])
     dashboardStats.value = dash
     financialData.value = fin

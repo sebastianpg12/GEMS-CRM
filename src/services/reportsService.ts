@@ -131,40 +131,36 @@ class ReportsService {
   private baseUrl = API_CONFIG.BASE_URL
   private endpoint = '/reports'
 
+  private buildQueryString(filters?: any) {
+    if (!filters) return ''
+    const params = new URLSearchParams()
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) params.append(key, String(value))
+    })
+    const qs = params.toString()
+    return qs ? `?${qs}` : ''
+  }
+
   // Estadísticas del dashboard
-  async getDashboardStats(): Promise<DashboardStats> {
-    console.log('Fetching dashboard stats from:', `${this.baseUrl}${this.endpoint}/dashboard`)
-    
-    const response = await fetch(`${this.baseUrl}${this.endpoint}/dashboard`, {
+  async getDashboardStats(filters?: any): Promise<DashboardStats> {
+    const qs = this.buildQueryString(filters)
+    const response = await fetch(`${this.baseUrl}${this.endpoint}/dashboard${qs}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
     })
     
-    console.log('Dashboard response status:', response.status)
-    
     if (!response.ok) {
-      const errorText = await response.text()
-      console.error('Dashboard API error:', errorText)
-      throw new Error(`HTTP error! status: ${response.status} - ${errorText}`)
+      throw new Error(`HTTP error! status: ${response.status}`)
     }
     
     const result = await response.json()
-    console.log('Dashboard result:', result)
-    
-    // Retornar los datos tal como vienen del backend
-    if (result.success && result.data) {
-      return result.data
-    }
-    
     return result.data || result
   }
 
   // Datos financieros por período
   async getFinancialData(period: 'month' | 'quarter' | 'year'): Promise<FinancialData> {
-    console.log('Fetching financial data for period:', period)
-    
     const response = await fetch(`${this.baseUrl}${this.endpoint}/financial/${period}`, {
       method: 'GET',
       headers: {
@@ -173,19 +169,17 @@ class ReportsService {
     })
     
     if (!response.ok) {
-      const errorText = await response.text()
-      console.error('Financial API error:', errorText)
-      throw new Error(`HTTP error! status: ${response.status} - ${errorText}`)
+      throw new Error(`HTTP error! status: ${response.status}`)
     }
     
     const result = await response.json()
-    console.log('Financial result:', result)
     return result.data || result
   }
 
   // Estadísticas de actividades
-  async getActivityStats(): Promise<ActivityStats> {
-    const response = await fetch(`${this.baseUrl}${this.endpoint}/activities/stats`, {
+  async getActivityStats(filters?: any): Promise<ActivityStats> {
+    const qs = this.buildQueryString(filters)
+    const response = await fetch(`${this.baseUrl}${this.endpoint}/activities/stats${qs}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -201,8 +195,9 @@ class ReportsService {
   }
 
   // Estadísticas de clientes
-  async getClientStats(): Promise<ClientStats> {
-    const response = await fetch(`${this.baseUrl}${this.endpoint}/clients/stats`, {
+  async getClientStats(filters?: any): Promise<ClientStats> {
+    const qs = this.buildQueryString(filters)
+    const response = await fetch(`${this.baseUrl}${this.endpoint}/clients/stats${qs}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -218,8 +213,9 @@ class ReportsService {
   }
 
   // Performance del equipo
-  async getTeamPerformance(): Promise<TeamPerformance> {
-    const response = await fetch(`${this.baseUrl}${this.endpoint}/team/performance`, {
+  async getTeamPerformance(filters?: any): Promise<TeamPerformance> {
+    const qs = this.buildQueryString(filters)
+    const response = await fetch(`${this.baseUrl}${this.endpoint}/team/performance${qs}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -235,8 +231,9 @@ class ReportsService {
   }
 
   // Resumen ejecutivo
-  async getExecutiveSummary(): Promise<ExecutiveSummary> {
-    const response = await fetch(`${this.baseUrl}${this.endpoint}/executive-summary`, {
+  async getExecutiveSummary(filters?: any): Promise<ExecutiveSummary> {
+    const qs = this.buildQueryString(filters)
+    const response = await fetch(`${this.baseUrl}${this.endpoint}/executive-summary${qs}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
