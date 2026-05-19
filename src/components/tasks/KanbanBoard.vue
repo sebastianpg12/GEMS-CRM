@@ -124,6 +124,13 @@
       </div>
     </div>
   </div>
+
+  <!-- Task Detail Modal -->
+  <TaskDetailModal
+    :is-open="isTaskDetailOpen"
+    :task="selectedTask"
+    @close="closeTaskDetail"
+  />
 </template>
 
 <script setup lang="ts">
@@ -132,6 +139,7 @@ import { useRoute } from 'vue-router'
 import { useBoardsStore } from '@/stores/boards'
 import { useTasksStore } from '@/stores/tasks'
 import BoardColumn from './BoardColumn.vue'
+import TaskDetailModal from './TaskDetailModal.vue'
 import type { Task } from '@/stores/tasks'
 
 const route = useRoute()
@@ -220,14 +228,22 @@ async function handleTaskMoved(task: Task, targetColumnId: string, newIndex: num
   }
 }
 
+const isTaskDetailOpen = ref(false)
+const selectedTask = ref<Task | null>(null)
+
 function openTaskModal(columnId?: string) {
   // TODO: Implementar modal de creación de tarea
   console.log('Open task modal for column:', columnId)
 }
 
 function openTaskDetail(task: Task) {
-  // TODO: Implementar modal de detalle de tarea
-  console.log('Open task detail:', task)
+  selectedTask.value = task
+  isTaskDetailOpen.value = true
+}
+
+function closeTaskDetail() {
+  isTaskDetailOpen.value = false
+  selectedTask.value = null
 }
 
 onMounted(async () => {

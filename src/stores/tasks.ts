@@ -46,6 +46,7 @@ export interface Task {
   comments: Array<{
     _id: string
     text: string
+    images?: Array<{ url: string; name: string }>
     author: {
       _id: string
       name: string
@@ -288,13 +289,31 @@ export const useTasksStore = defineStore('tasks', () => {
     }
   }
 
-  async function addComment(taskId: string, text: string) {
+  async function addComment(taskId: string, text: string, images?: File[]) {
     try {
-      const response = await axios.post(
-        `${API_URL}/api/tasks/${taskId}/comments`,
-        { text },
-        config.value
-      )
+      let response
+      if (images && images.length > 0) {
+        const formData = new FormData()
+        formData.append('text', text)
+        images.forEach(img => formData.append('images', img))
+        response = await axios.post(
+          `${API_URL}/api/tasks/${taskId}/comments`,
+          formData,
+          {
+            ...config.value,
+            headers: {
+              ...config.value.headers,
+              'Content-Type': 'multipart/form-data'
+            }
+          }
+        )
+      } else {
+        response = await axios.post(
+          `${API_URL}/api/tasks/${taskId}/comments`,
+          { text },
+          config.value
+        )
+      }
       const index = tasks.value.findIndex(t => t._id === taskId)
       if (index !== -1) {
         tasks.value[index] = response.data
