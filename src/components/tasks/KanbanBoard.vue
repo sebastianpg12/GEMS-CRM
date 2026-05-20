@@ -124,6 +124,13 @@
       </div>
     </div>
   </div>
+
+  <!-- Task Detail Modal -->
+  <TaskDetailModal
+    :is-open="isTaskDetailOpen"
+    :task="selectedTask"
+    @close="closeTaskDetail"
+  />
 </template>
 
 <script setup lang="ts">
@@ -132,6 +139,7 @@ import { useRoute } from 'vue-router'
 import { useBoardsStore } from '@/stores/boards'
 import { useTasksStore } from '@/stores/tasks'
 import BoardColumn from './BoardColumn.vue'
+import TaskDetailModal from './TaskDetailModal.vue'
 import type { Task } from '@/stores/tasks'
 
 const route = useRoute()
@@ -148,7 +156,7 @@ const filters = ref({
 
 const board = computed(() => boardsStore.currentBoard)
 const sprints = computed(() => boardsStore.currentBoardSprints)
-const loading = computed(() => boardsStore.loading || tasksStore.loading)
+const loading = computed(() => boardsStore.loading || (tasksStore.loading && !isTaskDetailOpen.value))
 
 const columns = computed(() => {
   if (!board.value) return []
@@ -220,14 +228,28 @@ async function handleTaskMoved(task: Task, targetColumnId: string, newIndex: num
   }
 }
 
+const isTaskDetailOpen = ref(false)
+const selectedTask = ref<Task | null>(null)
+
 function openTaskModal(columnId?: string) {
   // TODO: Implementar modal de creación de tarea
   console.log('Open task modal for column:', columnId)
 }
 
-function openTaskDetail(task: Task) {
-  // TODO: Implementar modal de detalle de tarea
-  console.log('Open task detail:', task)
+async function openTaskDetail(task: Task) {
+  selectedTask.value = task
+  isTaskDetailOpen.value = true
+  try {
+    const full = await tasksStore.fetchTaskById(task._id)
+    selectedTask.value = full
+  } catch (e) {
+    console.error('Error fetching task detail:', e)
+  }
+}
+
+function closeTaskDetail() {
+  isTaskDetailOpen.value = false
+  selectedTask.value = null
 }
 
 onMounted(async () => {
