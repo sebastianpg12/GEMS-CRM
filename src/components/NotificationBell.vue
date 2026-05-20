@@ -1,35 +1,28 @@
 <template>
   <div ref="bellRoot" class="fixed bottom-6 right-6 z-50">
-    <!-- Botón campana — minimalista, glassmorphism, perfectamente circular -->
+    <!-- Botón campana — minimalista, sin animaciones, perfectamente circular -->
     <button
       type="button"
       @click.stop="toggleDropdown"
-      class="relative w-12 h-12 flex items-center justify-center bg-white/90 backdrop-blur-xl border border-slate-200/70 rounded-full shadow-[0_8px_24px_-8px_rgba(15,23,42,0.15)] hover:border-primary-300/80 hover:shadow-[0_8px_28px_-4px_rgba(99,102,241,0.25)] transition-all duration-300 active:scale-95 group"
-      :class="unreadCount > 0 ? 'border-primary-200/80' : ''"
+      class="relative w-12 h-12 flex items-center justify-center bg-white border border-slate-200/80 rounded-full shadow-[0_4px_18px_-4px_rgba(15,23,42,0.12)] hover:border-slate-300 hover:shadow-[0_6px_22px_-4px_rgba(15,23,42,0.18)] hover:-translate-y-0.5 transition-all duration-200 active:scale-95 group"
       title="Notificaciones"
     >
-      <!-- Ring de pulso cuando hay no leídas -->
-      <span
-        v-if="unreadCount > 0"
-        class="absolute inset-0 rounded-full border-2 border-primary-400/40 animate-ping-slow pointer-events-none"
-      ></span>
-
       <!-- Icono -->
       <i
-        class="fas fa-bell text-base transition-colors duration-300 relative z-10"
-        :class="unreadCount > 0 ? 'text-primary-500 animate-wiggle' : 'text-slate-500 group-hover:text-primary-500'"
+        class="fas fa-bell text-[15px] transition-colors duration-200"
+        :class="unreadCount > 0 ? 'text-slate-700' : 'text-slate-400 group-hover:text-slate-600'"
       ></i>
 
-      <!-- Badge no leídas -->
+      <!-- Badge no leídas (sobrio y refinado) -->
       <span
         v-if="unreadCount > 0"
-        class="absolute -top-1 -right-1 min-w-[20px] h-5 px-1.5 bg-rose-500 text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white shadow-sm tabular-nums"
+        class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-rose-500/95 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-[1.5px] border-white shadow-[0_2px_6px_-1px_rgba(244,63,94,0.35)] tabular-nums leading-none"
       >{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
 
-      <!-- Punto verde discreto cuando NO hay no leídas (estado activo) -->
+      <!-- Punto verde discreto cuando NO hay no leídas (estado "estás al día") -->
       <span
         v-else
-        class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 border-2 border-white rounded-full"
+        class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 border-[1.5px] border-white rounded-full shadow-sm"
       ></span>
     </button>
 
