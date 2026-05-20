@@ -1,5 +1,5 @@
 <template>
-  <div ref="bellRoot" class="fixed bottom-4 right-24 z-50">
+  <div ref="bellRoot" class="fixed bottom-6 right-6 z-50">
     <!-- Botón campana flotante (circular, igual estilo que el ChatWidget) -->
     <button
       type="button"

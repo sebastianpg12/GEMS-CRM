@@ -175,6 +175,9 @@
 
   <!-- Global toast for nuevos mensajes (Hidden by user request) -->
   <!-- <NewMessageToast /> -->
+
+  <!-- Notification Bell flotante (inferior derecha) -->
+  <NotificationBell />
     </div>
   </div>
 </template>
@@ -186,6 +189,7 @@ import { useAuthStore } from './stores/auth'
 import { useChatStore } from './stores/chatStore'
 import UserAvatar from './components/ui/UserAvatar.vue'
 import NewMessageToast from './components/NewMessageToast.vue'
+import NotificationBell from './components/NotificationBell.vue'
 import logoCT from '@/assets/logo.png'
 
 const route = useRoute()
