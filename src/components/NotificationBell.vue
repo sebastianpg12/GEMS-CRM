@@ -1,17 +1,36 @@
 <template>
   <div ref="bellRoot" class="fixed bottom-6 right-6 z-50">
-    <!-- Botón campana flotante (circular, igual estilo que el ChatWidget) -->
+    <!-- Botón campana — minimalista, glassmorphism, perfectamente circular -->
     <button
       type="button"
       @click.stop="toggleDropdown"
-      class="relative bg-gradient-to-br from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white p-4 rounded-full shadow-lg shadow-primary-300/30 transition-all duration-300 hover:scale-105 active:scale-95"
+      class="relative w-12 h-12 flex items-center justify-center bg-white/90 backdrop-blur-xl border border-slate-200/70 rounded-full shadow-[0_8px_24px_-8px_rgba(15,23,42,0.15)] hover:border-primary-300/80 hover:shadow-[0_8px_28px_-4px_rgba(99,102,241,0.25)] transition-all duration-300 active:scale-95 group"
+      :class="unreadCount > 0 ? 'border-primary-200/80' : ''"
       title="Notificaciones"
     >
-      <i class="fas fa-bell text-xl" :class="unreadCount > 0 ? 'animate-wiggle' : ''"></i>
+      <!-- Ring de pulso cuando hay no leídas -->
       <span
         v-if="unreadCount > 0"
-        class="absolute -top-1.5 -right-1.5 min-w-[22px] h-[22px] px-1 bg-rose-500 text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white shadow"
+        class="absolute inset-0 rounded-full border-2 border-primary-400/40 animate-ping-slow pointer-events-none"
+      ></span>
+
+      <!-- Icono -->
+      <i
+        class="fas fa-bell text-base transition-colors duration-300 relative z-10"
+        :class="unreadCount > 0 ? 'text-primary-500 animate-wiggle' : 'text-slate-500 group-hover:text-primary-500'"
+      ></i>
+
+      <!-- Badge no leídas -->
+      <span
+        v-if="unreadCount > 0"
+        class="absolute -top-1 -right-1 min-w-[20px] h-5 px-1.5 bg-rose-500 text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white shadow-sm tabular-nums"
       >{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
+
+      <!-- Punto verde discreto cuando NO hay no leídas (estado activo) -->
+      <span
+        v-else
+        class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 border-2 border-white rounded-full"
+      ></span>
     </button>
 
     <!-- Dropdown abre hacia arriba -->
@@ -269,11 +288,20 @@ onBeforeUnmount(() => {
 
 @keyframes wiggle {
   0%, 100% { transform: rotate(0); }
-  20%, 60% { transform: rotate(-12deg); }
-  40%, 80% { transform: rotate(12deg); }
+  20%, 60% { transform: rotate(-10deg); }
+  40%, 80% { transform: rotate(10deg); }
 }
 .animate-wiggle {
-  animation: wiggle 1s ease-in-out infinite;
+  animation: wiggle 1.4s ease-in-out infinite;
   transform-origin: top center;
+}
+
+@keyframes ping-slow {
+  0%   { transform: scale(1);   opacity: 0.7; }
+  80%  { transform: scale(1.6); opacity: 0;   }
+  100% { transform: scale(1.6); opacity: 0;   }
+}
+.animate-ping-slow {
+  animation: ping-slow 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 </style>
