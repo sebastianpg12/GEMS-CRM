@@ -240,6 +240,87 @@
           </div>
         </div>
 
+        <!-- Email Report Panel -->
+        <div class="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex-shrink-0 overflow-hidden">
+          <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100/50">
+            <div>
+              <h3 class="text-base font-black text-slate-800 tracking-tight">Enviar Reporte por Email</h3>
+              <p class="text-xs text-slate-400 font-bold mt-0.5">Envío manual o programado</p>
+            </div>
+            <div class="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center border border-indigo-100/50">
+              <i class="fas fa-envelope text-indigo-500 text-sm"></i>
+            </div>
+          </div>
+          <div class="px-6 py-5 space-y-4">
+            <!-- Manual send -->
+            <div>
+              <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1.5">Destinatarios</label>
+              <input v-model="reportEmail" type="text" placeholder="email1@ejemplo.com, email2@ejemplo.com"
+                class="w-full px-4 py-2.5 text-xs font-bold border border-slate-200 rounded-xl focus:border-primary-400 focus:ring-2 focus:ring-primary-500/20 outline-none transition-all bg-white" />
+            </div>
+            <div>
+              <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1.5">Período del reporte</label>
+              <select v-model="reportPeriod"
+                class="w-full px-4 py-2.5 text-xs font-bold border border-slate-200 rounded-xl focus:border-primary-400 focus:ring-2 focus:ring-primary-500/20 outline-none transition-all bg-white">
+                <option value="week">Semanal</option>
+                <option value="month">Mensual</option>
+                <option value="quarter">Trimestral</option>
+              </select>
+            </div>
+            <button @click="sendManualReport" :disabled="sendingReport"
+              class="w-full py-3 bg-gradient-to-r from-primary-600 to-indigo-500 hover:from-primary-500 hover:to-indigo-400 text-white text-xs font-black rounded-xl shadow-[0_8px_20px_rgb(99,102,241,0.25)] hover:shadow-[0_8px_25px_rgb(99,102,241,0.4)] transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none flex items-center justify-center gap-2">
+              <i class="fas text-[11px]" :class="sendingReport ? 'fa-spinner fa-spin' : 'fa-paper-plane'"></i>
+              {{ sendingReport ? 'Enviando...' : 'Enviar reporte ahora' }}
+            </button>
+            <p v-if="reportMsg" class="text-[11px] font-bold text-center" :class="reportMsgType === 'ok' ? 'text-emerald-500' : 'text-red-500'">{{ reportMsg }}</p>
+          </div>
+
+          <!-- Schedule config -->
+          <div class="border-t border-slate-100/50 px-6 py-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-xs font-black text-slate-700">Envío automático</span>
+                <p class="text-[10px] text-slate-400 font-bold mt-0.5">Programa reportes recurrentes</p>
+              </div>
+              <button @click="toggleSchedule"
+                class="relative w-10 h-5.5 rounded-full transition-colors"
+                :class="scheduleEnabled ? 'bg-primary-500' : 'bg-slate-200'">
+                <span class="absolute top-0.5 left-0.5 w-4.5 h-4.5 bg-white rounded-full shadow-sm transition-transform"
+                  :class="scheduleEnabled ? 'translate-x-[18px]' : ''"></span>
+              </button>
+            </div>
+            <div v-if="scheduleEnabled" class="space-y-3 pt-2">
+              <div class="flex gap-2">
+                <select v-model="scheduleFrequency" @change="saveSchedule"
+                  class="flex-1 px-3 py-2 text-xs font-bold border border-slate-200 rounded-xl outline-none bg-white">
+                  <option value="daily">Diario (L-V)</option>
+                  <option value="weekly">Semanal</option>
+                  <option value="monthly">Mensual</option>
+                </select>
+                <select v-if="scheduleFrequency === 'weekly'" v-model.number="scheduleDayOfWeek" @change="saveSchedule"
+                  class="flex-1 px-3 py-2 text-xs font-bold border border-slate-200 rounded-xl outline-none bg-white">
+                  <option :value="1">Lunes</option>
+                  <option :value="2">Martes</option>
+                  <option :value="3">Miércoles</option>
+                  <option :value="4">Jueves</option>
+                  <option :value="5">Viernes</option>
+                </select>
+              </div>
+              <div class="flex gap-2 items-center">
+                <label class="text-[10px] text-slate-400 font-black shrink-0">Hora:</label>
+                <input type="number" v-model.number="scheduleHour" min="0" max="23" @change="saveSchedule"
+                  class="w-16 px-3 py-2 text-xs font-bold border border-slate-200 rounded-xl outline-none text-center bg-white" />
+                <span class="text-xs text-slate-400 font-bold">:</span>
+                <input type="number" v-model.number="scheduleMinute" min="0" max="59" @change="saveSchedule"
+                  class="w-16 px-3 py-2 text-xs font-bold border border-slate-200 rounded-xl outline-none text-center bg-white" />
+              </div>
+              <p v-if="scheduleLastRun" class="text-[10px] text-slate-400 font-bold">
+                <i class="fas fa-clock text-[8px] mr-1"></i>Último envío: {{ new Date(scheduleLastRun).toLocaleString('es-CO') }}
+              </p>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -261,6 +342,7 @@ import type {
 } from '../services/reportsService'
 import { teamService } from '../services/teamService'
 import { clientService } from '../services/clientService'
+import { teamReportsService } from '../services/reportsService'
 
 const { showError, showSuccess } = useNotifications()
 
@@ -524,5 +606,71 @@ const refreshData = async () => {
   showSuccess('Reportes actualizados')
 }
 
-onMounted(() => { loadData() })
+// ── Email Report Panel ──
+const reportEmail = ref('')
+const reportPeriod = ref('week')
+const sendingReport = ref(false)
+const reportMsg = ref('')
+const reportMsgType = ref<'ok' | 'err'>('ok')
+
+const scheduleEnabled = ref(false)
+const scheduleFrequency = ref('weekly')
+const scheduleDayOfWeek = ref(1)
+const scheduleHour = ref(8)
+const scheduleMinute = ref(0)
+const scheduleLastRun = ref<string | null>(null)
+
+async function loadScheduleConfig() {
+  try {
+    const cfg = await teamReportsService.getScheduleConfig()
+    scheduleEnabled.value = cfg.enabled
+    scheduleFrequency.value = cfg.frequency
+    scheduleDayOfWeek.value = cfg.dayOfWeek
+    scheduleHour.value = cfg.hour
+    scheduleMinute.value = cfg.minute
+    scheduleLastRun.value = cfg.lastRun
+  } catch {}
+}
+
+async function sendManualReport() {
+  sendingReport.value = true
+  reportMsg.value = ''
+  try {
+    const recipients = reportEmail.value.split(',').map(e => e.trim()).filter(Boolean)
+    const result = await teamReportsService.sendTeamReport({
+      recipients: recipients.length > 0 ? recipients : undefined,
+      period: reportPeriod.value
+    })
+    reportMsg.value = result.success ? 'Reporte enviado correctamente' : (result.error || 'Error al enviar')
+    reportMsgType.value = result.success ? 'ok' : 'err'
+  } catch (e: any) {
+    reportMsg.value = e.message || 'Error al enviar el reporte'
+    reportMsgType.value = 'err'
+  } finally {
+    sendingReport.value = false
+    setTimeout(() => { reportMsg.value = '' }, 5000)
+  }
+}
+
+async function toggleSchedule() {
+  scheduleEnabled.value = !scheduleEnabled.value
+  await saveSchedule()
+}
+
+async function saveSchedule() {
+  try {
+    await teamReportsService.updateScheduleConfig({
+      enabled: scheduleEnabled.value,
+      frequency: scheduleFrequency.value as any,
+      dayOfWeek: scheduleDayOfWeek.value,
+      hour: scheduleHour.value,
+      minute: scheduleMinute.value,
+      period: reportPeriod.value,
+    })
+  } catch (e) {
+    console.error('Error saving schedule:', e)
+  }
+}
+
+onMounted(() => { loadData(); loadScheduleConfig() })
 </script>
