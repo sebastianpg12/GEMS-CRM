@@ -245,11 +245,8 @@
 
         <!-- Lista de comentarios (scrollable) -->
         <div class="flex-1 overflow-y-auto px-4 py-3 space-y-3 custom-scrollbar">
-          <div v-if="loadingComments" class="flex items-center justify-center py-8">
-            <div class="w-5 h-5 border-2 border-primary-200 border-t-primary-500 rounded-full animate-spin"></div>
-          </div>
-
-          <div v-else-if="localComments.length === 0" class="flex flex-col items-center justify-center py-10 text-center">
+          <!-- Empty state -->
+          <div v-if="localComments.length === 0 && !loadingComments" class="flex flex-col items-center justify-center py-10 text-center">
             <div class="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mb-3">
               <i class="fas fa-comment-slash text-slate-300 text-lg"></i>
             </div>
@@ -257,10 +254,11 @@
             <p class="text-[10px] text-slate-300 mt-1">Sé el primero en comentar</p>
           </div>
 
+          <!-- Comentarios (instantáneo desde props.activity) -->
           <div
             v-for="comment in localComments"
             :key="comment._id"
-            class="bg-white rounded-2xl p-3 shadow-sm border border-slate-100"
+            class="bg-white rounded-2xl p-3 shadow-sm border border-slate-100 group"
           >
             <div class="flex items-center gap-2 mb-1.5">
               <div class="w-6 h-6 rounded-full bg-primary-500 flex items-center justify-center text-white text-[9px] font-black shrink-0">
@@ -268,8 +266,57 @@
               </div>
               <span class="text-[11px] font-black text-slate-700 truncate">{{ commentAuthorName(comment) }}</span>
               <span class="text-[10px] text-slate-300 ml-auto shrink-0">{{ formatCommentDate(comment.createdAt) }}</span>
+
+              <!-- Botones edit/delete (solo autor) -->
+              <div v-if="canEditComment(comment)" class="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ml-1">
+                <button
+                  type="button"
+                  @click="startEditComment(comment)"
+                  class="w-5 h-5 rounded-md text-slate-400 hover:text-primary-500 hover:bg-primary-50 flex items-center justify-center transition-all"
+                  title="Editar"
+                >
+                  <i class="fas fa-pen text-[9px]"></i>
+                </button>
+                <button
+                  type="button"
+                  @click="deleteComment(comment)"
+                  class="w-5 h-5 rounded-md text-slate-400 hover:text-rose-500 hover:bg-rose-50 flex items-center justify-center transition-all"
+                  title="Eliminar"
+                >
+                  <i class="fas fa-trash text-[9px]"></i>
+                </button>
+              </div>
             </div>
-            <p v-if="comment.text" class="text-[12px] text-slate-600 leading-relaxed ml-8">{{ comment.text }}</p>
+
+            <!-- Modo edición -->
+            <div v-if="editingCommentId === comment._id" class="ml-8">
+              <textarea
+                v-model="editingCommentText"
+                rows="2"
+                class="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 text-[12px] focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 resize-none transition-all"
+              />
+              <div class="flex items-center gap-2 mt-1.5">
+                <button
+                  type="button"
+                  @click="saveEditComment(comment)"
+                  :disabled="!editingCommentText.trim() || savingEdit"
+                  class="px-3 py-1 bg-primary-500 hover:bg-primary-600 text-white text-[9px] font-black uppercase tracking-wider rounded-lg transition-all disabled:opacity-40"
+                >Guardar</button>
+                <button
+                  type="button"
+                  @click="cancelEditComment"
+                  class="px-3 py-1 bg-slate-100 text-slate-500 hover:bg-slate-200 text-[9px] font-black uppercase tracking-wider rounded-lg transition-all"
+                >Cancelar</button>
+              </div>
+            </div>
+
+            <!-- Texto con menciones resaltadas -->
+            <p
+              v-else-if="comment.text"
+              class="text-[12px] text-slate-600 leading-relaxed ml-8 whitespace-pre-wrap"
+              v-html="renderMentions(comment.text)"
+            ></p>
+
             <!-- Imágenes del comentario -->
             <div v-if="comment.images && comment.images.length > 0" class="mt-2 ml-8 flex flex-wrap gap-1.5">
               <img
@@ -284,7 +331,30 @@
         </div>
 
         <!-- Input nuevo comentario (fijo al fondo) -->
-        <div class="px-4 py-3 border-t border-slate-100 bg-white shrink-0">
+        <div class="px-4 py-3 border-t border-slate-100 bg-white shrink-0 relative">
+          <!-- Dropdown de menciones @ -->
+          <div
+            v-if="mentionOpen && mentionMatches.length > 0"
+            class="absolute bottom-full left-4 right-4 mb-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-44 overflow-y-auto z-30"
+          >
+            <button
+              v-for="(member, idx) in mentionMatches"
+              :key="member._id || member.id || idx"
+              type="button"
+              @mousedown.prevent="selectMention(member)"
+              class="w-full flex items-center gap-2 px-3 py-2 hover:bg-primary-50 transition-colors text-left"
+              :class="idx === mentionActiveIdx ? 'bg-primary-50' : ''"
+            >
+              <div class="w-6 h-6 rounded-full bg-primary-500 flex items-center justify-center text-white text-[9px] font-black shrink-0">
+                {{ getInitials(member.name) }}
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-[11px] font-bold text-slate-700 truncate">{{ member.name }}</p>
+                <p v-if="member.email" class="text-[9px] text-slate-400 truncate">{{ member.email }}</p>
+              </div>
+            </button>
+          </div>
+
           <!-- Previews de imágenes a enviar -->
           <div v-if="commentImagePreviews.length > 0" class="flex flex-wrap gap-1.5 mb-2">
             <div v-for="(src, idx) in commentImagePreviews" :key="idx" class="relative group">
@@ -298,9 +368,12 @@
           </div>
 
           <textarea
+            ref="commentTextarea"
             v-model="newCommentText"
-            placeholder="Escribe un comentario..."
+            placeholder="Escribe un comentario... usa @ para mencionar"
             rows="2"
+            @input="onCommentInput"
+            @keydown="onCommentKeydown"
             class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-2xl text-slate-700 placeholder-slate-300 text-[12px] focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 resize-none transition-all"
           />
           <div class="flex items-center justify-between mt-2">
@@ -349,15 +422,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed, watch } from 'vue'
+import { ref, reactive, onMounted, computed, watch, nextTick } from 'vue'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import axios from 'axios'
+import { API_CONFIG } from '../../config/api'
 import AssignedUsersSelector from '../AssignedUsersSelector.vue'
 import CustomSelect from '../ui/CustomSelect.vue'
 import VoiceDictateButton from '@/components/ui/VoiceDictateButton.vue'
 import { activityService } from '../../services/activityService'
 import { useBoardsStore } from '../../stores/boards'
 import { useTasksStore } from '../../stores/tasks'
+import { useAuthStore } from '../../stores/auth'
 import { useNotifications } from '../../composables/useNotifications'
 import type { TeamMember, Client } from '../../types'
 
@@ -365,6 +441,7 @@ console.log('ActivityFormModal script setup initialized')
 
 const boardsStore = useBoardsStore()
 const tasksStore = useTasksStore()
+const authStore = useAuthStore()
 const { showSuccess, showError } = useNotifications()
 
 interface Props {
@@ -580,6 +657,148 @@ function handleCommentImageSelect(e: Event) {
     reader.readAsDataURL(file)
   }
   input.value = ''
+}
+
+// ── Menciones @ ───────────────────────────────────────────────────────────────
+const commentTextarea = ref<HTMLTextAreaElement>()
+const mentionOpen = ref(false)
+const mentionQuery = ref('')
+const mentionStart = ref(-1) // posición del @
+const mentionActiveIdx = ref(0)
+
+const mentionMatches = computed(() => {
+  if (!mentionOpen.value) return []
+  const q = mentionQuery.value.toLowerCase()
+  return (props.teamMembers || [])
+    .filter((m: any) => !q || (m.name || '').toLowerCase().includes(q))
+    .slice(0, 6)
+})
+
+function onCommentInput(e: Event) {
+  const ta = e.target as HTMLTextAreaElement
+  const pos = ta.selectionStart
+  const text = ta.value.substring(0, pos)
+  // Buscar el último @ no precedido por letra/número
+  const match = text.match(/(?:^|\s)@(\w*)$/)
+  if (match) {
+    mentionStart.value = pos - match[1].length - 1 // posición del @
+    mentionQuery.value = match[1]
+    mentionOpen.value = true
+    mentionActiveIdx.value = 0
+  } else {
+    mentionOpen.value = false
+    mentionQuery.value = ''
+    mentionStart.value = -1
+  }
+}
+
+function onCommentKeydown(e: KeyboardEvent) {
+  if (!mentionOpen.value) return
+  const matches = mentionMatches.value
+  if (matches.length === 0) return
+  if (e.key === 'ArrowDown') {
+    e.preventDefault()
+    mentionActiveIdx.value = (mentionActiveIdx.value + 1) % matches.length
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault()
+    mentionActiveIdx.value = (mentionActiveIdx.value - 1 + matches.length) % matches.length
+  } else if (e.key === 'Enter' || e.key === 'Tab') {
+    e.preventDefault()
+    selectMention(matches[mentionActiveIdx.value])
+  } else if (e.key === 'Escape') {
+    mentionOpen.value = false
+  }
+}
+
+function selectMention(member: any) {
+  if (mentionStart.value < 0) return
+  const before = newCommentText.value.substring(0, mentionStart.value)
+  const afterStart = mentionStart.value + 1 + mentionQuery.value.length
+  const after = newCommentText.value.substring(afterStart)
+  const insert = `@${(member.name || '').replace(/\s+/g, '')} `
+  newCommentText.value = before + insert + after
+  mentionOpen.value = false
+  mentionQuery.value = ''
+  mentionStart.value = -1
+  nextTick(() => {
+    const ta = commentTextarea.value
+    if (ta) {
+      const newPos = before.length + insert.length
+      ta.focus()
+      ta.setSelectionRange(newPos, newPos)
+    }
+  })
+}
+
+function renderMentions(text: string): string {
+  // escapar HTML básico
+  const escaped = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+  // Resaltar menciones @nombre
+  return escaped.replace(/@(\w+)/g, '<span class="text-primary-500 font-bold bg-primary-50 px-1 rounded">@$1</span>')
+}
+
+// ── Editar / eliminar comentarios ─────────────────────────────────────────────
+const editingCommentId = ref<string | null>(null)
+const editingCommentText = ref('')
+const savingEdit = ref(false)
+
+function canEditComment(comment: any): boolean {
+  const uid = authStore.user?._id
+  if (!uid) return false
+  const authorId = comment?.userId?._id || comment?.userId || comment?.author?._id
+  return String(authorId) === String(uid)
+}
+
+function startEditComment(comment: any) {
+  editingCommentId.value = comment._id
+  editingCommentText.value = comment.text || ''
+}
+
+function cancelEditComment() {
+  editingCommentId.value = null
+  editingCommentText.value = ''
+}
+
+async function saveEditComment(comment: any) {
+  if (!editingCommentText.value.trim() || !commentEntityId.value) return
+  savingEdit.value = true
+  try {
+    const base = API_CONFIG.BASE_URL.replace('/api', '')
+    const path = isBoardTask.value
+      ? `${base}/api/tasks/${commentEntityId.value}/comments/${comment._id}`
+      : `${base}/api/activities/${commentEntityId.value}/comments/${comment._id}`
+    const token = localStorage.getItem('token')
+    const { data } = await axios.put(path, { text: editingCommentText.value }, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    })
+    localTask.value = data
+    cancelEditComment()
+  } catch (e) {
+    showError('No se pudo editar el comentario')
+  } finally {
+    savingEdit.value = false
+  }
+}
+
+async function deleteComment(comment: any) {
+  if (!commentEntityId.value) return
+  if (!confirm('¿Eliminar este comentario?')) return
+  try {
+    const base = API_CONFIG.BASE_URL.replace('/api', '')
+    const path = isBoardTask.value
+      ? `${base}/api/tasks/${commentEntityId.value}/comments/${comment._id}`
+      : `${base}/api/activities/${commentEntityId.value}/comments/${comment._id}`
+    const token = localStorage.getItem('token')
+    const { data } = await axios.delete(path, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    })
+    localTask.value = data
+  } catch (e) {
+    showError('No se pudo eliminar el comentario')
+  }
 }
 
 function removeCommentImage(idx: number) {
