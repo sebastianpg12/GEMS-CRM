@@ -1,9 +1,9 @@
 <template>
-  <div class="relative" v-click-outside="closeDropdown">
+  <div ref="bellRoot" class="relative">
     <!-- Botón campana -->
     <button
       type="button"
-      @click="toggleDropdown"
+      @click.stop="toggleDropdown"
       class="relative p-2 text-slate-400 hover:text-primary-600 transition-colors"
       title="Notificaciones"
     >
@@ -116,6 +116,7 @@ const loading = ref(false)
 const notifications = ref<AppNotification[]>([])
 const unreadCount = ref(0)
 const activeTab = ref<'all' | 'mention' | 'assignment' | 'due'>('all')
+const bellRoot = ref<HTMLElement>()
 
 const tabs = [
   { id: 'all' as const, label: 'Todas' },
@@ -227,18 +228,11 @@ function formatDate(date: string): string {
   }
 }
 
-// ── Click outside directive (inline) ──
-const vClickOutside = {
-  mounted(el: HTMLElement, binding: any) {
-    el.__clickOutsideHandler = (e: MouseEvent) => {
-      if (!el.contains(e.target as Node)) {
-        binding.value(e)
-      }
-    }
-    document.addEventListener('click', el.__clickOutsideHandler)
-  },
-  unmounted(el: any) {
-    document.removeEventListener('click', el.__clickOutsideHandler)
+// ── Click outside handler (sin directiva) ──
+function onDocClick(e: MouseEvent) {
+  if (!open.value) return
+  if (bellRoot.value && !bellRoot.value.contains(e.target as Node)) {
+    open.value = false
   }
 }
 
@@ -247,9 +241,11 @@ let pollInterval: number | undefined
 onMounted(() => {
   fetchUnreadCount()
   pollInterval = window.setInterval(fetchUnreadCount, 30_000)
+  document.addEventListener('click', onDocClick)
 })
 onBeforeUnmount(() => {
   if (pollInterval) clearInterval(pollInterval)
+  document.removeEventListener('click', onDocClick)
 })
 </script>
 

@@ -442,7 +442,7 @@ console.log('ActivityFormModal script setup initialized')
 const boardsStore = useBoardsStore()
 const tasksStore = useTasksStore()
 const authStore = useAuthStore()
-const { showSuccess, showError } = useNotifications()
+const { showSuccess, showError, confirmDelete } = useNotifications()
 
 interface Props {
   activity?: any | null
@@ -678,8 +678,8 @@ function onCommentInput(e: Event) {
   const ta = e.target as HTMLTextAreaElement
   const pos = ta.selectionStart
   const text = ta.value.substring(0, pos)
-  // Buscar el último @ no precedido por letra/número
-  const match = text.match(/(?:^|\s)@(\w*)$/)
+  // Buscar el último @ — acepta letras con tildes/ñ, números, guión bajo
+  const match = text.match(/(?:^|\s)@([\p{L}\p{N}_]*)$/u)
   if (match) {
     mentionStart.value = pos - match[1].length - 1 // posición del @
     mentionQuery.value = match[1]
@@ -736,8 +736,8 @@ function renderMentions(text: string): string {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
-  // Resaltar menciones @nombre
-  return escaped.replace(/@(\w+)/g, '<span class="text-primary-500 font-bold bg-primary-50 px-1 rounded">@$1</span>')
+  // Resaltar menciones @nombre (acepta tildes/ñ)
+  return escaped.replace(/@([\p{L}\p{N}_]+)/gu, '<span class="text-primary-500 font-bold bg-primary-50 px-1 rounded">@$1</span>')
 }
 
 // ── Editar / eliminar comentarios ─────────────────────────────────────────────
@@ -785,7 +785,9 @@ async function saveEditComment(comment: any) {
 
 async function deleteComment(comment: any) {
   if (!commentEntityId.value) return
-  if (!confirm('¿Eliminar este comentario?')) return
+  const snippet = (comment.text || 'Comentario sin texto').slice(0, 60)
+  const result = await confirmDelete(snippet)
+  if (!result.isConfirmed) return
   try {
     const base = API_CONFIG.BASE_URL.replace('/api', '')
     const path = isBoardTask.value
@@ -796,6 +798,7 @@ async function deleteComment(comment: any) {
       headers: token ? { Authorization: `Bearer ${token}` } : {}
     })
     localTask.value = data
+    showSuccess('Comentario eliminado')
   } catch (e) {
     showError('No se pudo eliminar el comentario')
   }
