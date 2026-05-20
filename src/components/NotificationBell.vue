@@ -89,32 +89,47 @@
             <p class="text-[10px] text-slate-300 mt-1">Estás al día</p>
           </div>
 
-          <button
+          <div
             v-for="n in filteredNotifications"
             :key="n._id"
-            type="button"
-            @click="onNotificationClick(n)"
-            class="w-full px-4 py-3 border-b border-slate-100 hover:bg-slate-50 text-left transition-colors flex items-start gap-3 group"
+            class="relative border-b border-slate-100 group"
             :class="!n.read ? 'bg-primary-50/30' : ''"
           >
-            <!-- Icono según categoría -->
-            <div
-              class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-[14px]"
-              :class="categoryIconBg(n.category)"
+            <button
+              type="button"
+              @click="onNotificationClick(n)"
+              class="w-full px-4 py-3 hover:bg-slate-50 text-left transition-colors flex items-start gap-3"
             >
-              <i :class="categoryIcon(n.category)"></i>
-            </div>
-
-            <!-- Contenido -->
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-1">
-                <p class="text-[12px] font-black text-slate-700 truncate">{{ n.title }}</p>
-                <span v-if="!n.read" class="w-1.5 h-1.5 bg-primary-500 rounded-full shrink-0 ml-auto"></span>
+              <!-- Icono según categoría -->
+              <div
+                class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-[14px]"
+                :class="categoryIconBg(n.category)"
+              >
+                <i :class="categoryIcon(n.category)"></i>
               </div>
-              <p v-if="n.message" class="text-[11px] text-slate-500 mt-0.5 line-clamp-2">{{ n.message }}</p>
-              <p class="text-[9px] text-slate-300 mt-1 font-bold uppercase tracking-wider">{{ formatDate(n.createdAt) }}</p>
-            </div>
-          </button>
+
+              <!-- Contenido -->
+              <div class="flex-1 min-w-0 pr-6">
+                <div class="flex items-center gap-1">
+                  <p class="text-[12px] truncate" :class="!n.read ? 'font-black text-slate-800' : 'font-bold text-slate-500'">{{ n.title }}</p>
+                  <span v-if="!n.read" class="w-1.5 h-1.5 bg-primary-500 rounded-full shrink-0 ml-auto"></span>
+                </div>
+                <p v-if="n.message" class="text-[11px] mt-0.5 line-clamp-2" :class="!n.read ? 'text-slate-600' : 'text-slate-400'">{{ n.message }}</p>
+                <p class="text-[9px] text-slate-300 mt-1 font-bold uppercase tracking-wider">{{ formatDate(n.createdAt) }}</p>
+              </div>
+            </button>
+
+            <!-- Botón ✕ flotante (descartar sin abrir el modal) -->
+            <button
+              v-if="!n.read"
+              type="button"
+              @click="dismissNotification($event, n)"
+              class="absolute top-2 right-2 w-6 h-6 rounded-full bg-white border border-slate-200 text-slate-400 hover:text-rose-500 hover:border-rose-200 hover:bg-rose-50 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-sm"
+              title="Marcar como leída"
+            >
+              <i class="fas fa-check text-[9px]"></i>
+            </button>
+          </div>
         </div>
       </div>
     </Transition>
@@ -144,20 +159,63 @@ const tabs = [
   { id: 'due' as const, label: 'Vencen' },
 ]
 
-const hasUnread = computed(() => notifications.value.some(n => !n.read))
+// ── Dismiss de virtuales (no se pueden persistir en el back, usamos localStorage) ──
+const DISMISSED_KEY = 'crm.dismissedVirtualNotifs'
+const dismissedVirtuals = ref<Set<string>>(new Set(loadDismissed()))
+
+function loadDismissed(): string[] {
+  try {
+    return JSON.parse(localStorage.getItem(DISMISSED_KEY) || '[]')
+  } catch {
+    return []
+  }
+}
+
+function persistDismissed() {
+  try {
+    localStorage.setItem(DISMISSED_KEY, JSON.stringify(Array.from(dismissedVirtuals.value)))
+  } catch {}
+}
+
+function isEffectivelyRead(n: AppNotification): boolean {
+  if (n.virtual) return dismissedVirtuals.value.has(n._id)
+  return n.read
+}
+
+// ── Computed ──
+const visibleNotifications = computed(() =>
+  notifications.value.map(n => ({ ...n, read: isEffectivelyRead(n) }))
+)
+
+const hasUnread = computed(() => visibleNotifications.value.some(n => !n.read))
+
+const effectiveUnreadCount = computed(() =>
+  visibleNotifications.value.filter(n => !n.read).length
+)
 
 const filteredNotifications = computed(() => {
-  if (activeTab.value === 'all') return notifications.value
-  if (activeTab.value === 'mention') return notifications.value.filter(n => n.category === 'mention')
-  if (activeTab.value === 'assignment') return notifications.value.filter(n => n.category === 'assignment')
-  if (activeTab.value === 'due') return notifications.value.filter(n => n.category === 'due-soon' || n.category === 'overdue')
-  return notifications.value
+  const list = visibleNotifications.value
+  if (activeTab.value === 'mention') return list.filter(n => n.category === 'mention')
+  if (activeTab.value === 'assignment') return list.filter(n => n.category === 'assignment')
+  if (activeTab.value === 'due') return list.filter(n => n.category === 'due-soon' || n.category === 'overdue')
+  return list
 })
 
+// ── Fetching ──
 async function fetchNotifications() {
   loading.value = true
   try {
     notifications.value = await notificationService.list()
+    // Limpiar dismissed que ya no aparecen (la entidad se completó)
+    const liveIds = new Set(notifications.value.map(n => n._id))
+    let changed = false
+    for (const id of Array.from(dismissedVirtuals.value)) {
+      if (!liveIds.has(id)) {
+        dismissedVirtuals.value.delete(id)
+        changed = true
+      }
+    }
+    if (changed) persistDismissed()
   } catch (e) {
     console.error('Error fetching notifications:', e)
   } finally {
@@ -167,7 +225,12 @@ async function fetchNotifications() {
 
 async function fetchUnreadCount() {
   try {
-    unreadCount.value = await notificationService.unreadCount()
+    // Para reflejar inmediatamente las virtuales dismissed, recalculamos local
+    if (notifications.value.length > 0) {
+      unreadCount.value = effectiveUnreadCount.value
+    } else {
+      unreadCount.value = await notificationService.unreadCount()
+    }
   } catch {}
 }
 
@@ -175,6 +238,7 @@ async function toggleDropdown() {
   open.value = !open.value
   if (open.value) {
     await fetchNotifications()
+    unreadCount.value = effectiveUnreadCount.value
   }
 }
 
@@ -182,25 +246,51 @@ function closeDropdown() {
   open.value = false
 }
 
+// ── Marcar como leída ──
+async function markNotificationRead(n: AppNotification) {
+  if (n.virtual) {
+    // Virtuales: dismiss local
+    dismissedVirtuals.value.add(n._id)
+    persistDismissed()
+    // Forzar reactividad de Set
+    dismissedVirtuals.value = new Set(dismissedVirtuals.value)
+  } else if (!n.read) {
+    try {
+      await notificationService.markRead(n._id)
+      const idx = notifications.value.findIndex(x => x._id === n._id)
+      if (idx !== -1) notifications.value[idx] = { ...notifications.value[idx], read: true }
+    } catch {}
+  }
+  unreadCount.value = effectiveUnreadCount.value
+}
+
+async function dismissNotification(e: Event, n: AppNotification) {
+  e.stopPropagation()
+  await markNotificationRead(n)
+}
+
 async function markAllAsRead() {
+  // Persistidas: marcar en backend
   try {
     await notificationService.markAllRead()
-    notifications.value.forEach(n => { if (!n.virtual) n.read = true })
-    await fetchUnreadCount()
   } catch {}
+  notifications.value.forEach(n => { if (!n.virtual) n.read = true })
+
+  // Virtuales: dismiss local
+  notifications.value.forEach(n => {
+    if (n.virtual) dismissedVirtuals.value.add(n._id)
+  })
+  persistDismissed()
+  dismissedVirtuals.value = new Set(dismissedVirtuals.value)
+
+  unreadCount.value = 0
 }
 
 async function onNotificationClick(n: AppNotification) {
-  // Marcar como leída
-  if (!n.read && !n.virtual) {
-    try {
-      await notificationService.markRead(n._id)
-      n.read = true
-    } catch {}
-  }
+  // Marcar como leída (también virtuales via localStorage)
+  await markNotificationRead(n)
 
   closeDropdown()
-  await fetchUnreadCount()
 
   // Abrir el modal "Refinar Tarea" en el mismo lugar (sin navegar)
   if (n.entityId) {
