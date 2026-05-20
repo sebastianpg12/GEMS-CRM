@@ -156,7 +156,7 @@ const filters = ref({
 
 const board = computed(() => boardsStore.currentBoard)
 const sprints = computed(() => boardsStore.currentBoardSprints)
-const loading = computed(() => boardsStore.loading || tasksStore.loading)
+const loading = computed(() => boardsStore.loading || (tasksStore.loading && !isTaskDetailOpen.value))
 
 const columns = computed(() => {
   if (!board.value) return []
@@ -236,9 +236,15 @@ function openTaskModal(columnId?: string) {
   console.log('Open task modal for column:', columnId)
 }
 
-function openTaskDetail(task: Task) {
+async function openTaskDetail(task: Task) {
   selectedTask.value = task
   isTaskDetailOpen.value = true
+  try {
+    const full = await tasksStore.fetchTaskById(task._id)
+    selectedTask.value = full
+  } catch (e) {
+    console.error('Error fetching task detail:', e)
+  }
 }
 
 function closeTaskDetail() {

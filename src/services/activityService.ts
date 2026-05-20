@@ -250,16 +250,35 @@ class ActivityService {
         headers: this.getHeaders(),
         body: JSON.stringify({ action, userId, minutes }),
       })
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
-      
+
       return await response.json()
     } catch (error) {
       console.error('Error toggling activity timer:', error)
       throw new Error('No se pudo actualizar el temporizador de la actividad')
     }
+  }
+
+  async addComment(id: string, text: string, images?: File[]): Promise<any> {
+    const token = localStorage.getItem('token')
+    const formData = new FormData()
+    formData.append('text', text)
+    if (images && images.length > 0) {
+      images.forEach(img => formData.append('images', img))
+    }
+    const response = await fetch(`${this.baseUrl}${this.endpoint}/${id}/comments`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    })
+    if (!response.ok) {
+      const errText = await response.text().catch(() => '')
+      throw new Error(`HTTP ${response.status}: ${errText}`)
+    }
+    return response.json()
   }
 }
 
