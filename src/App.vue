@@ -178,6 +178,16 @@
 
   <!-- Notification Bell flotante (inferior derecha) -->
   <NotificationBell />
+
+  <!-- Modal global "Refinar Tarea" — se abre al clickear notificaciones, etc. -->
+  <ActivityFormModal
+    v-if="activityModalStore.isOpen"
+    :activity="activityModalStore.editingActivity"
+    :clients="activityModalStore.clients"
+    :team-members="activityModalStore.teamMembers"
+    @close="activityModalStore.close"
+    @saved="activityModalStore.close"
+  />
     </div>
   </div>
 </template>
@@ -190,12 +200,15 @@ import { useChatStore } from './stores/chatStore'
 import UserAvatar from './components/ui/UserAvatar.vue'
 import NewMessageToast from './components/NewMessageToast.vue'
 import NotificationBell from './components/NotificationBell.vue'
+import ActivityFormModal from './components/forms/ActivityFormModal.vue'
+import { useActivityModalStore } from './stores/activityModal'
 import logoCT from '@/assets/logo.png'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const chatStore = useChatStore()
+const activityModalStore = useActivityModalStore()
 
 // Reactive data
 const sidebarOpen = ref(true)

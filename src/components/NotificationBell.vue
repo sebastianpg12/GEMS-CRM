@@ -123,12 +123,12 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
-import { useRouter } from 'vue-router'
 import { format, formatDistanceToNow } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { notificationService, type AppNotification } from '@/services/notificationService'
+import { useActivityModalStore } from '@/stores/activityModal'
 
-const router = useRouter()
+const activityModalStore = useActivityModalStore()
 
 const open = ref(false)
 const loading = ref(false)
@@ -202,11 +202,10 @@ async function onNotificationClick(n: AppNotification) {
   closeDropdown()
   await fetchUnreadCount()
 
-  // Navegar a la entidad
-  if (n.entityType === 'activity' && n.entityId) {
-    router.push({ path: '/tasks', query: { openActivity: String(n.entityId) } })
-  } else if (n.entityType === 'task' && n.entityId) {
-    router.push({ path: '/tasks', query: { openTask: String(n.entityId) } })
+  // Abrir el modal "Refinar Tarea" en el mismo lugar (sin navegar)
+  if (n.entityId) {
+    const type = n.entityType === 'task' ? 'task' : 'activity'
+    await activityModalStore.open(String(n.entityId), type)
   }
 }
 
