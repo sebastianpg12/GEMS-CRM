@@ -255,11 +255,23 @@ function onDocClick(e: MouseEvent) {
   }
 }
 
-// ── Polling cada 30s del contador ──
+// ── Polling cada 15s ──
+// - Siempre refresca el contador (badge)
+// - Si el dropdown está abierto, también refresca la lista en vivo
 let pollInterval: number | undefined
+
+async function pollTick() {
+  await fetchUnreadCount()
+  if (open.value) {
+    try {
+      notifications.value = await notificationService.list()
+    } catch {}
+  }
+}
+
 onMounted(() => {
-  fetchUnreadCount()
-  pollInterval = window.setInterval(fetchUnreadCount, 30_000)
+  pollTick()
+  pollInterval = window.setInterval(pollTick, 15_000)
   document.addEventListener('click', onDocClick)
 })
 onBeforeUnmount(() => {
