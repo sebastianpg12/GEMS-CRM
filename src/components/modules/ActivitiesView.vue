@@ -2656,6 +2656,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import axios from 'axios'
 import { activityService, type ActivityData } from '../../services/activityService'
 import { clientService, type ClientData } from '../../services/clientService'
@@ -3582,6 +3583,40 @@ const editActivity = (activity: ActivityData) => {
   editingActivity.value = activity
   showEditModal.value = true
 }
+
+// ── Auto-abrir actividad/tarea desde notificaciones ──
+const route = useRoute()
+async function openFromQuery() {
+  const openActivityId = route.query.openActivity as string | undefined
+  const openTaskId = route.query.openTask as string | undefined
+
+  if (openActivityId) {
+    // Buscar primero en la lista cargada
+    let activity = activities.value.find(a => a._id === openActivityId)
+    if (!activity) {
+      try {
+        activity = await activityService.getById(openActivityId)
+      } catch (e) {
+        console.warn('No se pudo cargar la actividad de la notificación:', e)
+      }
+    }
+    if (activity) editActivity(activity)
+  } else if (openTaskId) {
+    try {
+      const task = await tasksStore.fetchTaskById(openTaskId)
+      if (task) editActivity(task as any)
+    } catch (e) {
+      console.warn('No se pudo cargar la tarea de la notificación:', e)
+    }
+  }
+}
+
+// Reaccionar a cambios de query cuando ya estamos en la página
+watch(() => [route.query.openActivity, route.query.openTask], () => {
+  if (route.query.openActivity || route.query.openTask) {
+    openFromQuery()
+  }
+})
 
 const showAssignModal = (activity: ActivityData) => {
   assigningActivity.value = activity
@@ -5729,7 +5764,10 @@ onMounted(async () => {
   
   // Actualizar estado de actividades vencidas
   await updateOverdueActivities()
-  
+
+  // ── Auto-abrir actividad/tarea desde query (notificaciones) ──
+  await openFromQuery()
+
   // Configurar intervalo para verificar periódicamente las actividades vencidas (cada 5 minutos)
   const checkOverdueInterval = setInterval(updateOverdueActivities, 5 * 60 * 1000)
   

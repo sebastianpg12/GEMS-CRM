@@ -150,7 +150,10 @@
         <!-- Notifications -->
         <div class="flex items-center space-x-2 sm:space-x-4 flex-shrink-0 mt-2 sm:mt-0">
           <OnlineUsersPopover />
-          
+
+          <!-- Notification Bell -->
+          <NotificationBell />
+
           <!-- Chat Unread Badge -->
           <router-link to="/chat" class="relative p-2 text-slate-400 hover:text-primary-600 transition-colors">
             <ChatBubbleLeftRightIcon class="w-6 h-6" />
@@ -183,6 +186,7 @@ import { useChatStore } from '../stores/chatStore'
 import ChatWidget from './ChatWidget.vue'
 import OnlineUsersPopover from './OnlineUsersPopover.vue'
 import NewMessageToast from './NewMessageToast.vue'
+import NotificationBell from './NotificationBell.vue'
 import { getAvatarById } from '@/utils/avatarConfig'
 import { API_CONFIG } from '@/config/api'
 import logoCT from '@/assets/logo.png'
