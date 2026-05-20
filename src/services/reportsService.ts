@@ -377,3 +377,140 @@ class ReportsService {
 
 export const reportsService = new ReportsService()
 export default reportsService
+
+// ═══════════════════════════════════════════════════════════════════════════
+// KPIs y Team Reports (Dashboard v2)
+// ═══════════════════════════════════════════════════════════════════════════
+
+export interface UserKPI {
+  user: {
+    _id: string
+    name: string
+    email: string
+    role: string
+    department: string
+    avatar?: string
+  }
+  totalItems: number
+  totalCompleted: number
+  complianceRate: number
+  avgResolutionDays: number
+  hoursWorked: number
+  currentWorkload: number
+  overdueCount: number
+}
+
+export interface TeamTotals {
+  totalItems: number
+  totalCompleted: number
+  avgCompliance: number
+  avgResolution: number
+  totalWorkload: number
+  totalOverdue: number
+  totalHours: number
+}
+
+export interface KPIResponse {
+  kpis: UserKPI[]
+  teamTotals: TeamTotals
+  period: string
+  since: string
+}
+
+export interface TrendPoint {
+  label: string
+  completed: number
+  activities?: number
+  tasks?: number
+  created?: number
+}
+
+export interface ScheduleConfig {
+  enabled: boolean
+  frequency: 'daily' | 'weekly' | 'monthly'
+  dayOfWeek: number
+  hour: number
+  minute: number
+  period: string
+  recipients: string[]
+  department: string | null
+  lastRun: string | null
+}
+
+function authHeaders(): Record<string, string> {
+  const token = localStorage.getItem('token')
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  }
+}
+
+const kpiBase = API_CONFIG.BASE_URL + '/reports'
+
+async function kpiGet(path: string, params: Record<string, string> = {}) {
+  const qs = new URLSearchParams(params).toString()
+  const url = `${kpiBase}${path}${qs ? `?${qs}` : ''}`
+  const res = await fetch(url, { headers: authHeaders() })
+  if (!res.ok) throw new Error(`GET ${path} failed: ${res.status}`)
+  return (await res.json()).data
+}
+
+async function kpiPost(path: string, body: any = {}) {
+  const res = await fetch(`${kpiBase}${path}`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify(body),
+  })
+  const json = await res.json()
+  if (!res.ok) throw new Error(json.message || `POST ${path} failed`)
+  return json
+}
+
+async function kpiPut(path: string, body: any = {}) {
+  const res = await fetch(`${kpiBase}${path}`, {
+    method: 'PUT',
+    headers: authHeaders(),
+    body: JSON.stringify(body),
+  })
+  const json = await res.json()
+  if (!res.ok) throw new Error(json.message || `PUT ${path} failed`)
+  return json.data
+}
+
+export const teamReportsService = {
+  getKPIs(period = 'month', department?: string): Promise<KPIResponse> {
+    const params: Record<string, string> = { period }
+    if (department) params.department = department
+    return kpiGet('/kpis', params)
+  },
+
+  getWeeklyTrends(department?: string): Promise<TrendPoint[]> {
+    const params: Record<string, string> = {}
+    if (department) params.department = department
+    return kpiGet('/trends/weekly', params)
+  },
+
+  getMonthlyTrends(department?: string): Promise<TrendPoint[]> {
+    const params: Record<string, string> = {}
+    if (department) params.department = department
+    return kpiGet('/trends/monthly', params)
+  },
+
+  getTeamSummary(period = 'week', department?: string) {
+    const params: Record<string, string> = { period }
+    if (department) params.department = department
+    return kpiGet('/team-summary', params)
+  },
+
+  sendTeamReport(opts: { recipients?: string[]; period?: string; department?: string } = {}) {
+    return kpiPost('/send-team-report', opts)
+  },
+
+  getScheduleConfig(): Promise<ScheduleConfig> {
+    return kpiGet('/schedule-config')
+  },
+
+  updateScheduleConfig(config: Partial<ScheduleConfig>): Promise<ScheduleConfig> {
+    return kpiPut('/schedule-config', config)
+  },
+}
