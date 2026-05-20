@@ -3,6 +3,25 @@
     <!-- Background Accents -->
     <div class="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-primary-50/40 to-transparent pointer-events-none"></div>
 
+    <!-- ══ Page Tabs ══════════════════════════════════════════════════ -->
+    <div class="flex-shrink-0 flex items-center gap-1 bg-white/80 backdrop-blur-md rounded-2xl p-1.5 border border-white/60 shadow-[0_4px_20px_rgb(0,0,0,0.03)] self-start relative z-20">
+      <button @click="activePageTab = 'reports'"
+        class="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
+        :class="activePageTab === 'reports' ? 'bg-gradient-to-r from-primary-600 to-indigo-500 text-white shadow-[0_4px_12px_rgb(99,102,241,0.3)]' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'">
+        <i class="fas fa-chart-pie mr-1.5 text-[10px]"></i>Reportes
+      </button>
+      <button @click="activePageTab = 'kpis'"
+        class="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
+        :class="activePageTab === 'kpis' ? 'bg-gradient-to-r from-primary-600 to-indigo-500 text-white shadow-[0_4px_12px_rgb(99,102,241,0.3)]' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'">
+        <i class="fas fa-users-cog mr-1.5 text-[10px]"></i>KPIs del Equipo
+      </button>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- TAB: REPORTES (contenido original)                           -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <template v-if="activePageTab === 'reports'">
+
     <!-- Header -->
     <div class="flex-shrink-0 flex flex-col md:flex-row md:items-center justify-end gap-4">
       <div class="flex flex-wrap items-center gap-3">
@@ -324,11 +343,237 @@
       </div>
     </div>
 
+    </template><!-- end reports tab -->
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- TAB: KPIs DEL EQUIPO                                         -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <template v-if="activePageTab === 'kpis'">
+
+      <!-- KPI Header + Period Selector -->
+      <div class="flex-shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
+        <div>
+          <h2 class="text-lg font-black text-slate-800 tracking-tight">KPIs del Equipo</h2>
+          <p class="text-xs text-slate-400 font-bold mt-0.5">Métricas de rendimiento por persona</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="flex bg-white/90 backdrop-blur-md border border-white/60 rounded-xl overflow-hidden shadow-[0_4px_20px_rgb(0,0,0,0.03)]">
+            <button v-for="p in kpiPeriods" :key="p.value" @click="kpiPeriod = p.value; fetchKPIs()"
+              class="px-3.5 py-2 text-[10px] font-black uppercase tracking-widest transition-colors"
+              :class="kpiPeriod === p.value ? 'bg-gradient-to-r from-primary-600 to-indigo-500 text-white' : 'text-slate-500 hover:bg-slate-50'">
+              {{ p.label }}
+            </button>
+          </div>
+          <button @click="fetchKPIs" :disabled="kpiLoading"
+            class="px-4 py-2 bg-gradient-to-r from-primary-600 to-indigo-500 hover:from-primary-500 hover:to-indigo-400 text-white font-black rounded-xl text-xs shadow-[0_8px_20px_rgb(99,102,241,0.25)] transition-all disabled:opacity-50">
+            <i :class="kpiLoading ? 'fas fa-spinner fa-spin' : 'fas fa-sync-alt'" class="text-xs"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI Summary Cards -->
+      <div class="flex-shrink-0 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 relative z-10">
+        <div v-for="card in kpiStatCards" :key="card.label"
+          class="bg-white/80 backdrop-blur-xl rounded-2xl p-4 border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(99,102,241,0.08)] transition-all">
+          <div class="flex items-center gap-2.5 mb-2.5">
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center border shadow-sm" :class="card.iconBg">
+              <i :class="['fas', card.icon, card.iconColor, 'text-[11px]']"></i>
+            </div>
+            <span class="text-[9px] font-black uppercase tracking-widest text-slate-400 truncate">{{ card.label }}</span>
+          </div>
+          <div class="flex items-baseline gap-1">
+            <span class="text-2xl font-black leading-none" :class="card.valueColor">{{ kpiLoading ? '—' : card.value }}</span>
+            <span v-if="card.suffix" class="text-[10px] font-bold text-slate-400">{{ card.suffix }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trends + KPIs Grid -->
+      <div class="flex-1 min-h-0 grid grid-cols-1 xl:grid-cols-3 gap-4 overflow-y-auto">
+
+        <!-- Left: Trends + Per-person KPIs -->
+        <div class="xl:col-span-2 flex flex-col gap-4">
+
+          <!-- Trend Chart -->
+          <div class="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden flex-shrink-0">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100/50">
+              <div>
+                <h3 class="text-base font-black text-slate-800 tracking-tight">Tendencias</h3>
+                <p class="text-xs text-slate-400 font-bold mt-0.5">Actividad completada por período</p>
+              </div>
+              <div class="flex bg-slate-100/80 rounded-xl overflow-hidden">
+                <button @click="kpiTrendTab = 'weekly'"
+                  class="px-3.5 py-2 text-[10px] font-black uppercase tracking-widest transition-colors"
+                  :class="kpiTrendTab === 'weekly' ? 'bg-gradient-to-r from-primary-600 to-indigo-500 text-white' : 'text-slate-500 hover:text-slate-700'">
+                  Semanal
+                </button>
+                <button @click="kpiTrendTab = 'monthly'"
+                  class="px-3.5 py-2 text-[10px] font-black uppercase tracking-widest transition-colors"
+                  :class="kpiTrendTab === 'monthly' ? 'bg-gradient-to-r from-primary-600 to-indigo-500 text-white' : 'text-slate-500 hover:text-slate-700'">
+                  Mensual
+                </button>
+              </div>
+            </div>
+            <div class="px-6 py-5">
+              <div v-if="kpiTrendsLoading" class="flex items-center justify-center py-12">
+                <div class="w-5 h-5 border-2 border-primary-200 border-t-primary-500 rounded-full animate-spin"></div>
+              </div>
+              <div v-else>
+                <div class="flex items-end gap-2.5 h-44 px-1">
+                  <div v-for="(point, i) in kpiCurrentTrend" :key="i" class="flex-1 flex flex-col items-center gap-1.5 min-w-0">
+                    <span class="text-[10px] font-black text-slate-600 tabular-nums">{{ point.completed }}</span>
+                    <div class="w-full max-w-[52px] rounded-t-lg transition-all duration-700 min-h-[4px] mx-auto shadow-sm"
+                      :class="kpiTrendTab === 'weekly' ? 'bg-gradient-to-t from-primary-600 to-primary-400' : 'bg-gradient-to-t from-indigo-600 to-indigo-400'"
+                      :style="{ height: kpiTrendBarHeight(point.completed) }">
+                    </div>
+                  </div>
+                </div>
+                <div class="flex gap-2.5 mt-2.5 px-1">
+                  <div v-for="(point, i) in kpiCurrentTrend" :key="'tl'+i"
+                    class="flex-1 text-center text-[9px] font-black text-slate-400 uppercase tracking-wider truncate min-w-0">
+                    {{ point.label }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Per-person KPI Cards -->
+          <div class="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden flex-shrink-0">
+            <div class="px-6 py-4 border-b border-slate-100/50">
+              <h3 class="text-base font-black text-slate-800 tracking-tight">Rendimiento por Persona</h3>
+              <p class="text-xs text-slate-400 font-bold mt-0.5">Completadas, cumplimiento, carga y vencidas</p>
+            </div>
+            <div v-if="kpiLoading" class="flex items-center justify-center py-12">
+              <div class="w-5 h-5 border-2 border-primary-200 border-t-primary-500 rounded-full animate-spin"></div>
+            </div>
+            <div v-else-if="kpiData.kpis.length === 0" class="py-12 text-center">
+              <div class="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                <i class="fas fa-users text-slate-300 text-lg"></i>
+              </div>
+              <p class="text-xs text-slate-400 font-bold">Sin datos para el período seleccionado</p>
+            </div>
+            <div v-else class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div v-for="kpi in kpiData.kpis" :key="kpi.user._id"
+                class="border border-slate-100/80 rounded-xl p-4 hover:border-slate-200 hover:shadow-md transition-all bg-white/50">
+                <!-- Header -->
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-400 to-indigo-500 flex items-center justify-center text-white text-[10px] font-black shrink-0 shadow-sm">
+                    {{ kpi.user.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() }}
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <div class="text-xs font-black text-slate-800 truncate">{{ kpi.user.name }}</div>
+                    <div class="text-[10px] text-slate-400 font-bold truncate">{{ kpi.user.department || kpi.user.role }}</div>
+                  </div>
+                  <span class="text-xs font-black px-2.5 py-1 rounded-full shrink-0 border shadow-sm"
+                    :class="kpi.complianceRate >= 70 ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50' : kpi.complianceRate >= 40 ? 'bg-amber-50 text-amber-600 border-amber-100/50' : 'bg-red-50 text-red-600 border-red-100/50'">
+                    {{ kpi.complianceRate }}%
+                  </span>
+                </div>
+                <!-- Bar -->
+                <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden mb-3">
+                  <div class="h-full rounded-full transition-all duration-700"
+                    :class="kpi.complianceRate >= 70 ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' : kpi.complianceRate >= 40 ? 'bg-gradient-to-r from-amber-400 to-amber-500' : 'bg-gradient-to-r from-red-400 to-red-500'"
+                    :style="{ width: kpi.complianceRate + '%' }"></div>
+                </div>
+                <!-- Stats -->
+                <div class="grid grid-cols-4 gap-1 text-center">
+                  <div>
+                    <div class="text-sm font-black text-slate-800">{{ kpi.totalCompleted }}</div>
+                    <div class="text-[8px] font-black uppercase tracking-wider text-slate-400 mt-0.5">Hechas</div>
+                  </div>
+                  <div>
+                    <div class="text-sm font-black text-slate-600">{{ kpi.currentWorkload }}</div>
+                    <div class="text-[8px] font-black uppercase tracking-wider text-slate-400 mt-0.5">Pend.</div>
+                  </div>
+                  <div>
+                    <div class="text-sm font-black" :class="kpi.overdueCount > 0 ? 'text-red-500' : 'text-slate-300'">{{ kpi.overdueCount }}</div>
+                    <div class="text-[8px] font-black uppercase tracking-wider text-slate-400 mt-0.5">Venc.</div>
+                  </div>
+                  <div>
+                    <div class="text-sm font-black text-slate-500">{{ kpi.avgResolutionDays }}d</div>
+                    <div class="text-[8px] font-black uppercase tracking-wider text-slate-400 mt-0.5">Prom.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right: Overload alerts + Workload ranking -->
+        <div class="flex flex-col gap-4">
+
+          <!-- Overload Alerts -->
+          <div v-if="kpiOverloaded.length > 0"
+            class="bg-amber-50/80 backdrop-blur-xl rounded-2xl border border-amber-200/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-5 flex-shrink-0">
+            <div class="flex items-center gap-2 mb-3">
+              <div class="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center border border-amber-200/50">
+                <i class="fas fa-exclamation-triangle text-amber-600 text-xs"></i>
+              </div>
+              <div>
+                <h3 class="text-xs font-black text-amber-800">Sobrecarga Detectada</h3>
+                <p class="text-[10px] text-amber-600 font-bold">Personas con carga excesiva</p>
+              </div>
+            </div>
+            <div class="space-y-2">
+              <div v-for="m in kpiOverloaded" :key="m.user._id"
+                class="flex items-center justify-between p-2.5 bg-white/60 rounded-xl border border-amber-100/50">
+                <span class="text-xs font-bold text-amber-900 truncate">{{ m.user.name }}</span>
+                <div class="flex items-center gap-2 shrink-0">
+                  <span class="text-[10px] font-black text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">{{ m.currentWorkload }} pend.</span>
+                  <span v-if="m.overdueCount > 0" class="text-[10px] font-black text-red-600 bg-red-50 px-2 py-0.5 rounded-full">{{ m.overdueCount }} venc.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Workload Ranking -->
+          <div class="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-5 flex-shrink-0">
+            <h3 class="text-base font-black text-slate-800 tracking-tight mb-1">Ranking de Carga</h3>
+            <p class="text-xs text-slate-400 font-bold mb-4">Ordenado por tareas pendientes</p>
+            <div class="space-y-3">
+              <div v-for="(kpi, i) in kpiSortedByWorkload" :key="kpi.user._id"
+                class="flex items-center gap-3 p-2 -mx-2 hover:bg-slate-50/50 rounded-xl transition-colors">
+                <div class="w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-black shrink-0 shadow-inner"
+                  :class="i === 0 ? 'bg-gradient-to-br from-red-100 to-red-200 text-red-700 border border-red-300/50' : i === 1 ? 'bg-gradient-to-br from-amber-100 to-amber-200 text-amber-700 border border-amber-300/50' : 'bg-gradient-to-br from-slate-100 to-slate-200 text-slate-600 border border-slate-300/50'">
+                  {{ i + 1 }}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-xs font-extrabold text-slate-800 truncate">{{ kpi.user.name }}</p>
+                  <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden mt-1.5">
+                    <div class="h-full rounded-full bg-gradient-to-r from-primary-400 to-indigo-500 transition-all duration-700"
+                      :style="{ width: Math.min((kpi.currentWorkload / Math.max(...kpiSortedByWorkload.map(k => k.currentWorkload), 1)) * 100, 100) + '%' }"></div>
+                  </div>
+                </div>
+                <span class="text-sm font-black text-slate-700 shrink-0">{{ kpi.currentWorkload }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hours Worked -->
+          <div class="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-5 flex-shrink-0">
+            <h3 class="text-base font-black text-slate-800 tracking-tight mb-1">Horas Registradas</h3>
+            <p class="text-xs text-slate-400 font-bold mb-4">Tiempo invertido por persona</p>
+            <div class="space-y-2.5">
+              <div v-for="kpi in kpiSortedByHours" :key="'h'+kpi.user._id"
+                class="flex items-center justify-between py-1.5">
+                <span class="text-xs font-bold text-slate-600 truncate">{{ kpi.user.name }}</span>
+                <span class="text-sm font-black bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-indigo-500 shrink-0">{{ kpi.hoursWorked }}h</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </template><!-- end kpis tab -->
+
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick, computed } from 'vue'
+import { ref, onMounted, nextTick, computed, watch } from 'vue'
 import VueApexCharts from 'vue3-apexcharts'
 import { reportsService } from '../services/reportsService'
 import { useNotifications } from '../composables/useNotifications'
@@ -342,9 +587,12 @@ import type {
 } from '../services/reportsService'
 import { teamService } from '../services/teamService'
 import { clientService } from '../services/clientService'
-import { teamReportsService } from '../services/reportsService'
+import { teamReportsService, type KPIResponse, type TrendPoint } from '../services/reportsService'
 
 const { showError, showSuccess } = useNotifications()
+
+// ── Page Tab ──
+const activePageTab = ref<'reports' | 'kpis'>('reports')
 
 // Register apexchart component globally in script setup isn't strictly needed if we just use the imported component
 const apexchart = VueApexCharts
@@ -606,6 +854,68 @@ const refreshData = async () => {
   showSuccess('Reportes actualizados')
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// KPIs Tab
+// ═══════════════════════════════════════════════════════════════════════════
+
+const kpiPeriod = ref('month')
+const kpiLoading = ref(false)
+const kpiData = ref<KPIResponse>({ kpis: [], teamTotals: { totalItems: 0, totalCompleted: 0, avgCompliance: 0, avgResolution: 0, totalWorkload: 0, totalOverdue: 0, totalHours: 0 }, period: 'month', since: '' })
+const weeklyTrends = ref<TrendPoint[]>([])
+const monthlyTrends = ref<TrendPoint[]>([])
+const kpiTrendsLoading = ref(false)
+const kpiTrendTab = ref<'weekly' | 'monthly'>('weekly')
+
+const kpiPeriods = [
+  { value: 'week', label: 'Sem' },
+  { value: 'month', label: 'Mes' },
+  { value: 'quarter', label: 'Trim' },
+  { value: 'year', label: 'Año' },
+]
+
+const kpiStatCards = computed(() => {
+  const t = kpiData.value.teamTotals
+  return [
+    { label: 'Completadas', value: t.totalCompleted, valueColor: 'text-slate-900', icon: 'fa-check-circle', iconBg: 'bg-emerald-50 border-emerald-100', iconColor: 'text-emerald-600' },
+    { label: 'Cumplimiento', value: t.avgCompliance + '%', valueColor: t.avgCompliance >= 70 ? 'text-emerald-600' : t.avgCompliance >= 40 ? 'text-amber-600' : 'text-red-600', icon: 'fa-bullseye', iconBg: 'bg-blue-50 border-blue-100', iconColor: 'text-blue-600' },
+    { label: 'Resolución', value: t.avgResolution, suffix: 'días', valueColor: 'text-slate-900', icon: 'fa-clock', iconBg: 'bg-slate-100 border-slate-200', iconColor: 'text-slate-600' },
+    { label: 'Pendientes', value: t.totalWorkload, valueColor: 'text-slate-900', icon: 'fa-clipboard-list', iconBg: 'bg-amber-50 border-amber-100', iconColor: 'text-amber-600' },
+    { label: 'Vencidas', value: t.totalOverdue, valueColor: t.totalOverdue > 0 ? 'text-red-600' : 'text-slate-900', icon: 'fa-exclamation-triangle', iconBg: t.totalOverdue > 0 ? 'bg-red-50 border-red-100' : 'bg-slate-100 border-slate-200', iconColor: t.totalOverdue > 0 ? 'text-red-600' : 'text-slate-400' },
+    { label: 'Horas', value: t.totalHours, suffix: 'h', valueColor: 'text-slate-900', icon: 'fa-stopwatch', iconBg: 'bg-purple-50 border-purple-100', iconColor: 'text-purple-600' },
+  ]
+})
+
+const kpiOverloaded = computed(() => kpiData.value.kpis.filter(k => k.currentWorkload > 10 || k.overdueCount > 3))
+const kpiSortedByWorkload = computed(() => [...kpiData.value.kpis].sort((a, b) => b.currentWorkload - a.currentWorkload).slice(0, 8))
+const kpiSortedByHours = computed(() => [...kpiData.value.kpis].filter(k => k.hoursWorked > 0).sort((a, b) => b.hoursWorked - a.hoursWorked).slice(0, 8))
+const kpiCurrentTrend = computed(() => kpiTrendTab.value === 'weekly' ? weeklyTrends.value : monthlyTrends.value)
+
+function kpiTrendBarHeight(value: number) {
+  const max = Math.max(...kpiCurrentTrend.value.map(p => p.completed), 1)
+  return Math.max((value / max) * 100, 3) + '%'
+}
+
+async function fetchKPIs() {
+  kpiLoading.value = true
+  try {
+    kpiData.value = await teamReportsService.getKPIs(kpiPeriod.value)
+  } catch (e) { console.error('Error fetching KPIs:', e) }
+  finally { kpiLoading.value = false }
+}
+
+async function fetchKPITrends() {
+  kpiTrendsLoading.value = true
+  try {
+    const [w, m] = await Promise.all([
+      teamReportsService.getWeeklyTrends(),
+      teamReportsService.getMonthlyTrends(),
+    ])
+    weeklyTrends.value = w
+    monthlyTrends.value = m
+  } catch (e) { console.error('Error fetching trends:', e) }
+  finally { kpiTrendsLoading.value = false }
+}
+
 // ── Email Report Panel ──
 const reportEmail = ref('')
 const reportPeriod = ref('week')
@@ -671,6 +981,13 @@ async function saveSchedule() {
     console.error('Error saving schedule:', e)
   }
 }
+
+watch(activePageTab, (tab) => {
+  if (tab === 'kpis') {
+    if (kpiData.value.kpis.length === 0) fetchKPIs()
+    if (weeklyTrends.value.length === 0 && monthlyTrends.value.length === 0) fetchKPITrends()
+  }
+})
 
 onMounted(() => { loadData(); loadScheduleConfig() })
 </script>

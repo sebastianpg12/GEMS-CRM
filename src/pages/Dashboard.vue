@@ -11,22 +11,15 @@
         </span>
       </div>
       <div class="flex items-center gap-2">
-        <!-- Period selector -->
-        <div class="flex bg-white border border-slate-200 rounded-lg overflow-hidden">
-          <button v-for="p in periods" :key="p.value" @click="selectedPeriod = p.value"
-            class="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors"
-            :class="selectedPeriod === p.value ? 'bg-blue-500 text-white' : 'text-slate-500 hover:bg-slate-50'">
-            {{ p.label }}
-          </button>
-        </div>
-        <button @click="refreshAll" :disabled="isRefreshing"
+        <button @click="refreshData" :disabled="isRefreshing"
           class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-blue-500 hover:border-blue-200 hover:bg-blue-50 transition-colors disabled:opacity-50 shrink-0">
           <i class="fas fa-sync-alt text-[11px]" :class="{ 'animate-spin': isRefreshing }"></i>
         </button>
         <router-link v-if="authStore.canCreateActivities" to="/activities"
-          class="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg text-[12px] font-semibold shadow-sm shadow-blue-500/20 transition-all shrink-0">
+          class="flex items-center gap-1.5 px-3 sm:px-3.5 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg text-[12px] font-semibold shadow-sm shadow-blue-500/20 transition-all shrink-0">
           <i class="fas fa-plus text-[10px]"></i>
           <span class="hidden sm:inline">Nueva actividad</span>
+          <span class="sm:hidden">Nueva</span>
         </router-link>
       </div>
     </div>
@@ -41,139 +34,77 @@
       </p>
     </div>
 
-    <!-- ══ Team KPI Summary Cards ════════════════════════════════════ -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
-      <div v-for="card in teamStatCards" :key="card.label"
-        class="bg-white border border-slate-200 rounded-xl px-3.5 py-3">
-        <div class="flex items-center gap-2 mb-2">
-          <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" :class="card.iconBg">
-            <i :class="['fas', card.icon, card.iconColor, 'text-[11px]']"></i>
-          </div>
-          <span class="text-[9px] font-bold uppercase tracking-widest text-slate-400 truncate">{{ card.label }}</span>
+    <!-- ══ Quick actions row ══════════════════════════════════════════ -->
+    <div class="grid gap-2.5" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));">
+      <router-link v-for="qa in quickActions" :key="qa.label" :to="qa.to"
+        class="flex items-center gap-3 bg-white border border-slate-200 hover:shadow-md rounded-xl px-3.5 py-2.5 sm:px-4 sm:py-3 transition-all group"
+        :class="qa.hover">
+        <div class="w-9 h-9 rounded-lg flex items-center justify-center transition-colors shrink-0"
+          :class="qa.iconBg">
+          <i :class="['fas', qa.icon, qa.iconColor, 'text-[14px]']"></i>
         </div>
-        <div class="flex items-baseline gap-1">
-          <span class="text-xl font-bold leading-none" :class="card.valueColor">
-            {{ kpiLoading ? '—' : card.value }}
-          </span>
-          <span v-if="card.suffix" class="text-[10px] font-semibold text-slate-400">{{ card.suffix }}</span>
+        <span class="text-[12px] sm:text-[13px] font-semibold text-slate-800 truncate">{{ qa.label }}</span>
+      </router-link>
+    </div>
+
+    <!-- ══ Stats row ══════════════════════════════════════════════════ -->
+    <div class="grid gap-2.5" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));">
+      <div v-for="card in statCards" :key="card.label"
+        class="bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 sm:px-4 sm:py-3">
+        <div class="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1 sm:mb-1.5 truncate">{{ card.label }}</div>
+        <div class="flex items-end justify-between gap-2">
+          <div class="flex items-baseline gap-1.5 sm:gap-2 min-w-0">
+            <span class="text-xl sm:text-2xl xl:text-[26px] font-bold text-slate-900 leading-none">{{ card.value }}</span>
+            <span class="text-[10px] sm:text-[11px] font-semibold truncate" :class="card.tagColor">{{ card.tag }}</span>
+          </div>
+          <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center shrink-0" :class="card.iconBg">
+            <i :class="['fas', card.icon, card.iconColor, 'text-[12px] sm:text-[13px]']"></i>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- ══ Main grid: 2/3 + 1/3 ══════════════════════════════════════ -->
+    <!-- ══ Main grid ══════════════════════════════════════════════════ -->
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-3">
 
-      <!-- ── Left column ────────────────────────────────────────────── -->
+      <!-- ── Left: AI Insights + Agenda ─────────────────────────────── -->
       <div class="xl:col-span-2 flex flex-col gap-3">
 
-        <!-- Trend chart -->
-        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
-          <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-            <div>
-              <div class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Tendencias</div>
-              <div class="text-[13px] font-bold text-slate-900">Actividad del equipo</div>
-            </div>
-            <div class="flex bg-slate-100 rounded-lg overflow-hidden">
-              <button @click="trendTab = 'weekly'"
-                class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors"
-                :class="trendTab === 'weekly' ? 'bg-blue-500 text-white' : 'text-slate-500 hover:text-slate-700'">
-                Semanal
-              </button>
-              <button @click="trendTab = 'monthly'"
-                class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors"
-                :class="trendTab === 'monthly' ? 'bg-blue-500 text-white' : 'text-slate-500 hover:text-slate-700'">
-                Mensual
-              </button>
-            </div>
-          </div>
-          <div class="px-4 py-4">
-            <div v-if="trendsLoading" class="flex items-center justify-center py-12">
-              <div class="w-5 h-5 border-2 border-blue-200 border-t-blue-500 rounded-full animate-spin"></div>
-            </div>
-            <div v-else>
-              <!-- Bar chart -->
-              <div class="flex items-end gap-2 h-40 px-1">
-                <div v-for="(point, i) in currentTrend" :key="i"
-                  class="flex-1 flex flex-col items-center gap-1 min-w-0">
-                  <span class="text-[10px] font-bold text-slate-600 tabular-nums">{{ point.completed }}</span>
-                  <div class="w-full max-w-[48px] rounded-t-md transition-all duration-500 min-h-[4px] mx-auto"
-                    :class="trendTab === 'weekly' ? 'bg-gradient-to-t from-blue-500 to-blue-400' : 'bg-gradient-to-t from-indigo-500 to-indigo-400'"
-                    :style="{ height: trendBarHeight(point.completed) }">
-                  </div>
-                </div>
-              </div>
-              <div class="flex gap-2 mt-2 px-1">
-                <div v-for="(point, i) in currentTrend" :key="'l'+i"
-                  class="flex-1 text-center text-[9px] font-bold text-slate-400 uppercase tracking-wider truncate min-w-0">
-                  {{ point.label }}
-                </div>
-              </div>
-              <!-- Legend -->
-              <div class="flex items-center justify-center gap-4 mt-3">
-                <div class="flex items-center gap-1.5">
-                  <div class="w-2.5 h-2.5 rounded-sm" :class="trendTab === 'weekly' ? 'bg-blue-500' : 'bg-indigo-500'"></div>
-                  <span class="text-[10px] text-slate-500 font-semibold">Completadas</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <AIInsightsWidget />
 
-        <!-- KPIs per person — card layout instead of table -->
-        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
-          <div class="px-4 py-3 border-b border-slate-100">
-            <div class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Rendimiento</div>
-            <div class="text-[13px] font-bold text-slate-900">KPIs por persona</div>
+        <!-- Agenda -->
+        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden flex flex-col">
+          <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100 shrink-0">
+            <div>
+              <div class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Agenda</div>
+              <div class="text-[13px] font-bold text-slate-900">Actividades próximas</div>
+            </div>
+            <router-link to="/activities"
+              class="text-[12px] text-blue-500 hover:text-blue-600 font-semibold transition-colors">
+              Ver todas
+            </router-link>
           </div>
-          <div v-if="kpiLoading" class="flex items-center justify-center py-10">
-            <div class="w-5 h-5 border-2 border-blue-200 border-t-blue-500 rounded-full animate-spin"></div>
+          <div v-if="agendaActivities.length === 0" class="py-8">
+            <p class="text-[12px] text-slate-400 text-center">Sin actividades próximas</p>
           </div>
-          <div v-else-if="kpiData.kpis.length === 0" class="py-10 text-center">
-            <p class="text-[12px] text-slate-400">Sin datos para el período seleccionado</p>
-          </div>
-          <div v-else class="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            <div v-for="kpi in kpiData.kpis" :key="kpi.user._id"
-              class="border border-slate-100 rounded-xl p-3 hover:border-slate-200 hover:shadow-sm transition-all">
-              <!-- Header: avatar + name -->
-              <div class="flex items-center gap-2.5 mb-3">
-                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white text-[10px] font-bold shrink-0 shadow-sm">
-                  {{ kpi.user.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() }}
-                </div>
-                <div class="min-w-0 flex-1">
-                  <div class="text-[12px] font-bold text-slate-800 truncate">{{ kpi.user.name }}</div>
-                  <div class="text-[10px] text-slate-400 truncate">{{ kpi.user.department || kpi.user.role }}</div>
-                </div>
-                <!-- Compliance badge -->
-                <span class="text-[11px] font-bold px-2 py-0.5 rounded-full shrink-0"
-                  :class="kpi.complianceRate >= 70 ? 'bg-emerald-50 text-emerald-600' : kpi.complianceRate >= 40 ? 'bg-amber-50 text-amber-600' : 'bg-red-50 text-red-600'">
-                  {{ kpi.complianceRate }}%
+          <div v-else class="max-h-[420px] overflow-y-auto divide-y divide-slate-50">
+            <div v-for="act in agendaActivities" :key="act._id"
+              class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 hover:bg-slate-50/60 transition-colors">
+              <span class="w-2 h-2 rounded-full shrink-0"
+                :class="act.priority === 'urgent' ? 'bg-red-500' : act.priority === 'high' ? 'bg-orange-500' : 'bg-blue-500'"></span>
+              <div class="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center sm:gap-1.5">
+                <span class="text-[12px] font-semibold text-slate-800 truncate">{{ act.title }}</span>
+                <span class="text-[11px] sm:text-[12px] text-slate-400 truncate">
+                  <span class="hidden sm:inline">· </span>{{ clientsStore.clients.find(c => c._id === act.clientId)?.name || '—' }}
                 </span>
               </div>
-              <!-- Compliance bar -->
-              <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden mb-3">
-                <div class="h-full rounded-full transition-all duration-500"
-                  :class="complianceBarColor(kpi.complianceRate)"
-                  :style="{ width: kpi.complianceRate + '%' }"></div>
-              </div>
-              <!-- Stats row -->
-              <div class="grid grid-cols-4 gap-1 text-center">
-                <div>
-                  <div class="text-[13px] font-bold text-slate-800">{{ kpi.totalCompleted }}</div>
-                  <div class="text-[8px] font-bold uppercase tracking-wider text-slate-400">Hechas</div>
-                </div>
-                <div>
-                  <div class="text-[13px] font-bold text-slate-600">{{ kpi.currentWorkload }}</div>
-                  <div class="text-[8px] font-bold uppercase tracking-wider text-slate-400">Pend.</div>
-                </div>
-                <div>
-                  <div class="text-[13px] font-bold" :class="kpi.overdueCount > 0 ? 'text-red-500' : 'text-slate-300'">{{ kpi.overdueCount }}</div>
-                  <div class="text-[8px] font-bold uppercase tracking-wider text-slate-400">Venc.</div>
-                </div>
-                <div>
-                  <div class="text-[13px] font-bold text-slate-500">{{ kpi.avgResolutionDays }}d</div>
-                  <div class="text-[8px] font-bold uppercase tracking-wider text-slate-400">Prom.</div>
-                </div>
-              </div>
+              <span :class="['shrink-0 px-2 py-0.5 rounded text-[10px] font-semibold', agendaStatusClass(act)]">
+                {{ agendaStatusLabel(act) }}
+              </span>
+              <span class="shrink-0 hidden md:flex items-center gap-1 text-[11px] text-slate-500">
+                <i class="fas fa-clock text-red-400 text-[10px]"></i>
+                {{ formatDateShort(act.dueDate || act.date) }}
+              </span>
             </div>
           </div>
         </div>
@@ -181,7 +112,7 @@
       </div>
 
       <!-- ── Right column ─────────────────────────────────────────── -->
-      <div class="flex flex-col gap-3">
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-3">
 
         <!-- Ritmo del día -->
         <div class="bg-white border border-slate-200 rounded-xl px-4 py-3">
@@ -212,71 +143,20 @@
           </div>
         </div>
 
-        <!-- Alertas de equipo -->
-        <div v-if="overloadedMembers.length > 0" class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-          <div class="flex items-center gap-2 mb-2">
-            <i class="fas fa-exclamation-triangle text-amber-500 text-[12px]"></i>
-            <div class="text-[10px] font-bold uppercase tracking-widest text-amber-700">Sobrecarga detectada</div>
-          </div>
-          <div class="flex flex-col gap-1.5">
-            <div v-for="m in overloadedMembers" :key="m.user._id" class="flex items-center justify-between">
-              <span class="text-[12px] font-semibold text-amber-800 truncate">{{ m.user.name }}</span>
-              <div class="flex items-center gap-2 shrink-0">
-                <span class="text-[10px] text-amber-600 font-bold">{{ m.currentWorkload }} pend.</span>
-                <span v-if="m.overdueCount > 0" class="text-[10px] text-red-500 font-bold">{{ m.overdueCount }} venc.</span>
-              </div>
+        <!-- Pulso comercial -->
+        <div class="bg-white border border-slate-200 rounded-xl px-4 py-3">
+          <div class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Pulso comercial</div>
+          <div class="text-[13px] font-bold text-slate-900 mb-3">Dónde atacar primero</div>
+          <div class="flex flex-col gap-2.5">
+            <div v-for="(item, i) in pulsoItems" :key="i" class="flex items-start gap-2.5">
+              <i :class="['fas', item.icon, item.color, 'text-[11px] mt-0.5 shrink-0']"></i>
+              <span class="text-[12px] text-slate-700 leading-snug">{{ item.text }}</span>
             </div>
           </div>
         </div>
 
-        <!-- Agenda — compact card list -->
-        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden flex-1">
-          <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-            <div>
-              <div class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Agenda</div>
-              <div class="text-[13px] font-bold text-slate-900">Próximas actividades</div>
-            </div>
-            <router-link to="/activities" class="text-[11px] text-blue-500 hover:text-blue-600 font-semibold transition-colors">
-              Ver todas
-            </router-link>
-          </div>
-          <div v-if="agendaActivities.length === 0" class="py-8 text-center">
-            <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center mx-auto mb-2">
-              <i class="fas fa-calendar-check text-slate-300"></i>
-            </div>
-            <p class="text-[11px] text-slate-400 font-semibold">Sin actividades próximas</p>
-          </div>
-          <div v-else class="max-h-[400px] overflow-y-auto">
-            <div v-for="act in agendaActivities" :key="act._id"
-              class="px-4 py-2.5 border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors">
-              <div class="flex items-start gap-2.5">
-                <!-- Priority dot -->
-                <div class="mt-1.5 shrink-0">
-                  <span class="block w-2 h-2 rounded-full"
-                    :class="act.priority === 'urgent' ? 'bg-red-500' : act.priority === 'high' ? 'bg-orange-500' : 'bg-blue-400'"></span>
-                </div>
-                <!-- Content -->
-                <div class="flex-1 min-w-0">
-                  <div class="text-[12px] font-semibold text-slate-800 truncate leading-tight">{{ act.title }}</div>
-                  <div class="flex items-center gap-2 mt-1">
-                    <span class="text-[10px] text-slate-400 truncate">{{ clientsStore.clients.find(c => c._id === act.clientId)?.name || '—' }}</span>
-                    <span class="text-slate-200">·</span>
-                    <span class="text-[10px] text-slate-400 shrink-0">
-                      <i class="fas fa-clock text-[8px] mr-0.5"></i>{{ formatDateShort(act.dueDate || act.date) }}
-                    </span>
-                  </div>
-                </div>
-                <!-- Status badge -->
-                <span :class="['shrink-0 px-2 py-0.5 rounded text-[9px] font-bold', agendaStatusClass(act)]">
-                  {{ agendaStatusLabel(act) }}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Nota de foco -->
-        <div class="bg-gradient-to-br from-indigo-900 to-violet-900 rounded-xl px-4 py-3.5 text-white relative overflow-hidden">
+        <!-- Nota de foco (dark) -->
+        <div class="sm:col-span-2 xl:col-span-1 bg-gradient-to-br from-indigo-900 to-violet-900 rounded-xl px-4 py-3.5 text-white relative overflow-hidden">
           <div class="absolute -top-8 -right-8 w-28 h-28 bg-violet-400/10 rounded-full blur-2xl pointer-events-none"></div>
           <div class="relative">
             <div class="flex items-center gap-2 mb-1.5">
@@ -295,10 +175,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useClientsStore, useActivitiesStore, useIssuesStore, useTeamStore } from '../stores'
-import { teamReportsService, type KPIResponse, type TrendPoint } from '../services/reportsService'
+import AIInsightsWidget from '../components/AIInsightsWidget.vue'
 
 const authStore = useAuthStore()
 const clientsStore = useClientsStore()
@@ -307,21 +187,6 @@ const issuesStore = useIssuesStore()
 const teamStore = useTeamStore()
 
 const isRefreshing = ref(false)
-const selectedPeriod = ref('month')
-const trendTab = ref<'weekly' | 'monthly'>('weekly')
-
-// KPI data
-const kpiLoading = ref(true)
-const kpiData = ref<KPIResponse>({ kpis: [], teamTotals: { totalItems: 0, totalCompleted: 0, avgCompliance: 0, avgResolution: 0, totalWorkload: 0, totalOverdue: 0, totalHours: 0 }, period: 'month', since: '' })
-const weeklyTrends = ref<TrendPoint[]>([])
-const monthlyTrends = ref<TrendPoint[]>([])
-const trendsLoading = ref(true)
-
-const periods = [
-  { value: 'week', label: 'Sem' },
-  { value: 'month', label: 'Mes' },
-  { value: 'quarter', label: 'Trim' },
-]
 
 const firstName = computed(() => authStore.user?.name?.split(' ')[0] || 'Usuario')
 const userRoleLabel = computed(() => ({
@@ -354,36 +219,64 @@ const highPriorityCount = computed(() =>
   ).length
 )
 const criticalCount = computed(() => overdueCount.value + todayCount.value)
+
+const activeActivities = computed(() =>
+  activitiesStore.activities.filter((a: any) => a.status !== 'completed' && a.status !== 'cancelled').length
+)
+const openCases = computed(() =>
+  issuesStore.issues.filter((i: any) => i.status === 'open').length
+)
+const pendingTickets = computed(() =>
+  issuesStore.issues.filter((i: any) => i.status === 'pending' || i.status === 'in-progress').length
+)
 const focusProgress = computed(() => {
   const total = activitiesStore.activities.length
   if (!total) return 0
   return Math.round(activitiesStore.activities.filter((a: any) => a.status === 'completed').length / total * 100)
 })
 
-// Team stat cards
-const teamStatCards = computed(() => {
-  const t = kpiData.value.teamTotals
-  return [
-    { label: 'Completadas', value: t.totalCompleted, valueColor: 'text-slate-900', icon: 'fa-check-circle', iconBg: 'bg-green-50', iconColor: 'text-green-500' },
-    { label: 'Cumplimiento', value: t.avgCompliance + '%', valueColor: t.avgCompliance >= 70 ? 'text-emerald-600' : t.avgCompliance >= 40 ? 'text-amber-600' : 'text-red-600', icon: 'fa-bullseye', iconBg: 'bg-blue-50', iconColor: 'text-blue-500' },
-    { label: 'Resolución', value: t.avgResolution, suffix: 'días', valueColor: 'text-slate-900', icon: 'fa-clock', iconBg: 'bg-slate-100', iconColor: 'text-slate-500' },
-    { label: 'Pendientes', value: t.totalWorkload, valueColor: 'text-slate-900', icon: 'fa-clipboard-list', iconBg: 'bg-amber-50', iconColor: 'text-amber-500' },
-    { label: 'Vencidas', value: t.totalOverdue, valueColor: t.totalOverdue > 0 ? 'text-red-600' : 'text-slate-900', icon: 'fa-exclamation-triangle', iconBg: t.totalOverdue > 0 ? 'bg-red-50' : 'bg-slate-100', iconColor: t.totalOverdue > 0 ? 'text-red-500' : 'text-slate-400' },
-    { label: 'Horas', value: t.totalHours, suffix: 'h', valueColor: 'text-slate-900', icon: 'fa-stopwatch', iconBg: 'bg-purple-50', iconColor: 'text-purple-500' },
+const quickActions = computed(() => {
+  const all = [
+    { label: 'Nuevo cliente', to: '/clients', icon: 'fa-user-plus', iconBg: 'bg-blue-50 group-hover:bg-blue-100', iconColor: 'text-blue-500', hover: 'hover:border-blue-200', can: authStore.canCreateClients },
+    { label: 'Nueva actividad', to: '/activities', icon: 'fa-plus-circle', iconBg: 'bg-green-50 group-hover:bg-green-100', iconColor: 'text-green-500', hover: 'hover:border-green-200', can: authStore.canCreateActivities },
+    { label: 'Revisar tickets', to: '/tickets', icon: 'fa-ticket-alt', iconBg: 'bg-slate-100 group-hover:bg-slate-200', iconColor: 'text-slate-600', hover: 'hover:border-slate-300', can: authStore.canViewCases },
+    { label: 'Nuevo caso', to: '/cases', icon: 'fa-exclamation-circle', iconBg: 'bg-orange-50 group-hover:bg-orange-100', iconColor: 'text-orange-500', hover: 'hover:border-orange-200', can: authStore.canCreateCases },
+    { label: 'Gestionar equipo', to: '/team', icon: 'fa-users-cog', iconBg: 'bg-purple-50 group-hover:bg-purple-100', iconColor: 'text-purple-500', hover: 'hover:border-purple-200', can: authStore.canCreateTeam },
   ]
+  return all.filter(a => a.can)
 })
 
-const overloadedMembers = computed(() =>
-  kpiData.value.kpis.filter(k => k.currentWorkload > 10 || k.overdueCount > 3)
-)
-
-const currentTrend = computed(() => trendTab.value === 'weekly' ? weeklyTrends.value : monthlyTrends.value)
+const statCards = computed(() => {
+  const all = [
+    { label: 'Clientes', value: clientsStore.clients.length, tag: 'Base', tagColor: 'text-blue-500', icon: 'fa-users', iconBg: 'bg-blue-50', iconColor: 'text-blue-500', can: authStore.canViewClients },
+    { label: 'Actividades', value: activeActivities.value, tag: 'Activas', tagColor: 'text-green-500', icon: 'fa-clipboard-list', iconBg: 'bg-green-50', iconColor: 'text-green-500', can: authStore.canViewActivities },
+    { label: 'Casos', value: openCases.value, tag: 'Abiertos', tagColor: 'text-red-500', icon: 'fa-exclamation-triangle', iconBg: 'bg-red-50', iconColor: 'text-red-500', can: authStore.canViewCases },
+    { label: 'Tickets', value: pendingTickets.value, tag: 'Pendientes', tagColor: 'text-red-500', icon: 'fa-ticket-alt', iconBg: 'bg-slate-100', iconColor: 'text-slate-600', can: authStore.canViewCases },
+    { label: 'Equipo', value: teamStore.members.length, tag: 'Activos', tagColor: 'text-purple-500', icon: 'fa-user-friends', iconBg: 'bg-purple-50', iconColor: 'text-purple-500', can: authStore.canViewTeam },
+  ]
+  return all.filter(s => s.can)
+})
 
 const agendaActivities = computed(() => {
-  return [...activitiesStore.activities]
+  const list = [...activitiesStore.activities]
     .filter((a: any) => a.status !== 'completed' && a.status !== 'cancelled')
     .sort((a: any, b: any) => new Date(a.dueDate || a.date).getTime() - new Date(b.dueDate || b.date).getTime())
-    .slice(0, 10)
+  return list.slice(0, 20)
+})
+
+const pulsoItems = computed(() => {
+  const items: { icon: string; color: string; text: string }[] = []
+  if (overdueCount.value > 0)
+    items.push({ icon: 'fa-bolt', color: 'text-amber-500', text: 'Recupera primero las actividades vencidas antes de abrir nuevos frentes.' })
+  if (pendingTickets.value > 0 || openCases.value > 0) {
+    const n = pendingTickets.value + openCases.value
+    items.push({ icon: 'fa-chart-bar', color: 'text-slate-500', text: `${n} ${n === 1 ? 'caso/ticket activo puede afectar' : 'casos/tickets activos pueden afectar'} experiencia de clientes.` })
+  }
+  if (highPriorityCount.value > 0)
+    items.push({ icon: 'fa-check-circle', color: 'text-emerald-500', text: 'Ataca actividades urgentes o de alta prioridad en bloque.' })
+  if (items.length === 0)
+    items.push({ icon: 'fa-check-circle', color: 'text-emerald-500', text: 'Todo bajo control. Aprovecha para planear la siguiente semana.' })
+  return items
 })
 
 const focusNote = computed(() => {
@@ -391,20 +284,6 @@ const focusNote = computed(() => {
     return 'Prioriza seguimientos con fecha, casos abiertos y tickets sin resolver. El dashboard debe servir para decidir, no para decorar.'
   return 'Aprovecha esta calma para revisar pipeline, planear seguimientos y consolidar relaciones con clientes clave.'
 })
-
-// ── Helpers ──
-
-function complianceBarColor(rate: number) {
-  if (rate >= 70) return 'bg-emerald-500'
-  if (rate >= 40) return 'bg-amber-500'
-  return 'bg-red-500'
-}
-
-function trendBarHeight(value: number) {
-  const max = Math.max(...currentTrend.value.map(p => p.completed), 1)
-  const pct = Math.max((value / max) * 100, 3)
-  return `${pct}%`
-}
 
 const agendaStatusLabel = (a: any) => {
   const d = new Date(a.dueDate || a.date); d.setHours(0, 0, 0, 0)
@@ -424,43 +303,15 @@ const formatDateShort = (d?: string) => {
   const date = new Date(d)
   const day = date.getDate()
   const month = date.toLocaleString('es', { month: 'short' }).replace('.', '')
-  return `${day} ${month}`
+  const time = date.toLocaleTimeString('es', { hour: 'numeric', minute: '2-digit', hour12: true }).toLowerCase()
+  return `${day} de ${month}, ${time}`
 }
 
-// ── Data fetching ──
-
-async function fetchKPIs() {
-  kpiLoading.value = true
-  try {
-    kpiData.value = await teamReportsService.getKPIs(selectedPeriod.value)
-  } catch (e) {
-    console.error('Error fetching KPIs:', e)
-  } finally {
-    kpiLoading.value = false
-  }
-}
-
-async function fetchTrends() {
-  trendsLoading.value = true
-  try {
-    const [w, m] = await Promise.all([
-      teamReportsService.getWeeklyTrends(),
-      teamReportsService.getMonthlyTrends(),
-    ])
-    weeklyTrends.value = w
-    monthlyTrends.value = m
-  } catch (e) {
-    console.error('Error fetching trends:', e)
-  } finally {
-    trendsLoading.value = false
-  }
-}
-
-async function refreshAll() {
+const refreshData = async () => {
   if (isRefreshing.value) return
   isRefreshing.value = true
   try {
-    const ps: Promise<any>[] = [fetchKPIs(), fetchTrends()]
+    const ps: Promise<any>[] = []
     if (authStore.canViewClients) ps.push(clientsStore.fetchClients())
     if (authStore.canViewActivities) ps.push(activitiesStore.fetchActivities())
     if (authStore.canViewCases) ps.push(issuesStore.fetchIssues())
@@ -469,12 +320,9 @@ async function refreshAll() {
   } finally { isRefreshing.value = false }
 }
 
-watch(selectedPeriod, () => fetchKPIs())
-
-// ── Init ──
 onMounted(async () => {
   try {
-    const ps: Promise<any>[] = [fetchKPIs(), fetchTrends()]
+    const ps: Promise<any>[] = []
     if (authStore.canViewClients) ps.push(clientsStore.fetchClients())
     if (authStore.canViewActivities) ps.push(activitiesStore.fetchActivities())
     if (authStore.canViewCases) ps.push(issuesStore.fetchIssues())
