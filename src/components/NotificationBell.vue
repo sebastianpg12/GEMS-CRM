@@ -1,31 +1,31 @@
 <template>
-  <div ref="bellRoot" class="relative">
-    <!-- Botón campana -->
+  <div ref="bellRoot" class="fixed bottom-4 right-24 z-50">
+    <!-- Botón campana flotante (circular, igual estilo que el ChatWidget) -->
     <button
       type="button"
       @click.stop="toggleDropdown"
-      class="relative p-2 text-slate-400 hover:text-primary-600 transition-colors"
+      class="relative bg-gradient-to-br from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white p-4 rounded-full shadow-lg shadow-primary-300/30 transition-all duration-300 hover:scale-105 active:scale-95"
       title="Notificaciones"
     >
-      <i class="fas fa-bell text-xl" :class="unreadCount > 0 ? 'text-primary-500 animate-wiggle' : ''"></i>
+      <i class="fas fa-bell text-xl" :class="unreadCount > 0 ? 'animate-wiggle' : ''"></i>
       <span
         v-if="unreadCount > 0"
-        class="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 bg-rose-600 text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white"
+        class="absolute -top-1.5 -right-1.5 min-w-[22px] h-[22px] px-1 bg-rose-500 text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white shadow"
       >{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
     </button>
 
-    <!-- Dropdown -->
+    <!-- Dropdown abre hacia arriba -->
     <Transition
-      enter-active-class="transition ease-out duration-150"
-      enter-from-class="opacity-0 translate-y-1"
-      enter-to-class="opacity-100 translate-y-0"
-      leave-active-class="transition ease-in duration-100"
-      leave-from-class="opacity-100"
-      leave-to-class="opacity-0"
+      enter-active-class="transition ease-out duration-200"
+      enter-from-class="opacity-0 translate-y-2 scale-95"
+      enter-to-class="opacity-100 translate-y-0 scale-100"
+      leave-active-class="transition ease-in duration-150"
+      leave-from-class="opacity-100 scale-100"
+      leave-to-class="opacity-0 scale-95"
     >
       <div
         v-if="open"
-        class="absolute right-0 mt-2 w-96 max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-50"
+        class="absolute right-0 bottom-full mb-3 w-96 max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden origin-bottom-right"
       >
         <!-- Header -->
         <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/40">

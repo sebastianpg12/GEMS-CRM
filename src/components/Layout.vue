@@ -151,9 +151,6 @@
         <div class="flex items-center space-x-2 sm:space-x-4 flex-shrink-0 mt-2 sm:mt-0">
           <OnlineUsersPopover />
 
-          <!-- Notification Bell -->
-          <NotificationBell />
-
           <!-- Chat Unread Badge -->
           <router-link to="/chat" class="relative p-2 text-slate-400 hover:text-primary-600 transition-colors">
             <ChatBubbleLeftRightIcon class="w-6 h-6" />
@@ -173,6 +170,9 @@
   <!-- Chat Widget -->
   <ChatWidget />
   <NewMessageToast />
+
+  <!-- Notification Bell flotante (inferior derecha, junto al chat) -->
+  <NotificationBell />
     
     <!-- Notifications Panel - REMOVED for Azure-style task system -->
   </div>
